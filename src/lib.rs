@@ -1,6 +1,6 @@
 mod aes256;
 // mod api;
-// mod cbd;
+mod cbd;
 mod params;
 mod poly;
 
