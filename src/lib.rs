@@ -11,6 +11,7 @@ mod reduce;
 mod rng;
 mod sha;
 mod symmetric;
+mod verify;
 
 
 #[cfg(test)]
