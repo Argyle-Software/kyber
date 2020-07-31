@@ -1,6 +1,9 @@
 use crate::{
   params::*,
-  // ntt::*
+  ntt::*,
+  reduce::*,
+  cbd::*,
+  symmetric::*
 };
 pub struct Poly {
   pub coeffs: [i16; KYBER_N]  
@@ -144,7 +147,7 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
 
 pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
 {
-  polycsubq(&mut a);
+  poly_csubq(&mut a);
   let (mut t0, mut t1) = (0i16, 0i16);
 
   for i in 0..(KYBER_N/2) {
@@ -241,8 +244,17 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
   for i in 0..(KYBER_N/4) {
     
-    basemul(r.coeffs[4*i..], a.coeffs[4*i..], b.coeffs[4*i..], zetas[64 + i]);
-    basemul(r.coeffs[4*i+2..], a.coeffs[4*i+2..], b.coeffs[4*i+2..], -zetas[64 + i]);
+    basemul(
+      &mut r.coeffs[4*i..], 
+      &mut a.coeffs[4*i..],
+      &mut b.coeffs[4*i..], 
+      zetas[64 + i]
+    );
+    basemul(
+      &mut r.coeffs[4*i+2..], 
+      &mut a.coeffs[4*i+2..],
+      &mut b.coeffs[4*i+2..],
+-(zetas[64 + i]));
   }
 }
 
@@ -305,7 +317,7 @@ pub fn poly_csubq(r: &mut Poly)
 *            - const poly *a: pointer to first input polynomial
 *            - const poly *b: pointer to second input polynomial
 **************************************************/
-pub fn poly_add(r: &mut Poly, a: &Poly, b: Poly)
+pub fn poly_add(r: &mut Poly, a: &Poly, b: &Poly)
 {
   for i in 0..KYBER_N {
     r.coeffs[i] = a.coeffs[i] + b.coeffs[i];
