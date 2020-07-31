@@ -5,6 +5,7 @@ mod fips202;
 mod indcpa;
 mod params;
 mod poly;
+mod ntt;
 
 
 #[cfg(test)]
