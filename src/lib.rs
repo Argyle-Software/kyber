@@ -8,6 +8,9 @@ mod poly;
 mod polyvec;
 mod ntt;
 mod reduce;
+mod rng;
+mod sha;
+mod symmetric;
 
 
 #[cfg(test)]
