@@ -7,6 +7,7 @@ mod params;
 mod poly;
 mod polyvec;
 mod ntt;
+mod reduce;
 
 
 #[cfg(test)]
