@@ -6,6 +6,19 @@ pub struct Poly {
   pub coeffs: [i16; KYBER_N]  
 }
 
+impl Default for Poly {
+  fn default() -> Self {
+    Poly {
+      coeffs: [0i16; KYBER_N]
+    }
+  }
+}
+
+impl Poly {
+  pub fn new() -> Self {
+    Self::default()
+  }
+}
 /*************************************************
 * Name:        poly_compress
 *

@@ -2,6 +2,7 @@ mod aes256;
 // mod api;
 mod cbd;
 mod fips202;
+mod indcpa;
 mod params;
 mod poly;
 
