@@ -1,4 +1,3 @@
-#![allow(clippy::needless_range_loop)]
 use crate::{
   poly::*,
   polyvec::*,

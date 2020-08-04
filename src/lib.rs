@@ -1,4 +1,5 @@
-#![allow(dead_code, clippy::many_single_char_names)]
+#![allow(dead_code, clippy::many_single_char_names, clippy::needless_range_loop)]
+
 mod aes256;
 mod api;
 mod cbd;
