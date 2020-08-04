@@ -78,7 +78,7 @@ pub const zetas_inv: [i16; 128] = [
 **************************************************/
 pub fn fqmul(a: i16, b: i16) -> i16 
 {
-  montgomery_reduce(a as i32 *b)
+  montgomery_reduce(a as i32 * b as i32)
 }
 
 
