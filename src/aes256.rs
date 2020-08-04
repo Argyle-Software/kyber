@@ -1,15 +1,15 @@
 
-pub struct aes256xof_ctx {
-  sk_exp: [u64; 120],
-  ivw: [u32; 16]
+pub struct Aes256xofCtx {
+  pub sk_exp: [u64; 120],
+  pub ivw: [u32; 16]
 }
 
 fn br_dec32le(src: &[u8]) -> u32
 {
-	return src[0] as u32
+	src[0] as u32
 		| (src[1] as u32) << 8
 		| (src[2] as u32) << 16
-		| (src[3] as u32) << 24;
+		| (src[3] as u32) << 24
 }
 
 fn br_range_dec32le(v: &mut [u32], mut num: usize, src: &[u8])
@@ -28,7 +28,7 @@ fn br_range_dec32le(v: &mut [u32], mut num: usize, src: &[u8])
 fn br_swap32(mut x: u32) -> u32
 {
 	x = ((x & 0x00FF00FFu32 ) << 8) | ((x >> 8) & 0x00FF00FFu32);
-	return (x << 16) | (x >> 16);
+	(x << 16) | (x >> 16)
 }
 
 fn  br_enc32le(dst: &mut [u8], x: u32) 
@@ -47,10 +47,11 @@ fn br_range_enc32le(dst: &mut [u8], v: &mut [u32], mut num: usize)
     br_enc32le(&mut dst[dst_idx..], v[v_idx]);
     v_idx += 1;
     dst_idx += 4;
+    num -= 1;
   }
 }
 
-fn br_aes_ct64_bitslice_Sbox(q: &mut [u64])
+fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 {
   	/*
 	 * This S-box implementation is a straightforward translation of
@@ -230,12 +231,12 @@ fn swapn(cl: u64, ch: u64, s: usize, x: u64, y: &mut u64) -> u64
   let a = x;
   let b = *y;
   *y = ((a & ch) >> (s)) | (b & ch); // update y
-  return (a & cl) | ((b & cl) << s) // return x
+  (a & cl) | ((b & cl) << s) // return x
 }
 
 fn swap2(x: u64, y: &mut u64) -> u64
 {
-  return swapn(0x5555555555555555u64, 0xAAAAAAAAAAAAAAAAu64, 1, x, y)
+  swapn(0x5555555555555555u64, 0xAAAAAAAAAAAAAAAAu64, 1, x, y)
 }
 
 fn swap4(x: u64, y: &mut u64) -> u64
@@ -317,13 +318,13 @@ fn br_aes_ct64_interleave_out(w: &mut[u32], q0: u64, q1: u64)
 	w[3] = x3 as u32 | (x3 >> 16) as u32 ;
 }
 
-const Rcon: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
+const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 
 fn sub_word(x: u32) -> u32 {
   let mut q = [0u64; 8];
   q[0] = x.into();
   br_aes_ct64_ortho(&mut q);
-	br_aes_ct64_bitslice_Sbox(&mut q);
+	br_aes_ct64_bitslice_sbox(&mut q);
   br_aes_ct64_ortho(&mut q);
   q[0] as u32
 }
@@ -331,7 +332,6 @@ fn sub_word(x: u32) -> u32 {
 fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
 {
   let (mut j, mut k) = (0usize, 0usize);
-  let mut tmp = 0u32;
   let mut skey = [0u32; 60];
 
   let key_len = 32usize;
@@ -339,11 +339,11 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
   let nk = key_len >> 2;
 	let nkf = (14 + 1) << 2;
 	br_range_dec32le(&mut skey, (key_len >> 2) as usize, key);
-  tmp = skey[(key_len >> 2) - 1];
+  let mut tmp = skey[(key_len >> 2) - 1];
   for i in nk..nkf {
     if j == 0 {
       tmp = (tmp << 24) | (tmp >> 8);
-			tmp = sub_word(tmp) ^ Rcon[k] as u32;
+			tmp = sub_word(tmp) ^ RCON[k] as u32;
     } else if nk > 6 && j == 4 {
       tmp = sub_word(tmp);
     }
@@ -358,7 +358,7 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
 
   j = 0;
   let skey_idx = 0;
-  for i in (0..nkf).step_by(4) {
+  for _ in (0..nkf).step_by(4) {
     let mut q = [0u64; 8];
 
     // TODO: Confirm q modified and skey indx correct
@@ -371,7 +371,7 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
 		q[6] = q[4];
 		q[7] = q[4];
     br_aes_ct64_ortho(&mut q);
-    comp_skey[j + 0] =
+    comp_skey[j] =
         (q[0] & 0x1111111111111111)
       | (q[1] & 0x2222222222222222)
       | (q[2] & 0x4444444444444444)
@@ -386,10 +386,10 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
 
 fn br_aes_ct64_skey_expand(skey: &mut[u64], comp_skey: &[u64]) 
 {
-  let n = (14 + 1) << 1;
+  let n = 15 << 1;
   let mut v = 0;
-  for u in 0..n {
-    let (mut x0, mut x1, mut x2, mut x3) = (comp_skey[u], comp_skey[u], comp_skey[u], comp_skey[u]);
+  for u in comp_skey.iter().take(n) {
+    let (mut x0, mut x1, mut x2, mut x3) = (*u, *u, *u, *u);
     x0 &= 0x1111111111111111;
 		x1 &= 0x2222222222222222;
 		x2 &= 0x4444444444444444;
@@ -397,7 +397,7 @@ fn br_aes_ct64_skey_expand(skey: &mut[u64], comp_skey: &[u64])
 		x1 >>= 1;
 		x2 >>= 2;
 		x3 >>= 3;
-		skey[v + 0] = (x0 << 4) - x0;
+		skey[v    ] = (x0 << 4) - x0;
 		skey[v + 1] = (x1 << 4) - x1;
 		skey[v + 2] = (x2 << 4) - x2;
     skey[v + 3] = (x3 << 4) - x3;
@@ -484,13 +484,13 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
 
   add_round_key(&mut q, sk_exp);
   for i in 0..14 {
-    br_aes_ct64_bitslice_Sbox(&mut q);
+    br_aes_ct64_bitslice_sbox(&mut q);
     shift_rows(&mut q);
     mix_columns(&mut q);
     add_round_key(&mut q, &sk_exp[i..]);
   }
 
-  br_aes_ct64_bitslice_Sbox(&mut q);
+  br_aes_ct64_bitslice_sbox(&mut q);
   shift_rows(&mut q);
   // TODO: Check correct 
   add_round_key(&mut q, &sk_exp[14..]);
@@ -587,7 +587,7 @@ pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
 *              - unsigned char y:           second additional byte to "absorb"
 **************************************************/
 
-pub fn aes256xof_absorb(s: &mut aes256xof_ctx, key: &[u8], x: u8, y: u8)
+pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
 {
   let mut skey = [0u64; 30];
   let mut iv = [0u8; 12];
@@ -609,7 +609,7 @@ pub fn aes256xof_absorb(s: &mut aes256xof_ctx, key: &[u8], x: u8, y: u8)
   s.ivw[15] = br_swap32(3);  
 }
 
-pub fn aes256xof_squeezeblocks(out: &mut[u8], mut nblocks: u64, s: &mut aes256xof_ctx)
+pub fn aes256xof_squeezeblocks(out: &mut[u8], mut nblocks: u64, s: &mut Aes256xofCtx)
 {
 let mut idx = 0;
   while nblocks > 0 {
