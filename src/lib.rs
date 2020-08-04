@@ -1,5 +1,6 @@
+#![allow(dead_code, clippy::many_single_char_names)]
 mod aes256;
-// mod api;
+mod api;
 mod cbd;
 mod fips202;
 mod indcpa;
