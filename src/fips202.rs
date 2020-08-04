@@ -42,10 +42,16 @@ pub fn load64(x: &[u8]) -> u64
 **************************************************/
 pub fn store64(x: &mut[u8], mut u: u64)
 {
-  for i in 0..8 {
-    x[i] = u as u8;
+  // TODO: Benchmark idiomatic rust with reference version
+  for i in x.iter_mut().take(8) {
+    *i = u as u8;
     u >>= 8;
   }
+
+  // for i in 0..8 {
+  //   x[i] = u as u8;
+  //   u >>= 8;
+  // }
 }
 
 /* Keccak round constants */
@@ -87,266 +93,253 @@ const KECCAKF_ROUNDCONSTANTS: [u64; NROUNDS] = [
 **************************************************/
 pub fn keccakf1600_statepermute(state: &mut[u64])
 {
-  let (mut Aba, mut Abe, mut Abi, mut Abo, mut Abu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Aga, mut Age, mut Agi, mut Ago, mut Agu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Aka, mut Ake, mut Aki, mut Ako, mut Aku) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Ama, mut Ame, mut Ami, mut Amo, mut Amu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Asa, mut Ase, mut Asi, mut Aso, mut Asu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut BCa, mut BCe, mut BCi, mut BCo, mut BCu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Da, mut De, mut Di, mut Do, mut Du) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Eba, mut Ebe, mut Ebi, mut Ebo, mut Ebu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Ega, mut Ege, mut Egi, mut Ego, mut Egu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Eka, mut Eke, mut Eki, mut Eko, mut Eku) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Ema, mut Eme, mut Emi, mut Emo, mut Emu) = (0u64,0u64, 0u64,0u64,0u64,);
-  let (mut Esa, mut Ese, mut Esi, mut Eso, mut Esu) = (0u64,0u64, 0u64,0u64,0u64,);
-
   //copyFromState(A, state)
- let mut Aba = state[ 0];
- let mut Abe = state[ 1];
- let mut Abi = state[ 2];
- let mut Abo = state[ 3];
- let mut Abu = state[ 4];
- let mut Aga = state[ 5];
- let mut Age = state[ 6];
- let mut Agi = state[ 7];
- let mut Ago = state[ 8];
- let mut Agu = state[ 9];
- let mut Aka = state[10];
- let mut Ake = state[11];
- let mut Aki = state[12];
- let mut Ako = state[13];
- let mut Aku = state[14];
- let mut Ama = state[15];
- let mut Ame = state[16];
- let mut Ami = state[17];
- let mut Amo = state[18];
- let mut Amu = state[19];
- let mut Asa = state[20];
- let mut Ase = state[21];
- let mut Asi = state[22];
- let mut Aso = state[23];
- let mut Asu = state[24];
+ let mut aba = state[ 0];
+ let mut abe = state[ 1];
+ let mut abi = state[ 2];
+ let mut abo = state[ 3];
+ let mut abu = state[ 4];
+ let mut aga = state[ 5];
+ let mut age = state[ 6];
+ let mut agi = state[ 7];
+ let mut ago = state[ 8];
+ let mut agu = state[ 9];
+ let mut aka = state[10];
+ let mut ake = state[11];
+ let mut aki = state[12];
+ let mut ako = state[13];
+ let mut aku = state[14];
+ let mut ama = state[15];
+ let mut ame = state[16];
+ let mut ami = state[17];
+ let mut amo = state[18];
+ let mut amu = state[19];
+ let mut asa = state[20];
+ let mut ase = state[21];
+ let mut asi = state[22];
+ let mut aso = state[23];
+ let mut asu = state[24];
 
   for round in (0..NROUNDS).step_by(2) {
     //    prepareTheta
-    BCa = Aba^Aga^Aka^Ama^Asa;
-    BCe = Abe^Age^Ake^Ame^Ase;
-    BCi = Abi^Agi^Aki^Ami^Asi;
-    BCo = Abo^Ago^Ako^Amo^Aso;
-    BCu = Abu^Agu^Aku^Amu^Asu;
+    let mut bca = aba^aga^aka^ama^asa;
+    let mut bce = abe^age^ake^ame^ase;
+    let mut bci = abi^agi^aki^ami^asi;
+    let mut bco = abo^ago^ako^amo^aso;
+    let mut bcu = abu^agu^aku^amu^asu;
 
     //thetaRhoPiChiIotaPrepareTheta(round  , A, E)
-    Da = BCu^rol(BCe, 1);
-    De = BCa^rol(BCi, 1);
-    Di = BCe^rol(BCo, 1);
-    Do = BCi^rol(BCu, 1);
-    Du = BCo^rol(BCa, 1);
+    let mut da = bcu^rol(bce, 1);
+    let mut de = bca^rol(bci, 1);
+    let mut di = bce^rol(bco, 1);
+    let mut d_o = bci^rol(bcu, 1);
+    let mut du = bco^rol(bca, 1);
 
-    Aba ^= Da;
-    BCa = Aba;
-    Age ^= De;
-    BCe = rol(Age, 44);
-    Aki ^= Di;
-    BCi = rol(Aki, 43);
-    Amo ^= Do;
-    BCo = rol(Amo, 21);
-    Asu ^= Du;
-    BCu = rol(Asu, 14);
-    Eba =   BCa ^((!BCe)&  BCi );
-    Eba ^= KECCAKF_ROUNDCONSTANTS[round];
-    Ebe =   BCe ^((!BCi)&  BCo );
-    Ebi =   BCi ^((!BCo)&  BCu );
-    Ebo =   BCo ^((!BCu)&  BCa );
-    Ebu =   BCu ^((!BCa)&  BCe );
+    aba ^= da;
+    bca = aba;
+    age ^= de;
+    bce = rol(age, 44);
+    aki ^= di;
+    bci = rol(aki, 43);
+    amo ^= d_o;
+    bco = rol(amo, 21);
+    asu ^= du;
+    bcu = rol(asu, 14);
+    let mut eba =   bca ^((!bce)&  bci );
+    eba ^= KECCAKF_ROUNDCONSTANTS[round];
+    let mut ebe =   bce ^((!bci)&  bco );
+    let mut ebi =   bci ^((!bco)&  bcu );
+    let mut ebo =   bco ^((!bcu)&  bca );
+    let mut ebu =   bcu ^((!bca)&  bce );
 
-    Abo ^= Do;
-    BCa = rol(Abo, 28);
-    Agu ^= Du;
-    BCe = rol(Agu, 20);
-    Aka ^= Da;
-    BCi = rol(Aka,  3);
-    Ame ^= De;
-    BCo = rol(Ame, 45);
-    Asi ^= Di;
-    BCu = rol(Asi, 61);
-    Ega =   BCa ^((!BCe)&  BCi );
-    Ege =   BCe ^((!BCi)&  BCo );
-    Egi =   BCi ^((!BCo)&  BCu );
-    Ego =   BCo ^((!BCu)&  BCa );
-    Egu =   BCu ^((!BCa)&  BCe );
+    abo ^= d_o;
+    bca = rol(abo, 28);
+    agu ^= du;
+    bce = rol(agu, 20);
+    aka ^= da;
+    bci = rol(aka,  3);
+    ame ^= de;
+    bco = rol(ame, 45);
+    asi ^= di;
+    bcu = rol(asi, 61);
+    let mut ega =   bca ^((!bce)&  bci );
+    let mut ege =   bce ^((!bci)&  bco );
+    let mut egi =   bci ^((!bco)&  bcu );
+    let mut ego =   bco ^((!bcu)&  bca );
+    let mut egu =   bcu ^((!bca)&  bce );
 
-    Abe ^= De;
-    BCa = rol(Abe,  1);
-    Agi ^= Di;
-    BCe = rol(Agi,  6);
-    Ako ^= Do;
-    BCi = rol(Ako, 25);
-    Amu ^= Du;
-    BCo = rol(Amu,  8);
-    Asa ^= Da;
-    BCu = rol(Asa, 18);
-    Eka =   BCa ^((!BCe)&  BCi );
-    Eke =   BCe ^((!BCi)&  BCo );
-    Eki =   BCi ^((!BCo)&  BCu );
-    Eko =   BCo ^((!BCu)&  BCa );
-    Eku =   BCu ^((!BCa)&  BCe );
+    abe ^= de;
+    bca = rol(abe,  1);
+    agi ^= di;
+    bce = rol(agi,  6);
+    ako ^= d_o;
+    bci = rol(ako, 25);
+    amu ^= du;
+    bco = rol(amu,  8);
+    asa ^= da;
+    bcu = rol(asa, 18);
+    let mut eka =   bca ^((!bce)&  bci );
+    let mut eke =   bce ^((!bci)&  bco );
+    let mut eki =   bci ^((!bco)&  bcu );
+    let mut eko =   bco ^((!bcu)&  bca );
+    let mut eku =   bcu ^((!bca)&  bce );
 
-    Abu ^= Du;
-    BCa = rol(Abu, 27);
-    Aga ^= Da;
-    BCe = rol(Aga, 36);
-    Ake ^= De;
-    BCi = rol(Ake, 10);
-    Ami ^= Di;
-    BCo = rol(Ami, 15);
-    Aso ^= Do;
-    BCu = rol(Aso, 56);
-    Ema =   BCa ^((!BCe)&  BCi );
-    Eme =   BCe ^((!BCi)&  BCo );
-    Emi =   BCi ^((!BCo)&  BCu );
-    Emo =   BCo ^((!BCu)&  BCa );
-    Emu =   BCu ^((!BCa)&  BCe );
+    abu ^= du;
+    bca = rol(abu, 27);
+    aga ^= da;
+    bce = rol(aga, 36);
+    ake ^= de;
+    bci = rol(ake, 10);
+    ami ^= di;
+    bco = rol(ami, 15);
+    aso ^= d_o;
+    bcu = rol(aso, 56);
+    let mut ema =   bca ^((!bce)&  bci );
+    let mut eme =   bce ^((!bci)&  bco );
+    let mut emi =   bci ^((!bco)&  bcu );
+    let mut emo =   bco ^((!bcu)&  bca );
+    let mut emu =   bcu ^((!bca)&  bce );
 
-    Abi ^= Di;
-    BCa = rol(Abi, 62);
-    Ago ^= Do;
-    BCe = rol(Ago, 55);
-    Aku ^= Du;
-    BCi = rol(Aku, 39);
-    Ama ^= Da;
-    BCo = rol(Ama, 41);
-    Ase ^= De;
-    BCu = rol(Ase,  2);
-    Esa =   BCa ^((!BCe)&  BCi );
-    Ese =   BCe ^((!BCi)&  BCo );
-    Esi =   BCi ^((!BCo)&  BCu );
-    Eso =   BCo ^((!BCu)&  BCa );
-    Esu =   BCu ^((!BCa)&  BCe );
+    abi ^= di;
+    bca = rol(abi, 62);
+    ago ^= d_o;
+    bce = rol(ago, 55);
+    aku ^= du;
+    bci = rol(aku, 39);
+    ama ^= da;
+    bco = rol(ama, 41);
+    ase ^= de;
+    bcu = rol(ase,  2);
+    let mut esa =   bca ^((!bce)&  bci );
+    let mut ese =   bce ^((!bci)&  bco );
+    let mut esi =   bci ^((!bco)&  bcu );
+    let mut eso =   bco ^((!bcu)&  bca );
+    let mut esu =   bcu ^((!bca)&  bce );
 
     //    prepareTheta
-    BCa = Eba^Ega^Eka^Ema^Esa;
-    BCe = Ebe^Ege^Eke^Eme^Ese;
-    BCi = Ebi^Egi^Eki^Emi^Esi;
-    BCo = Ebo^Ego^Eko^Emo^Eso;
-    BCu = Ebu^Egu^Eku^Emu^Esu;
+    bca = eba^ega^eka^ema^esa;
+    bce = ebe^ege^eke^eme^ese;
+    bci = ebi^egi^eki^emi^esi;
+    bco = ebo^ego^eko^emo^eso;
+    bcu = ebu^egu^eku^emu^esu;
 
     //thetaRhoPiChiIotaPrepareTheta(round+1, E, A)
-    Da = BCu^rol(BCe, 1);
-    De = BCa^rol(BCi, 1);
-    Di = BCe^rol(BCo, 1);
-    Do = BCi^rol(BCu, 1);
-    Du = BCo^rol(BCa, 1);
+    da = bcu^rol(bce, 1);
+    de = bca^rol(bci, 1);
+    di = bce^rol(bco, 1);
+    d_o = bci^rol(bcu, 1);
+    du = bco^rol(bca, 1);
 
-    Eba ^= Da;
-    BCa = Eba;
-    Ege ^= De;
-    BCe = rol(Ege, 44);
-    Eki ^= Di;
-    BCi = rol(Eki, 43);
-    Emo ^= Do;
-    BCo = rol(Emo, 21);
-    Esu ^= Du;
-    BCu = rol(Esu, 14);
-    Aba =   BCa ^((!BCe)&  BCi );
-    Aba ^= KECCAKF_ROUNDCONSTANTS[round+1];
-    Abe =   BCe ^((!BCi)&  BCo );
-    Abi =   BCi ^((!BCo)&  BCu );
-    Abo =   BCo ^((!BCu)&  BCa );
-    Abu =   BCu ^((!BCa)&  BCe );
+    eba ^= da;
+    bca = eba;
+    ege ^= de;
+    bce = rol(ege, 44);
+    eki ^= di;
+    bci = rol(eki, 43);
+    emo ^= d_o;
+    bco = rol(emo, 21);
+    esu ^= du;
+    bcu = rol(esu, 14);
+    aba =   bca ^((!bce)&  bci );
+    aba ^= KECCAKF_ROUNDCONSTANTS[round+1];
+    abe =   bce ^((!bci)&  bco );
+    abi =   bci ^((!bco)&  bcu );
+    abo =   bco ^((!bcu)&  bca );
+    abu =   bcu ^((!bca)&  bce );
 
-    Ebo ^= Do;
-    BCa = rol(Ebo, 28);
-    Egu ^= Du;
-    BCe = rol(Egu, 20);
-    Eka ^= Da;
-    BCi = rol(Eka, 3);
-    Eme ^= De;
-    BCo = rol(Eme, 45);
-    Esi ^= Di;
-    BCu = rol(Esi, 61);
-    Aga =   BCa ^((!BCe)&  BCi );
-    Age =   BCe ^((!BCi)&  BCo );
-    Agi =   BCi ^((!BCo)&  BCu );
-    Ago =   BCo ^((!BCu)&  BCa );
-    Agu =   BCu ^((!BCa)&  BCe );
+    ebo ^= d_o;
+    bca = rol(ebo, 28);
+    egu ^= du;
+    bce = rol(egu, 20);
+    eka ^= da;
+    bci = rol(eka, 3);
+    eme ^= de;
+    bco = rol(eme, 45);
+    esi ^= di;
+    bcu = rol(esi, 61);
+    aga =   bca ^((!bce)&  bci );
+    age =   bce ^((!bci)&  bco );
+    agi =   bci ^((!bco)&  bcu );
+    ago =   bco ^((!bcu)&  bca );
+    agu =   bcu ^((!bca)&  bce );
 
-    Ebe ^= De;
-    BCa = rol(Ebe, 1);
-    Egi ^= Di;
-    BCe = rol(Egi, 6);
-    Eko ^= Do;
-    BCi = rol(Eko, 25);
-    Emu ^= Du;
-    BCo = rol(Emu, 8);
-    Esa ^= Da;
-    BCu = rol(Esa, 18);
-    Aka =   BCa ^((!BCe)&  BCi );
-    Ake =   BCe ^((!BCi)&  BCo );
-    Aki =   BCi ^((!BCo)&  BCu );
-    Ako =   BCo ^((!BCu)&  BCa );
-    Aku =   BCu ^((!BCa)&  BCe );
+    ebe ^= de;
+    bca = rol(ebe, 1);
+    egi ^= di;
+    bce = rol(egi, 6);
+    eko ^= d_o;
+    bci = rol(eko, 25);
+    emu ^= du;
+    bco = rol(emu, 8);
+    esa ^= da;
+    bcu = rol(esa, 18);
+    aka =   bca ^((!bce)&  bci );
+    ake =   bce ^((!bci)&  bco );
+    aki =   bci ^((!bco)&  bcu );
+    ako =   bco ^((!bcu)&  bca );
+    aku =   bcu ^((!bca)&  bce );
 
-    Ebu ^= Du;
-    BCa = rol(Ebu, 27);
-    Ega ^= Da;
-    BCe = rol(Ega, 36);
-    Eke ^= De;
-    BCi = rol(Eke, 10);
-    Emi ^= Di;
-    BCo = rol(Emi, 15);
-    Eso ^= Do;
-    BCu = rol(Eso, 56);
-    Ama =   BCa ^((!BCe)&  BCi );
-    Ame =   BCe ^((!BCi)&  BCo );
-    Ami =   BCi ^((!BCo)&  BCu );
-    Amo =   BCo ^((!BCu)&  BCa );
-    Amu =   BCu ^((!BCa)&  BCe );
+    ebu ^= du;
+    bca = rol(ebu, 27);
+    ega ^= da;
+    bce = rol(ega, 36);
+    eke ^= de;
+    bci = rol(eke, 10);
+    emi ^= di;
+    bco = rol(emi, 15);
+    eso ^= d_o;
+    bcu = rol(eso, 56);
+    ama =   bca ^((!bce)&  bci );
+    ame =   bce ^((!bci)&  bco );
+    ami =   bci ^((!bco)&  bcu );
+    amo =   bco ^((!bcu)&  bca );
+    amu =   bcu ^((!bca)&  bce );
 
-    Ebi ^= Di;
-    BCa = rol(Ebi, 62);
-    Ego ^= Do;
-    BCe = rol(Ego, 55);
-    Eku ^= Du;
-    BCi = rol(Eku, 39);
-    Ema ^= Da;
-    BCo = rol(Ema, 41);
-    Ese ^= De;
-    BCu = rol(Ese, 2);
-    Asa =   BCa ^((!BCe)&  BCi );
-    Ase =   BCe ^((!BCi)&  BCo );
-    Asi =   BCi ^((!BCo)&  BCu );
-    Aso =   BCo ^((!BCu)&  BCa );
-    Asu =   BCu ^((!BCa)&  BCe );
+    ebi ^= di;
+    bca = rol(ebi, 62);
+    ego ^= d_o;
+    bce = rol(ego, 55);
+    eku ^= du;
+    bci = rol(eku, 39);
+    ema ^= da;
+    bco = rol(ema, 41);
+    ese ^= de;
+    bcu = rol(ese, 2);
+    asa =   bca ^((!bce)&  bci );
+    ase =   bce ^((!bci)&  bco );
+    asi =   bci ^((!bco)&  bcu );
+    aso =   bco ^((!bcu)&  bca );
+    asu =   bcu ^((!bca)&  bce );
   } 
 
-  state[ 0] = Aba;
-  state[ 1] = Abe;
-  state[ 2] = Abi;
-  state[ 3] = Abo;
-  state[ 4] = Abu;
-  state[ 5] = Aga;
-  state[ 6] = Age;
-  state[ 7] = Agi;
-  state[ 8] = Ago;
-  state[ 9] = Agu;
-  state[10] = Aka;
-  state[11] = Ake;
-  state[12] = Aki;
-  state[13] = Ako;
-  state[14] = Aku;
-  state[15] = Ama;
-  state[16] = Ame;
-  state[17] = Ami;
-  state[18] = Amo;
-  state[19] = Amu;
-  state[20] = Asa;
-  state[21] = Ase;
-  state[22] = Asi;
-  state[23] = Aso;
-  state[24] = Asu;
+  state[ 0] = aba;
+  state[ 1] = abe;
+  state[ 2] = abi;
+  state[ 3] = abo;
+  state[ 4] = abu;
+  state[ 5] = aga;
+  state[ 6] = age;
+  state[ 7] = agi;
+  state[ 8] = ago;
+  state[ 9] = agu;
+  state[10] = aka;
+  state[11] = ake;
+  state[12] = aki;
+  state[13] = ako;
+  state[14] = aku;
+  state[15] = ama;
+  state[16] = ame;
+  state[17] = ami;
+  state[18] = amo;
+  state[19] = amu;
+  state[20] = asa;
+  state[21] = ase;
+  state[22] = asi;
+  state[23] = aso;
+  state[24] = asu;
 }
 
-fn MIN(a: u64, b: u64) -> u64 {
+fn min(a: u64, b: u64) -> u64 {
   std::cmp::min(a, b)
 }
 
@@ -363,13 +356,13 @@ fn MIN(a: u64, b: u64) -> u64 {
 *              - unsigned long long mlen: length of input in bytes
 *              - unsigned char p:         domain-separation byte for different Keccak-derived functions
 **************************************************/
-pub fn keccak_absorb(s: &mut[u64], mut r: usize, m: &[u8], mut mlen: u64, p: u8)
+pub fn keccak_absorb(s: &mut[u64], r: usize, m: &[u8], mut mlen: u64, p: u8)
 {
   let mut t = [0u8; 200];
 
   // Zero State
-  for i in 0..25 {
-    s[i] = 0;
+  for i in s.iter_mut() {
+    *i = 0;
   }
 
   let mut idx = 0usize;
@@ -382,12 +375,11 @@ pub fn keccak_absorb(s: &mut[u64], mut r: usize, m: &[u8], mut mlen: u64, p: u8)
     idx += r;
   }
 
-  for i in 0..r {
-    t[i] = 0;
+  for i in t.iter_mut() {
+    *i = 0;
   }
-  for i in 0..mlen as usize {
-    t[i] = m[i];
-  }
+
+  t[..mlen as usize].clone_from_slice(&m[..mlen as usize]);
   t[mlen as usize] = p;
   t[r - 1] |= 128;
   for i in 0..(r/8) {
@@ -432,9 +424,9 @@ pub fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: u64, s: &mut [u64], r: usi
 *              - const unsigned char *input:      pointer to input to be absorbed into s
 *              - unsigned long long inputByteLen: length of input in bytes
 **************************************************/
-pub fn shake128_absorb(s: &mut[u64], input: &[u8], inputByteLen: u64)
+pub fn shake128_absorb(s: &mut[u64], input: &[u8], inputbyte_len: u64)
 {
-  keccak_absorb(s, SHAKE128_RATE, input, inputByteLen, 0x1F);
+  keccak_absorb(s, SHAKE128_RATE, input, inputbyte_len, 0x1F);
 }
 
 
@@ -465,7 +457,7 @@ pub fn shake128_squeezeblocks(output: &mut[u8], nblocks: u64, s: &mut[u64])
                - const unsigned char *input: pointer to input
                - unsigned long long inlen:   length of input in bytes
 **************************************************/
-pub fn shake256(output: &mut[u8], mut outlen: u64, input: &[u8], inlen: u64)
+pub fn shake256(output: &mut[u8], outlen: u64, input: &[u8], inlen: u64)
 {
   let mut s = [0u64; 25];
   let mut t = [0u8; SHAKE256_RATE];
@@ -476,16 +468,16 @@ pub fn shake256(output: &mut[u8], mut outlen: u64, input: &[u8], inlen: u64)
 
     /* Squeeze output */
     keccak_squeezeblocks(output, nblocks, &mut s, SHAKE256_RATE);
-    let mut idx =0;
-    idx += nblocks as usize *SHAKE256_RATE;
-    outlen -= nblocks *SHAKE256_RATE as u64;
+    
+    // TODO: redundant array indexing?? outlen never exceeds SHAE256_RATE
+    // let mut idx =0;
+    // idx += nblocks as usize *SHAKE256_RATE;
+    // outlen -= nblocks *SHAKE256_RATE as u64;
 
     if outlen > 0
     {
       keccak_squeezeblocks(&mut t, 1, &mut s, SHAKE256_RATE);
-      for i in 0..outlen as usize {
-        output[i] = t[i];
-      }
+      output[..outlen as usize].clone_from_slice(&t[..outlen as usize])
     }
 }
 
@@ -504,15 +496,13 @@ pub fn sha3_256(output: &mut [u8], input: &[u8], inlen: usize)
   let mut s =[0u64; 25];
   let mut t = [0u8; SHA3_256_RATE];
 
-    /* Absorb input */
-    keccak_absorb(&mut s, SHA3_256_RATE, input, inlen as u64, 0x06);
+  /* Absorb input */
+  keccak_absorb(&mut s, SHA3_256_RATE, input, inlen as u64, 0x06);
 
-    /* Squeeze output */
-    keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_256_RATE);
+  /* Squeeze output */
+  keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_256_RATE);
 
-    for i in 0..32 {
-      output[i] = t[i];
-    }
+  output[..32].clone_from_slice(&t[..32])
 }
 
 /*************************************************
@@ -534,8 +524,6 @@ pub fn sha3_512(output: &mut [u8], input: &[u8], inlen: usize) {
     /* Squeeze output */
     keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_512_RATE);
 
-    for i in 0..64 {
-      output[i] = t[i];
-    }
+    output[..64].clone_from_slice(&t[..64])
 }
 
