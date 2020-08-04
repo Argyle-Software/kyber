@@ -166,7 +166,7 @@ pub fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
   const MAXNBLOCKS: usize = (530+XOF_BLOCKBYTES)/XOF_BLOCKBYTES; /* 530 is expected number of required bytes */
   let mut buf = [0u8; XOF_BLOCKBYTES*MAXNBLOCKS+1];
 
-  let mut state = xof_state::new();
+  let mut state = XofState::new();
 
   for i in 0..KYBER_K {
     for j in 0..KYBER_K {

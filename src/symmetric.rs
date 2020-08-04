@@ -7,19 +7,19 @@ use crate::{
 pub const XOF_BLOCKBYTES: usize = 168;
 
 #[derive(Copy, Clone)]
-pub struct keccak_state {
+pub struct KeccakState {
   pub s: [u64; 25]
 }
 
-impl keccak_state {
+impl KeccakState {
   pub fn new() -> Self {
-    Self {
+    KeccakState {
       s: [0u64; 25]
     }
   }
 }
 
-pub type xof_state = keccak_state;
+pub type XofState = KeccakState;
 
 pub fn hash_h(out: &mut[u8], input: &[u8], inbytes: usize)
 {
@@ -32,12 +32,12 @@ pub fn hash_g(out: &mut[u8], input: &[u8], inbytes: usize)
   sha512(out, input, inbytes);
 }
 
-pub fn xof_absorb(state: &mut keccak_state, input: &[u8], x: u8, y: u8)
+pub fn xof_absorb(state: &mut KeccakState, input: &[u8], x: u8, y: u8)
 {
   kyber_shake128_absorb(state, &input, x, y);
 }
 
-pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: &mut keccak_state)
+pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: &mut KeccakState)
 {
   kyber_shake128_squeezeblocks(out, outblocks, state);
 }
@@ -63,7 +63,7 @@ pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
 *              - unsigned char j                  additional byte of input
 **************************************************/
 pub fn kyber_shake128_absorb(
-  s: &mut keccak_state,
+  s: &mut KeccakState,
   input: &[u8],
   x: u8,
   y: u8
@@ -91,7 +91,7 @@ pub fn kyber_shake128_absorb(
 pub fn kyber_shake128_squeezeblocks(
   output: &mut[u8], 
   nblocks: u64,
-  s: &mut keccak_state 
+  s: &mut KeccakState 
 )
 {
   
