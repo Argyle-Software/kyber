@@ -40,10 +40,10 @@ pub fn montgomery_reduce(a: i32) -> i16
 pub fn barrett_reduce(a: i16) -> i16 
 {
   let v = ((1u32 << 26)/KYBER_Q as u32 + 1) as i32;
-  let t = v * a as i32;
+  let mut t = v * a as i32;
   t >>= 26;
   t *= KYBER_Q as i32;
-  return a - t as i16
+  a - t as i16
 }
 
 
@@ -56,7 +56,7 @@ pub fn barrett_reduce(a: i16) -> i16
 *
 * Returns:     a - q if a >= q, else a
 **************************************************/
-pub fn csubq(a: i16) -> i16 
+pub fn csubq(mut a: i16) -> i16 
 {
   a -= KYBER_Q as i16;
   a += (a >> 15) & KYBER_Q as i16;

@@ -2,9 +2,13 @@ use crate::{
   poly::*,
   params::*
 };
+
+#[derive(Clone)]
 pub struct Polyvec {
-  vec: [Poly; KYBER_K]
+  pub vec: [Poly; KYBER_K]
 }
+
+impl Copy for Polyvec {}
 
 impl Polyvec {
   pub fn new() -> Self {
@@ -24,10 +28,10 @@ impl Polyvec {
 **************************************************/
 pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
 {
-  polyvec_csubq(&mut a);
+  polyvec_csubq(a);
 
   if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
-    let t = [0u16; 8];
+    let mut t = [0u16; 8];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/8 {
@@ -50,7 +54,7 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
       idx += 352;
     }
   } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
-    let t = [0u16; 4];
+    let mut t = [0u16; 4];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/4 {
@@ -81,19 +85,12 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
 * Arguments:   - polyvec *r:       pointer to output vector of polynomials
 *              - unsigned char *a: pointer to input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
 **************************************************/
-pub fn polyvec_decompress(r: &mut Polyvec, a: &mut[u8]) 
+pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) 
 {
   if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/8 {
-
-        // let a1 = (a[11*j+ 1] & 0x07) as u32;
-        // let a2 = a1 << 8;
-        // let a3 = a2 * KYBER_Q as u32;
-        // let a4 = a3 + 1024;
-        // let a5 = (a4 >> 11) as u8;
-
         r.vec[i].coeffs[8*j+0] = ((((a[idx+11*j+ 0] as u32        | (((a[idx+11*j+ 1] & 0x07) as u32) << 8)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+1] = (((((a[idx+11*j+ 1] >> 3) as u32 | (((a[idx+11*j+ 2] & 0x3f) as u32) << 5)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+2] = (((((a[idx+11*j+ 2] >> 6) as u32 | (((a[idx+11*j+ 3] & 0xff) as u32) << 2)) | (((a[idx+11*j+ 4] as u32 & 0x01) << 10)) * KYBER_Q as u32) + 1024) >> 11) as i16;
@@ -135,6 +132,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &mut[u8])
 **************************************************/
 pub fn polyvec_tobytes(r: &mut[u8], a: &mut Polyvec)
 {
+  // TODO: No need for mutable poly ref  - poly.rs polyvec.rs - toindcpa.rs 
   for i in 0..KYBER_K {
     poly_tobytes(&mut r[i*KYBER_POLYBYTES..], &mut a.vec[i]);
   }
@@ -203,7 +201,7 @@ pub fn polyvec_pointwise_acc(r: &mut Poly, a: &Polyvec, b: &Polyvec)
   poly_basemul(r, &a.vec[0], &b.vec[0]);
   for i in 0..KYBER_K {
     poly_basemul(&mut t, &a.vec[i], &b.vec[i]);
-    poly_add(r, r, t);
+    poly_add(r, &t);
   }
   poly_reduce(r);
 }
@@ -252,9 +250,9 @@ pub fn polyvec_csubq(r: &mut Polyvec)
 *            - const polyvec *a: pointer to first input vector of polynomials
 *            - const polyvec *b: pointer to second input vector of polynomials
 **************************************************/
-pub fn polyvec_add(r: &mut Polyvec, a: &Polyvec, b: &Polyvec)
+pub fn polyvec_add(r: &mut Polyvec, b: &Polyvec)
 {
   for i in 0..KYBER_K {
-    poly_add(&mut r.vec[i], &a.vec[i], &b.vec[i]);
+    poly_add(&mut r.vec[i], &b.vec[i]);
   }
 }
