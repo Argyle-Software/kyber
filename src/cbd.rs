@@ -1,5 +1,6 @@
 use crate::poly::*;
 use crate::params::{KYBER_ETA, KYBER_N};
+use std::num::Wrapping;
 
 /*************************************************
 * Name:        load32_littleendian
@@ -14,11 +15,11 @@ use crate::params::{KYBER_ETA, KYBER_N};
 
 pub fn load32_littleendian(x: &[u8]) -> u32 
 {
-  let mut r = x[0];
-  r |= x[1] << 8;
-  r |= x[2] << 16;
-  r |= x[3] << 24;
-  r as u32
+  let mut r = Wrapping(x[0]);
+  r |= Wrapping(x[1]) << 8;
+  r |= Wrapping(x[2]) << 16;
+  r |= Wrapping(x[3]) << 24;
+  r.0 as u32 
 }
 
 /*************************************************
