@@ -38,7 +38,7 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
         for k in 0..8 {
           t[k] = (((((a.vec[i].coeffs[8*j+k] as u32) << 11) + KYBER_Q as u32/2) / KYBER_Q as u32) & 0x7ff) as u16;
         }
-        r[idx+11*j+ 0] =  (t[0] & 0xff) as u8;
+        r[idx+11*j   ] =  (t[0] & 0xff) as u8;
         r[idx+11*j+ 1] = ((t[0] >>  8) | ((t[1] & 0x1f) << 3)) as u8;
         r[idx+11*j+ 2] = ((t[1] >>  5) | ((t[2] & 0x03) << 6)) as u8;
         r[idx+11*j+ 3] = ((t[2] >>  2) & 0xff) as u8;
@@ -48,7 +48,7 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
         r[idx+11*j+ 7] = ((t[5] >>  1) & 0xff) as u8;
         r[idx+11*j+ 8] = ((t[5] >>  9) | ((t[6] & 0x3f) << 2)) as u8;
         r[idx+11*j+ 9] = ((t[6] >>  6) | ((t[7] & 0x07) << 5)) as u8;
-        r[idx+11*j+10] = ((t[7] >>  3)) as u8;
+        r[idx+11*j+10] = (t[7] >>  3) as u8;
       }
       // TODO: Confirm indexing is correct
       idx += 352;
@@ -61,17 +61,17 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
         for k in 0..4 {
           t[k] = (((((a.vec[i].coeffs[4*j+k] as u32) << 10) + KYBER_Q as u32/2) / KYBER_Q as u32) & 0x3ff) as u16;
         }
-        r[idx+5*j+ 0] =  (t[0] & 0xff) as u8;
+        r[idx+5*j   ] =  (t[0] & 0xff) as u8;
         r[idx+5*j+ 1] = ((t[0] >>  8) | ((t[1] & 0x3f) << 2)) as u8;
         r[idx+5*j+ 2] = ((t[1] >>  6) | ((t[2] & 0x0f) << 4)) as u8;
         r[idx+5*j+ 3] = ((t[2] >>  4) | ((t[3] & 0x03) << 6)) as u8;
-        r[idx+5*j+ 4] = ((t[3] >>  2)) as u8;
+        r[idx+5*j+ 4] = (t[3] >>  2) as u8;
       }
       // TODO: Confirm indexing is correct
       idx += 320;
     }
   } else {
-    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in {320*KYBER_K, 352*KYBER_K}");
+    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in (320*KYBER_K, 352*KYBER_K)");
   }
 }
 
@@ -91,7 +91,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/8 {
-        r.vec[i].coeffs[8*j+0] = ((((a[idx+11*j+ 0] as u32        | (((a[idx+11*j+ 1] & 0x07) as u32) << 8)) * KYBER_Q as u32) + 1024) >> 11) as i16;
+        r.vec[i].coeffs[8*j  ] = ((((a[idx+11*j    ] as u32        | (((a[idx+11*j+ 1] & 0x07) as u32) << 8)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+1] = (((((a[idx+11*j+ 1] >> 3) as u32 | (((a[idx+11*j+ 2] & 0x3f) as u32) << 5)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+2] = (((((a[idx+11*j+ 2] >> 6) as u32 | (((a[idx+11*j+ 3] & 0xff) as u32) << 2)) | (((a[idx+11*j+ 4] as u32 & 0x01) << 10)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+3] = (((((a[idx+11*j+ 4] >> 1) as u32 | (((a[idx+11*j+ 5] & 0x0f) as u32) << 7)) * KYBER_Q as u32) + 1024) >> 11) as i16;
@@ -100,7 +100,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         r.vec[i].coeffs[8*j+6] = (((((a[idx+11*j+ 8] >> 2) as u32 | (((a[idx+11*j+ 9] & 0x1f) as u32) << 6)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+7] = (((((a[idx+11*j+ 9] >> 5) as u32 | (((a[idx+11*j+10] & 0xff) as u32) << 3)) * KYBER_Q as u32) + 1024) >> 11) as i16;
       }
-      // TODO: Confirm indexing is correct
+    // TODO: Confirm indexing is correct
     idx += 352;
     }
   } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
@@ -108,16 +108,16 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/4 {
-        r.vec[i].coeffs[4*j+0] =  ((((a[idx+5*j+ 0] as u32       | (((a[idx+5*j+ 1] & 0x03) as u32) << 8)) * KYBER_Q as u32) + 512) >> 10) as i16;
-        r.vec[i].coeffs[4*j+1] = (((((a[idx+5*j+ 1] >> 2) as u32 | (((a[idx+5*j+ 2] & 0x0f) as u32) << 6)) * KYBER_Q as u32) + 512) >> 10) as i16;
-        r.vec[i].coeffs[4*j+2] = (((((a[idx+5*j+ 2] >> 4) as u32 | (((a[idx+5*j+ 3] & 0x3f) as u32) << 4)) * KYBER_Q as u32) + 512) >> 10) as i16;
-        r.vec[i].coeffs[4*j+3] = (((((a[idx+5*j+ 3] >> 6) as u32 | (((a[idx+5*j+ 4] & 0xff) as u32) << 2)) * KYBER_Q as u32) + 512) >> 10) as i16;
+        r.vec[i].coeffs[4*j  ] =  ((((a[idx+5*j  ] as u32       | (((a[idx+5*j+1] & 0x03) as u32) << 8)) * KYBER_Q as u32) + 512) >> 10) as i16;
+        r.vec[i].coeffs[4*j+1] = (((((a[idx+5*j+1] >> 2) as u32 | (((a[idx+5*j+2] & 0x0f) as u32) << 6)) * KYBER_Q as u32) + 512) >> 10) as i16;
+        r.vec[i].coeffs[4*j+2] = (((((a[idx+5*j+2] >> 4) as u32 | (((a[idx+5*j+3] & 0x3f) as u32) << 4)) * KYBER_Q as u32) + 512) >> 10) as i16;
+        r.vec[i].coeffs[4*j+3] = (((((a[idx+5*j+3] >> 6) as u32 | (((a[idx+5*j+4] & 0xff) as u32) << 2)) * KYBER_Q as u32) + 512) >> 10) as i16;
       }
       // TODO: Confirm indexing is correct
       idx += 320;
     }
   } else {
-    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in {320*KYBER_K, 352*KYBER_K}");
+    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in (320*KYBER_K, 352*KYBER_K)");
   } 
 }
 
