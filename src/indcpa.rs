@@ -1,8 +1,8 @@
+#![allow(clippy::needless_range_loop)]
 use crate::{
   poly::*,
   polyvec::*,
   rng::*,
-  ntt::*,
   symmetric::*,
   params::*
 };
@@ -21,9 +21,7 @@ use crate::{
 pub fn pack_pk(r: &mut[u8], pk: &mut Polyvec, seed: &[u8])
 {
   polyvec_tobytes(r, pk);
-  for i in 0..KYBER_SYMBYTES {
-    r[i+KYBER_POLYVECBYTES] = seed[i];
-  }
+  r[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)].clone_from_slice(&seed[..KYBER_SYMBYTES]);
 }
 
 /*************************************************
@@ -40,9 +38,7 @@ pub fn unpack_pk(pk: &mut Polyvec, seed: &mut[u8], packedpk: &[u8])
 {
   
   polyvec_frombytes(pk, packedpk);
-  for i in 0..KYBER_SYMBYTES {
-    seed[i] = packedpk[i+KYBER_POLYVECBYTES];
-  }
+  seed[..KYBER_SYMBYTES].clone_from_slice(&packedpk[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)]);
 }
 
 /*************************************************
@@ -123,7 +119,7 @@ pub fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8])
 pub fn rej_uniform(r: &mut[i16], len: usize, buf: &[u8], buflen: usize) -> usize
 {
   let (mut ctr, mut pos) = (0usize, 0usize);
-  let mut val = 0u16;
+  let mut val;
 
   while ctr < len && pos + 2 <= buflen {
     
@@ -166,9 +162,9 @@ pub fn gen_at(a: &mut [Polyvec], b: &[u8])
 **************************************************/
 pub fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 { 
-  let mut ctr = 0usize;
-  const maxnblocks: usize = (530+XOF_BLOCKBYTES)/XOF_BLOCKBYTES; /* 530 is expected number of required bytes */
-  let mut buf = [0u8; XOF_BLOCKBYTES*maxnblocks+1];
+  let mut ctr;
+  const MAXNBLOCKS: usize = (530+XOF_BLOCKBYTES)/XOF_BLOCKBYTES; /* 530 is expected number of required bytes */
+  let mut buf = [0u8; XOF_BLOCKBYTES*MAXNBLOCKS+1];
 
   let mut state = xof_state::new();
 
@@ -180,8 +176,8 @@ pub fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
       else {
         xof_absorb(&mut state, seed, j as u8, i as u8);
       }
-      xof_squeezeblocks(&mut buf, maxnblocks as u64, &mut state);
-      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, maxnblocks*XOF_BLOCKBYTES);
+      xof_squeezeblocks(&mut buf, MAXNBLOCKS as u64, &mut state);
+      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, MAXNBLOCKS*XOF_BLOCKBYTES);
 
       while ctr < KYBER_N
       {
@@ -274,6 +270,7 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
     poly_getnoise(&mut ep.vec[i], coins, nonce);
     nonce += 1;
   }
+  poly_getnoise(&mut epp, coins, nonce);
 
   polyvec_ntt(&mut sp);
 
