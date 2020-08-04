@@ -472,7 +472,7 @@ fn inc4_be(x: &mut u32)
 
 fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
 {
-  let mut w = ivw;
+  let w = ivw;
   let mut q = [0u64; 8];
   for i in 0..4 {
     // TODO: Confirm split at mut
@@ -519,7 +519,7 @@ fn br_aes_ct64_ctr_init(sk_exp: &mut [u64], key: &mut[u8])
 {
   let mut skey = [0u64; 30];
   br_aes_ct64_keysched(&mut skey, key);
-	br_aes_ct64_skey_expand(sk_exp, &mut skey);
+	br_aes_ct64_skey_expand(sk_exp, &skey);
 }
 
 fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8], mut len: usize)
@@ -545,9 +545,7 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
   if len > 0 {
     let mut tmp = [0u8; 64];
     aes_ctr4x(&mut tmp, &mut ivw, sk_exp);
-    for i in 0..len {
-      data[i] = tmp[i];
-    }
+    data[..len].clone_from_slice(&tmp[..len])
   }
 }
 
@@ -596,7 +594,7 @@ pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
   iv[0] = x;
   iv[1] = y;
 
-  br_range_dec32le(&mut s.ivw, 3, &mut iv);
+  br_range_dec32le(&mut s.ivw, 3, &iv);
   let mut slice = [0u32; 3];
   slice.copy_from_slice(&s.ivw[..3]);
   s.ivw[4..7].copy_from_slice(&slice);

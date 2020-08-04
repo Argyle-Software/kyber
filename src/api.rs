@@ -27,9 +27,8 @@ pub const CRYPTO_BYTES: usize =           KYBER_SSBYTES;
 pub fn crypto_kem_keypair(pk: &mut[u8], sk: &mut[u8])
 {
   indcpa_keypair(pk, sk);
-  for i in 0..KYBER_INDCPA_PUBLICKEYBYTES {
-    sk[i+KYBER_INDCPA_SECRETKEYBYTES] = pk[i];
-  }
+  let end = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
+  sk[KYBER_INDCPA_SECRETKEYBYTES..end].clone_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES..], pk, KYBER_PUBLICKEYBYTES);
   randombytes(&mut sk[KYBER_SECRETKEYBYTES-KYBER_SYMBYTES..]);        /* Value z for pseudo-random output on reject */
 }
@@ -56,9 +55,9 @@ pub fn crypto_kem_enc(ct: &mut[u8], ss: &mut[u8], pk: &[u8])
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);                                        /* Don't release system RNG output */
 
   hash_h(&mut buf[KYBER_SYMBYTES..], pk, KYBER_PUBLICKEYBYTES);                    /* Multitarget countermeasure for coins + contributory KEM */
-  hash_g(&mut kr, &mut buf, 2*KYBER_SYMBYTES);
+  hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
 
-  indcpa_enc(ct, &mut buf, pk, &kr[KYBER_SYMBYTES..]);                              /* coins are in kr+KYBER_SYMBYTES */
+  indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);                              /* coins are in kr+KYBER_SYMBYTES */
 
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);                    /* overwrite coins in kr with H(c) */
   kdf(ss, &kr, 2*KYBER_SYMBYTES as u64); 
