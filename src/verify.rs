@@ -12,14 +12,14 @@
 *
 * Returns 0 if the byte arrays are equal, 1 otherwise
 **************************************************/
-pub fn verify(a: &[u8], b: &[u8], len: usize) -> bool
+pub fn verify(a: &[u8], b: &[u8], len: usize) -> u8
 {
   let mut r = 0u64;
   for i in 0..len {
     r |= (a[i] ^ b[i]) as u64;
   }
   r = r.wrapping_neg() >> 63;
-  r == 0
+  r as u8
 }
 
 

@@ -4,41 +4,51 @@ use crate::{
 };
 
 pub const XOF_BLOCKBYTES: usize = 168;
+
+#[derive(Copy, Clone)]
 pub struct keccak_state {
   pub s: [u64; 25]
+}
+
+impl keccak_state {
+  pub fn new() -> Self {
+    Self {
+      s: [0u64; 25]
+    }
+  }
 }
 
 pub type xof_state = keccak_state;
 
 pub fn hash_h(out: &mut[u8], input: &[u8], inbytes: usize)
 {
-  sha3_256(&mut out, input, inbytes);
+  sha3_256(out, input, inbytes);
 }
 
 
 pub fn hash_g(out: &mut[u8], input: &[u8], inbytes: usize)
 {
-  sha3_512(&mut out, input, inbytes);
+  sha3_512(out, input, inbytes);
 }
 
 pub fn xof_absorb(state: &mut keccak_state, input: &[u8], x: u8, y: u8)
 {
-  kyber_shake128_absorb(&mut state, &input, x, y);
+  kyber_shake128_absorb(state, &input, x, y);
 }
 
-pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: keccak_state)
+pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: &mut keccak_state)
 {
-  kyber_shake128_squeezeblocks(&mut out, outblocks, &mut state);
+  kyber_shake128_squeezeblocks(out, outblocks, state);
 }
 
 pub fn prf(out: &mut[u8], outbytes: u64, key: &[u8], nonce: u8)
 {
-  shake256_prf(&mut out, outbytes, &key, nonce);
+  shake256_prf(out, outbytes, &key, nonce);
 }
 
 pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
 {
-  shake256(&mut out, KYBER_SSBYTES as u64, input, inbytes);
+  shake256(out, KYBER_SSBYTES as u64, input, inbytes);
 }
 
 /*************************************************
@@ -105,7 +115,7 @@ pub fn shake256_prf(output: &mut[u8], outlen: u64, key: &[u8], nonce: u8)
   extkey[..KYBER_SYMBYTES].copy_from_slice(key);
   extkey[KYBER_SYMBYTES] = nonce;
 
-  shake256(&mut output, outlen, &extkey, KYBER_SYMBYTES as u64 + 1);
+  shake256(output, outlen, &extkey, KYBER_SYMBYTES as u64 + 1);
 }
 
 
