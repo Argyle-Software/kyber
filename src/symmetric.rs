@@ -1,6 +1,7 @@
 use crate::{
   fips202::*, 
-  params::*
+  params::*,
+  sha::*
 };
 
 pub const XOF_BLOCKBYTES: usize = 168;
@@ -22,13 +23,13 @@ pub type xof_state = keccak_state;
 
 pub fn hash_h(out: &mut[u8], input: &[u8], inbytes: usize)
 {
-  sha3_256(out, input, inbytes);
+  sha256(out, input, inbytes);
 }
 
 
 pub fn hash_g(out: &mut[u8], input: &[u8], inbytes: usize)
 {
-  sha3_512(out, input, inbytes);
+  sha512(out, input, inbytes);
 }
 
 pub fn xof_absorb(state: &mut keccak_state, input: &[u8], x: u8, y: u8)
