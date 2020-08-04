@@ -1,3 +1,4 @@
+#![allow(clippy::needless_range_loop)]
 use crate::{
   params::*,
   ntt::*,
@@ -77,7 +78,7 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
         k += 5;
       }
     },
-    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be in {96, 128, 160}")
+    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be one of (96, 128, 160)")
   }
 }
 
@@ -97,22 +98,22 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
     96 => {
       let mut idx = 0usize;
       for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i+0] =  ((((a[idx+0] & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+1] = (((((a[idx+0] >> 3) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+2] = (((((a[idx+0] >> 6) | ((a[idx+1] << 2) & 4)) as usize * KYBER_Q) + 4) >> 3) as i16;
+        r.coeffs[i  ] =  ((((a[idx  ] & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
+        r.coeffs[i+1] = (((((a[idx  ] >> 3) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
+        r.coeffs[i+2] = (((((a[idx  ] >> 6) | ((a[idx+1] << 2) & 4)) as usize * KYBER_Q) + 4) >> 3) as i16;
         r.coeffs[i+3] = (((((a[idx+1] >> 1) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
         r.coeffs[i+4] = (((((a[idx+1] >> 4) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
         r.coeffs[i+5] = (((((a[idx+1] >> 7) | ((a[idx+2] << 1) & 6)) as usize * KYBER_Q) + 4) >> 3) as i16;
         r.coeffs[i+6] = (((((a[idx+2] >> 2) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+7] = (((((a[idx+2] >> 5)) as usize * KYBER_Q) + 4) >> 3) as i16;
+        r.coeffs[i+7] = ((((a[idx+2] >> 5) as usize * KYBER_Q) + 4) >> 3) as i16;
         idx += 3;
       }
     },
     128 => {
       let mut idx = 0usize;
       for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i+0] = ((((a[idx+0] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+1] = ((((a[idx+0] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
+        r.coeffs[i  ] = ((((a[idx  ] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
+        r.coeffs[i+1] = ((((a[idx  ] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
         r.coeffs[i+2] = ((((a[idx+1] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
         r.coeffs[i+3] = ((((a[idx+1] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
         r.coeffs[i+4] = ((((a[idx+2] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
@@ -125,8 +126,8 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
     160 => {
       let mut idx = 0usize;
       for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i+0] =  ((((a[idx+0] & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+1] = (((((a[idx+0] >> 5) | ((a[idx+1] & 3) << 3)) as usize * KYBER_Q) + 16) >> 5) as i16;
+        r.coeffs[i  ] =  ((((a[idx  ] & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
+        r.coeffs[i+1] = (((((a[idx  ] >> 5) | ((a[idx+1] & 3) << 3)) as usize * KYBER_Q) + 16) >> 5) as i16;
         r.coeffs[i+2] = (((((a[idx+1] >> 2) & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
         r.coeffs[i+3] = (((((a[idx+1] >> 7) | ((a[idx+2] & 15) << 1)) as usize * KYBER_Q) + 16) >> 5) as i16;
         r.coeffs[i+4] = (((((a[idx+2] >> 4) | ((a[idx+3] &  1) << 4)) as usize * KYBER_Q) + 16) >> 5) as i16;
@@ -136,7 +137,7 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
         idx += 5;
       }
     },
-    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be in {96, 128, 160}")
+    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be either (96, 128, 160)")
   }
 }
 
@@ -152,7 +153,7 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
 pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
 {
   poly_csubq(a);
-  let (mut t0, mut t1) = (0i16, 0i16);
+  let (mut t0, mut t1);
 
   for i in 0..(KYBER_N/2) {
     t0 = a.coeffs[2*i];
@@ -195,10 +196,10 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 
 pub fn poly_getnoise(r: &mut Poly, seed: &[u8], nonce: u8)
 {
-  const length: usize = KYBER_ETA*KYBER_N/4;
-  let mut buf = [0u8; length];
-  prf(&mut buf, length as u64, seed, nonce);
-  cbd(r, &mut buf);
+  const LENGTH: usize = KYBER_ETA*KYBER_N/4;
+  let mut buf = [0u8; LENGTH];
+  prf(&mut buf, LENGTH as u64, seed, nonce);
+  cbd(r, &buf);
 }
 
 
@@ -253,13 +254,13 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
       &mut r.coeffs[4*i..], 
       &a.coeffs[4*i..],
       &b.coeffs[4*i..], 
-      zetas[64 + i]
+      ZETAS[64 + i]
     );
     basemul(
       &mut r.coeffs[4*i+2..], 
       &a.coeffs[4*i+2..],
       &b.coeffs[4*i+2..],
--(zetas[64 + i]));
+-(ZETAS[64 + i]));
   }
 }
 
@@ -357,7 +358,7 @@ pub fn  poly_sub(r: &mut Poly, a: &Poly)
 **************************************************/
 pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 {
-  let mut mask = 0u16;
+  let mut mask;
   for i in 0..KYBER_SYMBYTES {
     for j in 0..8 {
       mask = ((msg[i] >> j)&1).wrapping_neg() as u16;
@@ -378,7 +379,7 @@ pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 pub fn poly_tomsg(msg: &mut[u8], a: &mut Poly)
 {
   poly_csubq(a);
-  let mut t = 0u16;
+  let mut t;
 
   for i in 0..KYBER_SYMBYTES {
     msg[i] = 0;
