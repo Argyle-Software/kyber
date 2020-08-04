@@ -5,9 +5,13 @@ use crate::{
   cbd::*,
   symmetric::*
 };
+
+#[derive(Clone)]
 pub struct Poly {
   pub coeffs: [i16; KYBER_N]  
 }
+
+impl Copy for Poly {}
 
 impl Default for Poly {
   fn default() -> Self {
@@ -30,7 +34,7 @@ impl Poly {
 * Arguments:   - unsigned char *r: pointer to output byte array (needs space for KYBER_POLYCOMPRESSEDBYTES bytes)
 *              - const poly *a:    pointer to input polynomial
 **************************************************/
-fn poly_compress(r: &mut[u8], a: &mut Poly)
+pub fn poly_compress(r: &mut[u8], a: &mut Poly)
 {
   let mut t = [0u8; 8];
   let mut k = 0usize;
@@ -147,7 +151,7 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
 
 pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
 {
-  poly_csubq(&mut a);
+  poly_csubq(a);
   let (mut t0, mut t1) = (0i16, 0i16);
 
   for i in 0..(KYBER_N/2) {
@@ -191,9 +195,10 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 
 pub fn poly_getnoise(r: &mut Poly, seed: &[u8], nonce: u8)
 {
-  let mut buf = [0u8; KYBER_ETA*KYBER_N/4];
-  prf(&mut buf, KYBER_ETA*KYBER_N/4, seed, nonce);
-  cbd(&mut r, &mut buf);
+  const length: usize = KYBER_ETA*KYBER_N/4;
+  let mut buf = [0u8; length];
+  prf(&mut buf, length as u64, seed, nonce);
+  cbd(r, &mut buf);
 }
 
 
@@ -210,7 +215,7 @@ pub fn poly_getnoise(r: &mut Poly, seed: &[u8], nonce: u8)
 pub fn poly_ntt(r: &mut Poly) 
 {
   ntt(&mut r.coeffs);
-  poly_reduce(&mut r);
+  poly_reduce(r);
 }
 
 
@@ -246,14 +251,14 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
     
     basemul(
       &mut r.coeffs[4*i..], 
-      &mut a.coeffs[4*i..],
-      &mut b.coeffs[4*i..], 
+      &a.coeffs[4*i..],
+      &b.coeffs[4*i..], 
       zetas[64 + i]
     );
     basemul(
       &mut r.coeffs[4*i+2..], 
-      &mut a.coeffs[4*i+2..],
-      &mut b.coeffs[4*i+2..],
+      &a.coeffs[4*i+2..],
+      &b.coeffs[4*i+2..],
 -(zetas[64 + i]));
   }
 }
@@ -272,7 +277,7 @@ pub fn poly_frommont(r: &mut Poly)
 {
   let f = (1u64 << 32) % KYBER_Q as u64;
   for i in 0..KYBER_N {
-    r.coeffs[i] = montgomery_reduce(r.coeffs[i] as u64 *f);
+    r.coeffs[i] = montgomery_reduce((r.coeffs[i] as u64 * f) as i32);
   }
 }
 
@@ -317,10 +322,10 @@ pub fn poly_csubq(r: &mut Poly)
 *            - const poly *a: pointer to first input polynomial
 *            - const poly *b: pointer to second input polynomial
 **************************************************/
-pub fn poly_add(r: &mut Poly, a: &Poly, b: &Poly)
+pub fn poly_add(r: &mut Poly, b: &Poly)
 {
   for i in 0..KYBER_N {
-    r.coeffs[i] = a.coeffs[i] + b.coeffs[i];
+    r.coeffs[i] += b.coeffs[i];
   }
 }
 
@@ -334,10 +339,10 @@ pub fn poly_add(r: &mut Poly, a: &Poly, b: &Poly)
 *            - const poly *a: pointer to first input polynomial
 *            - const poly *b: pointer to second input polynomial
 **************************************************/
-pub fn  poly_sub(r: &mut Poly, a: &Poly, b: &Poly)
+pub fn  poly_sub(r: &mut Poly, a: &Poly)
 {
   for i in 0..KYBER_N {
-    r.coeffs[i] = a.coeffs[i] - b.coeffs[i];
+    r.coeffs[i] = a.coeffs[i] -  r.coeffs[i];
   }
 }
 
