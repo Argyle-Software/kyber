@@ -101,31 +101,31 @@ pub fn KeccakF1600_StatePermute(state: &mut[u64])
   let (mut Esa, mut Ese, mut Esi, mut Eso, mut Esu) = (0u64,0u64, 0u64,0u64,0u64,);
 
   //copyFromState(A, state)
-  Aba = state[ 0];
-  Abe = state[ 1];
-  Abi = state[ 2];
-  Abo = state[ 3];
-  Abu = state[ 4];
-  Aga = state[ 5];
-  Age = state[ 6];
-  Agi = state[ 7];
-  Ago = state[ 8];
-  Agu = state[ 9];
-  Aka = state[10];
-  Ake = state[11];
-  Aki = state[12];
-  Ako = state[13];
-  Aku = state[14];
-  Ama = state[15];
-  Ame = state[16];
-  Ami = state[17];
-  Amo = state[18];
-  Amu = state[19];
-  Asa = state[20];
-  Ase = state[21];
-  Asi = state[22];
-  Aso = state[23];
-  Asu = state[24];
+ let mut Aba = state[ 0];
+ let mut Abe = state[ 1];
+ let mut Abi = state[ 2];
+ let mut Abo = state[ 3];
+ let mut Abu = state[ 4];
+ let mut Aga = state[ 5];
+ let mut Age = state[ 6];
+ let mut Agi = state[ 7];
+ let mut Ago = state[ 8];
+ let mut Agu = state[ 9];
+ let mut Aka = state[10];
+ let mut Ake = state[11];
+ let mut Aki = state[12];
+ let mut Ako = state[13];
+ let mut Aku = state[14];
+ let mut Ama = state[15];
+ let mut Ame = state[16];
+ let mut Ami = state[17];
+ let mut Amo = state[18];
+ let mut Amu = state[19];
+ let mut Asa = state[20];
+ let mut Ase = state[21];
+ let mut Asi = state[22];
+ let mut Aso = state[23];
+ let mut Asu = state[24];
 
   for round in (0..NROUNDS).step_by(2) {
     //    prepareTheta
@@ -408,11 +408,11 @@ pub fn keccak_absorb(s: &mut[u64], mut r: usize, m: &[u8], mut mlen: u64, p: u8)
 *              - uint64_t *s:                    pointer to in/output Keccak state
 *              - unsigned int r:                 rate in bytes (e.g., 168 for SHAKE128)
 **************************************************/
-pub fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: u64, s: &[u64], r: usize)
+pub fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: u64, s: &mut [u64], r: usize)
 {
   let mut idx = 0usize;
   while nblocks > 0 {
-    KeccakF1600_StatePermute(&mut s);
+    KeccakF1600_StatePermute(s);
     for i in 0..(r>>3) {
       store64(&mut h[idx+8*i..], s[i])
     }
@@ -449,7 +449,7 @@ pub fn shake128_absorb(s: &mut[u64], input: &[u8], inputByteLen: u64)
 *              - unsigned long long nblocks: number of blocks to be squeezed (written to output)
 *              - uint64_t *s:                pointer to in/output Keccak state
 **************************************************/
-pub fn shake128_squeezeblocks(output: &mut[u8], mut nblocks: u64, s: &mut[u64])
+pub fn shake128_squeezeblocks(output: &mut[u8], nblocks: u64, s: &mut[u64])
 {
   keccak_squeezeblocks(output, nblocks, s, SHAKE128_RATE);
 }
@@ -475,14 +475,14 @@ pub fn shake256(output: &mut[u8], mut outlen: u64, input: &[u8], inlen: u64)
     keccak_absorb(&mut s, SHAKE256_RATE, input, inlen, 0x1F);
 
     /* Squeeze output */
-    keccak_squeezeblocks(output, nblocks, &s, SHAKE256_RATE);
+    keccak_squeezeblocks(output, nblocks, &mut s, SHAKE256_RATE);
     let mut idx =0;
     idx += nblocks as usize *SHAKE256_RATE;
     outlen -= nblocks *SHAKE256_RATE as u64;
 
     if outlen > 0
     {
-      keccak_squeezeblocks(&mut t, 1, &s, SHAKE256_RATE);
+      keccak_squeezeblocks(&mut t, 1, &mut s, SHAKE256_RATE);
       for i in 0..outlen as usize {
         output[i] = t[i];
       }
@@ -508,7 +508,7 @@ pub fn sha3_256(output: &mut [u8], input: &[u8], inlen: usize)
     keccak_absorb(&mut s, SHA3_256_RATE, input, inlen as u64, 0x06);
 
     /* Squeeze output */
-    keccak_squeezeblocks(&mut t, 1, &s, SHA3_256_RATE);
+    keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_256_RATE);
 
     for i in 0..32 {
       output[i] = t[i];
@@ -532,7 +532,7 @@ pub fn sha3_512(output: &mut [u8], input: &[u8], inlen: usize) {
     keccak_absorb(&mut s, SHA3_512_RATE, input, inlen as u64, 0x06);
 
     /* Squeeze output */
-    keccak_squeezeblocks(&mut t, 1, &s, SHA3_512_RATE);
+    keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_512_RATE);
 
     for i in 0..64 {
       output[i] = t[i];
