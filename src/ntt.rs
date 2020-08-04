@@ -1,5 +1,4 @@
 use crate::{
-  params::*,
   reduce::*
 };
 
@@ -43,7 +42,7 @@ void init_ntt() {
 }
 */
 
-pub const zetas: [i16; 128] = [
+pub const ZETAS: [i16; 128] = [
   2285, 2571, 2970, 1812, 1493, 1422, 287, 202, 3158, 622, 1577, 182, 962, 2127, 1855, 1468, 
   573, 2004, 264, 383, 2500, 1458, 1727, 3199, 2648, 1017, 732, 608, 1787, 411, 3124, 1758, 
   1223, 652, 2777, 1015, 2036, 1491, 3047, 1785, 516, 3321, 3009, 2663, 1711, 2167, 126, 1469, 
@@ -54,7 +53,7 @@ pub const zetas: [i16; 128] = [
   2144, 1799, 2051, 794, 1819, 2475, 2459, 478, 3221, 3021, 996, 991, 958, 1869, 1522, 1628
 ];
 
-pub const zetas_inv: [i16; 128] = [
+pub const ZETAS_INV: [i16; 128] = [
   1701, 1807, 1460, 2371, 2338, 2333, 308, 108, 2851, 870, 854, 1510, 2535, 1278, 1530, 1185, 
   1659, 1187, 3109, 874, 1335, 2111, 136, 1215, 2945, 1465, 1285, 2007, 2719, 2726, 2232, 2512, 
   75, 156, 3000, 2911, 2980, 872, 2685, 1590, 2210, 602, 1846, 777, 147, 2170, 2551, 246, 
@@ -95,16 +94,16 @@ pub fn ntt(r: &mut[i16])
   let mut j = 0usize;
   let mut k = 1usize;
   let mut len = 128;
-  let (mut t, mut zeta) = (0i16, 0i16);
+  let (mut t, mut zeta);
   while len >= 2 {
     for start in (0..256).step_by(j + len) {
-      zeta = zetas[k];
+      zeta = ZETAS[k];
       k += 1;
       j = start + 1;
       for j in start..(start + len) {
         t = fqmul(zeta, r[j + len]);
         r[j + len] = r[j] - t;
-        r[j] = r[j] + t;
+        r[j] += t;
       } 
     }
     len >>= 1;
@@ -125,10 +124,10 @@ pub fn invntt(r: &mut[i16])
   let mut j = 0usize;
   let mut k = 0usize;
   let mut len = 2;
-  let (mut t, mut zeta) = (0i16, 0i16);
+  let (mut t, mut zeta);
   while len <= 128 {
     for start in (0..256).step_by(j + len) {
-      zeta = zetas[k];
+      zeta = ZETAS_INV[k];
       k += 1;
       j = start + 1;
       for j in start..(start + len) {
