@@ -35,7 +35,7 @@ pub fn load32_littleendian(x: &[u8]) -> u32
 
 pub fn cbd(r: &mut Poly, buf: &[u8])
 {
-  let (mut d, mut t, mut a, mut b) =  (0u32, 0u32, 0i16, 0i16); 
+  let (mut d, mut t, mut a, mut b); 
   if KYBER_ETA == 2 {
     for i in 0..(KYBER_N/8) {
       t = load32_littleendian(&buf[4*i..]);
