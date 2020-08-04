@@ -42,7 +42,7 @@ pub fn cbd(r: &mut Poly, buf: &[u8])
       d  = t & 0x55555555;
       d += (t>>1) & 0x55555555;
       for j in 0..8 {
-        a = ((d >>  4*j)    & 0x3) as i16;
+        a = ((d >>  (4*j))    & 0x3) as i16;
         b = ((d >> (4*j+2)) & 0x3) as i16;
         r.coeffs[8*i+j] = a - b;
       }
