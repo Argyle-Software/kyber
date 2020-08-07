@@ -91,20 +91,24 @@ pub fn fqmul(a: i16, b: i16) -> i16
 **************************************************/
 pub fn ntt(r: &mut[i16])
 {
-  let mut j = 0usize;
+  let mut j;
   let mut k = 1usize;
   let mut len = 128;
   let (mut t, mut zeta);
+
   while len >= 2 {
-    for start in (0..256).step_by(j + len) {
+    let mut start = 0;
+    while start < 256 {
       zeta = ZETAS[k];
       k += 1;
-      j = start + 1;
-      for j in start..(start + len) {
+      j = start;
+      while j < (start + len) {
         t = fqmul(zeta, r[j + len]);
         r[j + len] = r[j] - t;
         r[j] += t;
-      } 
+        j += 1;
+      }
+      start = j + len;
     }
     len >>= 1;
   }
@@ -121,23 +125,29 @@ pub fn ntt(r: &mut[i16])
 **************************************************/
 pub fn invntt(r: &mut[i16]) 
 {
-  let mut j = 0usize;
+  let mut j;
   let mut k = 0usize;
   let mut len = 2;
   let (mut t, mut zeta);
   while len <= 128 {
-    for start in (0..256).step_by(j + len) {
+    let mut start = 0;
+    while start < 256 {
       zeta = ZETAS_INV[k];
       k += 1;
-      j = start + 1;
-      for j in start..(start + len) {
+      j = start;
+      while j < (start + len) {
         t = r[j];
         r[j] = barrett_reduce(t + r[j + len]);
         r[j + len] = t - r[j + len];
         r[j + len] = fqmul(zeta, r[j + len]);
-      } 
+        j += 1
+      }
+      start = j + len;
     }
     len <<= 1;
+  }
+  for j in 0..256 {
+    r[j] = fqmul(r[j], ZETAS_INV[127]);
   }
 }
 
