@@ -1,11 +1,12 @@
 #![allow(dead_code, clippy::many_single_char_names, clippy::needless_range_loop)]
 
 mod aes256;
-mod api;
+pub mod api;
 mod cbd;
+mod error;
 mod fips202;
 mod indcpa;
-mod params;
+pub mod params;
 mod poly;
 mod polyvec;
 mod ntt;
@@ -15,11 +16,3 @@ mod sha;
 mod symmetric;
 mod verify;
 
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
