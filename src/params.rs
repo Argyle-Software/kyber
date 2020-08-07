@@ -1,16 +1,13 @@
-
-
-#[cfg(not(feature = "512"))]
-#[cfg(not(feature = "1024"))]
-pub const KYBER_K: usize = 2; /* Change this for different security strengths */
-
+// Security Strengths
 #[cfg(feature = "512")]
 pub const KYBER_K: usize = 2;
 
-#[cfg(feature = "1024")]
-pub const KYBER_K: usize = 2;
+#[cfg(not(feature = "512"))]
+#[cfg(not(feature = "1024"))]
+pub const KYBER_K: usize = 3; 
 
-/* Don't change parameters below this line */
+#[cfg(feature = "1024")]
+pub const KYBER_K: usize = 4;
 
 pub const KYBER_N: usize = 256;
 pub const KYBER_Q: usize = 3329;
@@ -23,16 +20,18 @@ pub const KYBER_SSBYTES: usize =  32;   /* size in bytes of shared key */
 pub const KYBER_POLYBYTES: usize = 384;
 pub const KYBER_POLYVECBYTES: usize =  KYBER_K * KYBER_POLYBYTES;
 
+#[cfg(feature = "512")]
+pub const KYBER_POLYCOMPRESSEDBYTES: usize =     96;
+#[cfg(feature = "512")]
+pub const KYBER_POLYVECCOMPRESSEDBYTES: usize =  KYBER_K * 320;
+
 #[cfg(not(feature = "512"))]
 #[cfg(not(feature = "1024"))]
 pub const KYBER_POLYCOMPRESSEDBYTES: usize =     128;
 #[cfg(not(feature = "512"))]
 #[cfg(not(feature = "1024"))]
 pub const KYBER_POLYVECCOMPRESSEDBYTES: usize =  KYBER_K * 320;
-#[cfg(feature = "512")]
-pub const KYBER_POLYCOMPRESSEDBYTES: usize =     96;
-#[cfg(feature = "512")]
-pub const KYBER_POLYVECCOMPRESSEDBYTES: usize =  KYBER_K * 320;
+
 #[cfg(feature = "1024")]
 pub const KYBER_POLYCOMPRESSEDBYTES: usize =     160;
 #[cfg(feature = "1024")]
