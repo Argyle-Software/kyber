@@ -544,7 +544,7 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
   if len > 0 {
     let mut tmp = [0u8; 64];
     aes_ctr4x(&mut tmp, &mut ivw, sk_exp);
-    data[..len].clone_from_slice(&tmp[..len])
+    data[..len].copy_from_slice(&tmp[..len])
   }
 }
 
