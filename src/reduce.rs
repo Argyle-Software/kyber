@@ -16,7 +16,8 @@ const QINV: i32 = 62209; // q^(-1) mod 2^16
 **************************************************/
 pub fn montgomery_reduce(a: i32) -> i16 
 {
-  let u = a * QINV;
+  let ua = a.wrapping_mul(QINV) as i16;
+  let u = ua as i32;
   let mut t = u * KYBER_Q as i32;
   t = a - t;
   t >>= 16;
