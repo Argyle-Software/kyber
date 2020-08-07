@@ -50,7 +50,6 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
         r[idx+11*j+ 9] = ((t[6] >>  6) | ((t[7] & 0x07) << 5)) as u8;
         r[idx+11*j+10] = (t[7] >>  3) as u8;
       }
-      // TODO: Confirm indexing is correct
       idx += 352;
     }
   } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
@@ -67,7 +66,6 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
         r[idx+5*j+ 3] = ((t[2] >>  4) | ((t[3] & 0x03) << 6)) as u8;
         r[idx+5*j+ 4] = (t[3] >>  2) as u8;
       }
-      // TODO: Confirm indexing is correct
       idx += 320;
     }
   } else {
@@ -100,11 +98,9 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         r.vec[i].coeffs[8*j+6] = (((((a[idx+11*j+ 8] >> 2) as u32 | (((a[idx+11*j+ 9] & 0x1f) as u32) << 6)) * KYBER_Q as u32) + 1024) >> 11) as i16;
         r.vec[i].coeffs[8*j+7] = (((((a[idx+11*j+ 9] >> 5) as u32 | (((a[idx+11*j+10] & 0xff) as u32) << 3)) * KYBER_Q as u32) + 1024) >> 11) as i16;
       }
-    // TODO: Confirm indexing is correct
     idx += 352;
     }
   } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
-    let t = [0u16; 4];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/4 {
@@ -113,7 +109,6 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         r.vec[i].coeffs[4*j+2] = (((((a[idx+5*j+2] >> 4) as u32 | (((a[idx+5*j+3] & 0x3f) as u32) << 4)) * KYBER_Q as u32) + 512) >> 10) as i16;
         r.vec[i].coeffs[4*j+3] = (((((a[idx+5*j+3] >> 6) as u32 | (((a[idx+5*j+4] & 0xff) as u32) << 2)) * KYBER_Q as u32) + 512) >> 10) as i16;
       }
-      // TODO: Confirm indexing is correct
       idx += 320;
     }
   } else {
@@ -199,7 +194,7 @@ pub fn polyvec_pointwise_acc(r: &mut Poly, a: &Polyvec, b: &Polyvec)
 {
   let mut t = Poly::new();
   poly_basemul(r, &a.vec[0], &b.vec[0]);
-  for i in 0..KYBER_K {
+  for i in 1..KYBER_K {
     poly_basemul(&mut t, &a.vec[i], &b.vec[i]);
     poly_add(r, &t);
   }
