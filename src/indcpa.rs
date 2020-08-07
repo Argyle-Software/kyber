@@ -20,7 +20,7 @@ use crate::{
 pub fn pack_pk(r: &mut[u8], pk: &mut Polyvec, seed: &[u8])
 {
   polyvec_tobytes(r, pk);
-  r[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)].clone_from_slice(&seed[..KYBER_SYMBYTES]);
+  r[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)].copy_from_slice(&seed[..KYBER_SYMBYTES]);
 }
 
 /*************************************************
@@ -37,7 +37,7 @@ pub fn unpack_pk(pk: &mut Polyvec, seed: &mut[u8], packedpk: &[u8])
 {
   
   polyvec_frombytes(pk, packedpk);
-  seed[..KYBER_SYMBYTES].clone_from_slice(&packedpk[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)]);
+  seed[..KYBER_SYMBYTES].copy_from_slice(&packedpk[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)]);
 }
 
 /*************************************************
@@ -198,6 +198,8 @@ pub fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 *              - unsigned char *sk: pointer to output private key (of length KYBER_INDCPA_SECRETKEYBYTES bytes)
 **************************************************/
 
+
+
 pub fn indcpa_keypair(pk : &mut[u8], sk: &mut[u8]) 
 {
   let mut a = [Polyvec::new(); KYBER_K];
@@ -206,10 +208,14 @@ pub fn indcpa_keypair(pk : &mut[u8], sk: &mut[u8])
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  randombytes(&mut randbuf);
+  randombytes(&mut randbuf, KYBER_SYMBYTES);
+
+  // TODO: remove test buffer
+  // randbuf = [42, 251, 36, 95, 146, 211, 135, 133, 152, 190, 255, 115, 247, 191, 173, 136, 80, 21, 254, 60, 139, 174, 152, 54, 58, 158, 235, 44, 18, 207, 177, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
-  let (publicseed, noiseseed) = buf.split_at_mut(KYBER_SYMBYTES);
+  let (publicseed, noiseseed) = buf.split_at(KYBER_SYMBYTES);
   gen_a(&mut a, publicseed);
 
   for i in 0..KYBER_K {
