@@ -39,12 +39,14 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
   let mut t = [0u8; 8];
   let mut k = 0usize;
 
+  poly_csubq(a);
+
+  //todo: conditional compilation rather than match
   match KYBER_POLYCOMPRESSEDBYTES {
     96 => {
       for i in (0..KYBER_N).step_by(8) {
         for j in 0..8 {
-          // TODO: Check conversion wrapping
-          t[j] = (((a.coeffs[i+j] << 3) + (KYBER_Q/2) as i16 / KYBER_Q as i16) & 7) as u8;
+          t[j] = (((((a.coeffs[i+j] as u32) << 3) + KYBER_Q as u32/2) / KYBER_Q as u32) & 7) as u8;
         }
         r[k]   =  t[0]       | (t[1] << 3) | (t[2] << 6);
         r[k+1] = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
@@ -55,7 +57,7 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
     128 => {
       for i in (0..KYBER_N).step_by(8) {
         for j in 0..8 {
-          t[j] = (((a.coeffs[i+j] << 4) + (KYBER_Q/2) as i16 / KYBER_Q as i16) & 15) as u8;
+          t[j] = (((((a.coeffs[i+j] as u32) << 4) + KYBER_Q as u32 /2) / KYBER_Q as u32) & 15) as u8;
         }
         r[k]   = t[0] | (t[1] << 4);
         r[k+1] = t[2] | (t[3] << 4);
@@ -67,7 +69,7 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
     160 => {
       for i in (0..KYBER_N).step_by(8) {
         for j in 0..8 {
-          t[j] = (((a.coeffs[i+j] << 5) + (KYBER_Q/2) as i16 / KYBER_Q as i16) & 31) as u8;
+          t[j] = (((((a.coeffs[i+j] as u32) << 5) + KYBER_Q as u32 /2) / KYBER_Q as u32) & 31) as u8;
         }
         r[k]   =  t[0]       | (t[1] << 5);
         r[k+1] = (t[1] >> 3) | (t[2] << 2) | (t[3] << 7);
@@ -176,8 +178,8 @@ pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
 pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 {
   for i in 0..(KYBER_N/2) {
-    r.coeffs[2*i]   = ((a[3*i] as u16        | a[3*i+1] as u16 & 0x0f) << 8) as i16;
-    r.coeffs[2*i+1] = ((a[3*i+1] as u16 >> 4 | a[3*i+2] as u16 & 0xff) << 4) as i16;
+    r.coeffs[2*i]   = (a[3*i] as u16          | (a[3*i+1] as u16 & 0x0f) << 8) as i16;
+    r.coeffs[2*i+1] = ((a[3*i+1] >> 4) as u16 | (a[3*i+2] as u16 & 0xff) << 4) as i16;
   }
 }
 
@@ -275,9 +277,10 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 
 pub fn poly_frommont(r: &mut Poly)
 {
-  let f = (1u64 << 32) % KYBER_Q as u64;
+  let f = ((1u64 << 32) % KYBER_Q as u64) as i16;
   for i in 0..KYBER_N {
-    r.coeffs[i] = montgomery_reduce((r.coeffs[i] as u64 * f) as i32);
+    let a = r.coeffs[i] as i32 * f as i32;
+    r.coeffs[i] = montgomery_reduce(a);
   }
 }
 
@@ -360,7 +363,7 @@ pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
   let mut mask;
   for i in 0..KYBER_SYMBYTES {
     for j in 0..8 {
-      mask = ((msg[i] >> j)&1).wrapping_neg() as u16;
+      mask = ((msg[i] as u16 >> j) & 1 ).wrapping_neg();
       r.coeffs[8*i+j] = (mask & ((KYBER_Q+1)/2) as u16) as i16;
     }
   }
