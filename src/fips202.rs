@@ -23,8 +23,8 @@ fn rol(a: u64, offset: u64) -> u64
 pub fn load64(x: &[u8]) -> u64
 {
   let mut r = 0u64;
-  for i in x.iter().take(8) {
-    r |= (*i as u64) << (8 * i);
+  for i in 0..8 {
+    r |= (x[i] as u64) << (8 * i);
   }
   r
 }
@@ -52,8 +52,7 @@ pub fn store64(x: &mut[u8], mut u: u64)
   // }
 }
 
-/* Keccak round constants */
-
+// Keccak round constants
 const KECCAKF_ROUNDCONSTANTS: [u64; NROUNDS] = [
   0x0000000000000001u64,
   0x0000000000008082u64,
@@ -373,11 +372,7 @@ pub fn keccak_absorb(s: &mut[u64], r: usize, m: &[u8], mut mlen: u64, p: u8)
     idx += r;
   }
 
-  for i in t.iter_mut() {
-    *i = 0;
-  }
-
-  t[..mlen as usize].clone_from_slice(&m[..mlen as usize]);
+  t[..mlen as usize].copy_from_slice(&m[idx..idx+mlen as usize]);
   t[mlen as usize] = p;
   t[r - 1] |= 128;
   for i in 0..(r/8) {
@@ -475,7 +470,7 @@ pub fn shake256(output: &mut[u8], outlen: u64, input: &[u8], inlen: u64)
     if outlen > 0
     {
       keccak_squeezeblocks(&mut t, 1, &mut s, SHAKE256_RATE);
-      output[..outlen as usize].clone_from_slice(&t[..outlen as usize])
+      output[..outlen as usize].copy_from_slice(&t[..outlen as usize])
     }
 }
 
@@ -500,7 +495,7 @@ pub fn sha3_256(output: &mut [u8], input: &[u8], inlen: usize)
   /* Squeeze output */
   keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_256_RATE);
 
-  output[..32].clone_from_slice(&t[..32])
+  output[..32].copy_from_slice(&t[..32])
 }
 
 /*************************************************
@@ -522,6 +517,6 @@ pub fn sha3_512(output: &mut [u8], input: &[u8], inlen: usize) {
     /* Squeeze output */
     keccak_squeezeblocks(&mut t, 1, &mut s, SHA3_512_RATE);
 
-    output[..64].clone_from_slice(&t[..64])
+    output[..64].copy_from_slice(&t[..64])
 }
 
