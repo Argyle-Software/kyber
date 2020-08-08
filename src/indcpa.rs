@@ -200,7 +200,7 @@ pub fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 
 
 
-pub fn indcpa_keypair(pk : &mut[u8], sk: &mut[u8]) 
+pub fn indcpa_keypair(pk : &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8;32])>) 
 {
   let mut a = [Polyvec::new(); KYBER_K];
   let (mut e, mut pkpv, mut skpv) = (Polyvec::new(), Polyvec::new(), Polyvec::new());
@@ -208,11 +208,11 @@ pub fn indcpa_keypair(pk : &mut[u8], sk: &mut[u8])
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  randombytes(&mut randbuf, KYBER_SYMBYTES);
-
-  // TODO: remove test buffer
-  // randbuf = [42, 251, 36, 95, 146, 211, 135, 133, 152, 190, 255, 115, 247, 191, 173, 136, 80, 21, 254, 60, 139, 174, 152, 54, 58, 158, 235, 44, 18, 207, 177, 224, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+  match seed {
+    None => randombytes(&mut randbuf, KYBER_SYMBYTES),
+    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0)
+  }
+  
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
   let (publicseed, noiseseed) = buf.split_at(KYBER_SYMBYTES);
