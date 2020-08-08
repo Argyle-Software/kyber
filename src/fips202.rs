@@ -365,7 +365,7 @@ pub fn keccak_absorb(s: &mut[u64], r: usize, m: &[u8], mut mlen: u64, p: u8)
   let mut idx = 0usize;
   while mlen >= r as u64 {
     for i in 0..(r/8) {
-      s[i] ^= load64(&m[idx + 8 * i..]);
+      s[i] ^= load64(&m[idx+8*i..]);
     }
     keccakf1600_statepermute(s);
     mlen -= r as u64;
@@ -376,7 +376,7 @@ pub fn keccak_absorb(s: &mut[u64], r: usize, m: &[u8], mut mlen: u64, p: u8)
   t[mlen as usize] = p;
   t[r - 1] |= 128;
   for i in 0..(r/8) {
-    s[i] ^= load64(&t[8 * i..]);
+    s[i] ^= load64(&t[8*i..]);
   }
 }
 
