@@ -2,45 +2,42 @@ use crate::{
   reduce::*
 };
 
-
-/* Code to generate zetas and zetas_inv used in the number-theoretic transform:
-
-#define KYBER_ROOT_OF_UNITY 17
-
-static const uint16_t tree[128] = {
-  0, 64, 32, 96, 16, 80, 48, 112, 8, 72, 40, 104, 24, 88, 56, 120, 
-  4, 68, 36, 100, 20, 84, 52, 116, 12, 76, 44, 108, 28, 92, 60, 124, 
-  2, 66, 34, 98, 18, 82, 50, 114, 10, 74, 42, 106, 26, 90, 58, 122, 
-  6, 70, 38, 102, 22, 86, 54, 118, 14, 78, 46, 110, 30, 94, 62, 126, 
-  1, 65, 33, 97, 17, 81, 49, 113, 9, 73, 41, 105, 25, 89, 57, 121, 
-  5, 69, 37, 101, 21, 85, 53, 117, 13, 77, 45, 109, 29, 93, 61, 125, 
-  3, 67, 35, 99, 19, 83, 51, 115, 11, 75, 43, 107, 27, 91, 59, 123, 
-  7, 71, 39, 103, 23, 87, 55, 119, 15, 79, 47, 111, 31, 95, 63, 127};
-
-
-static int16_t fqmul(int16_t a, int16_t b) {
-  return montgomery_reduce((int32_t)a*b);
-}
-
-void init_ntt() {
-  unsigned int i, j, k;
-  int16_t tmp[128];
-
-  tmp[0] = MONT;
-  for(i = 1; i < 128; ++i)
-    tmp[i] = fqmul(tmp[i-1], KYBER_ROOT_OF_UNITY*MONT % KYBER_Q);
-
-  for(i = 0; i < 128; ++i)
-    zetas[i] = tmp[tree[i]];
-
-  k = 0;
-  for(i = 64; i >= 1; i >>= 1)
-    for(j = i; j < 2*i; ++j)
-      zetas_inv[k++] = -tmp[128 - tree[j]];
-
-  zetas_inv[127] = MONT * (MONT * (KYBER_Q - 1) * ((KYBER_Q - 1)/128) % KYBER_Q) % KYBER_Q;
-}
-*/
+// Code to generate zetas and zetas_inv used in the number-theoretic transform:
+//
+//#define KYBER_ROOT_OF_UNITY 17
+//
+//static const uint16_t tree[128] = {
+//  0, 64, 32, 96, 16, 80, 48, 112, 8, 72, 40, 104, 24, 88, 56, 120, 
+//  4, 68, 36, 100, 20, 84, 52, 116, 12, 76, 44, 108, 28, 92, 60, 124, 
+//  2, 66, 34, 98, 18, 82, 50, 114, 10, 74, 42, 106, 26, 90, 58, 122, 
+//  6, 70, 38, 102, 22, 86, 54, 118, 14, 78, 46, 110, 30, 94, 62, 126, 
+//  1, 65, 33, 97, 17, 81, 49, 113, 9, 73, 41, 105, 25, 89, 57, 121, 
+//  5, 69, 37, 101, 21, 85, 53, 117, 13, 77, 45, 109, 29, 93, 61, 125, 
+//  3, 67, 35, 99, 19, 83, 51, 115, 11, 75, 43, 107, 27, 91, 59, 123, 
+//  7, 71, 39, 103, 23, 87, 55, 119, 15, 79, 47, 111, 31, 95, 63, 127};
+//
+//
+// static int16_t fqmul(int16_t a, int16_t b) {
+//  return montgomery_reduce((int32_t)a*b);
+//}
+//
+// void init_ntt() {
+//  unsigned int i, j, k;
+//  int16_t tmp[128];
+//
+//  tmp[0] = MONT;
+//  for(i = 1; i < 128; ++i)
+//    tmp[i] = fqmul(tmp[i-1], KYBER_ROOT_OF_UNITY*MONT % KYBER_Q);
+//
+//  for(i = 0; i < 128; ++i)
+//    zetas[i] = tmp[tree[i]];
+//
+//  k = 0;
+//  for(i = 64; i >= 1; i >>= 1)
+//    for(j = i; j < 2*i; ++j)
+//      zetas_inv[k++] = -tmp[128 - tree[j]];
+//  zetas_inv[127] = MONT * (MONT * (KYBER_Q - 1) * ((KYBER_Q - 1)/128) % KYBER_Q) % KYBER_Q;
+//}
 
 pub const ZETAS: [i16; 128] = [
   2285, 2571, 2970, 1812, 1493, 1422, 287, 202, 3158, 622, 1577, 182, 962, 2127, 1855, 1468, 
@@ -65,30 +62,28 @@ pub const ZETAS_INV: [i16; 128] = [
 ];
 
 
-/*************************************************
-* Name:        fqmul
-*
-* Description: Multiplication followed by Montgomery reduction
-*
-* Arguments:   - int16_t a: first factor
-*              - int16_t b: second factor
-*
-* Returns 16-bit integer congruent to a*b*R^{-1} mod q
-**************************************************/
+
+// Name:        fqmul
+//
+// Description: Multiplication followed by Montgomery reduction
+//
+// Arguments:   - int16_t a: first factor
+//              - int16_t b: second factor
+//
+// Returns 16-bit integer congruent to a*b*R^{-1} mod q
 pub fn fqmul(a: i16, b: i16) -> i16 
 {
   montgomery_reduce(a as i32 * b as i32)
 }
 
 
-/*************************************************
-* Name:        ntt
-*
-* Description: Inplace number-theoretic transform (NTT) in Rq
-*              input is in standard order, output is in bitreversed order
-*
-* Arguments:   - int16_t r[256]: pointer to input/output vector of elements of Zq
-**************************************************/
+
+// Name:        ntt
+//
+// Description: Inplace number-theoretic transform (NTT) in Rq
+//              input is in standard order, output is in bitreversed order
+//
+// Arguments:   - int16_t r[256]: pointer to input/output vector of elements of Zq
 pub fn ntt(r: &mut[i16])
 {
   let mut j;
@@ -115,14 +110,13 @@ pub fn ntt(r: &mut[i16])
 }
 
 
-/*************************************************
-* Name:        invntt
-*
-* Description: Inplace inverse number-theoretic transform in Rq
-*              input is in bitreversed order, output is in standard order
-*
-* Arguments:   - int16_t r[256]: pointer to input/output vector of elements of Zq
-**************************************************/
+
+// Name:        invntt
+//
+// Description: Inplace inverse number-theoretic transform in Rq
+//              input is in bitreversed order, output is in standard order
+//
+// Arguments:   - int16_t r[256]: pointer to input/output vector of elements of Zq
 pub fn invntt(r: &mut[i16]) 
 {
   let mut j;
@@ -151,17 +145,16 @@ pub fn invntt(r: &mut[i16])
   }
 }
 
-/*************************************************
-* Name:        basemul
-*
-* Description: Multiplication of polynomials in Zq[X]/((X^2-zeta))
-*              used for multiplication of elements in Rq in NTT domain
-*
-* Arguments:   - int16_t r[2]: pointer to the output polynomial
-*              - const int16_t a[2]: pointer to the first factor
-*              - const int16_t b[2]: pointer to the second factor
-*              - int16_t zeta: integer defining the reduction polynomial
-**************************************************/
+
+// Name:        basemul
+//
+// Description: Multiplication of polynomials in Zq[X]/((X^2-zeta))
+//              used for multiplication of elements in Rq in NTT domain
+//
+// Arguments:   - int16_t r[2]: pointer to the output polynomial
+//              - const int16_t a[2]: pointer to the first factor
+//              - const int16_t b[2]: pointer to the second factor
+//              - int16_t zeta: integer defining the reduction polynomial
 pub fn basemul(r: &mut[i16], a: &[i16], b: &[i16], zeta: i16)
 {
   r[0]  = fqmul(a[1], b[1]);

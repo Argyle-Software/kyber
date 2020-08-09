@@ -1,6 +1,6 @@
 /// Helper functions
 
-/// Encodes a byte slice into a hex string
+// Encodes a byte slice into a hex string
 pub fn encode_hex(bytes: &[u8]) -> String {
   let mut output = String::new();
   for b in bytes {
@@ -9,8 +9,7 @@ pub fn encode_hex(bytes: &[u8]) -> String {
   output
 }
 
-/// Decodes a hex string into a vector of bytes
-/// 
+// Decodes a hex string into a vector of bytes
 pub fn decode_hex(s: &str) -> Vec<u8> {
   (0..s.len())
       .step_by(2)

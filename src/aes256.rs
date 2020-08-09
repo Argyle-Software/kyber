@@ -52,16 +52,15 @@ fn br_range_enc32le(dst: &mut [u8], v: &mut [u32], mut num: usize)
 
 fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 {
-  	/*
-	 * This S-box implementation is a straightforward translation of
-	 * the circuit described by Boyar and Peralta in "A new
-	 * combinational logic minimization technique with applications
-	 * to cryptology" (https://eprint.iacr.org/2009/191.pdf).
-	 *
-	 * Note that variables x* (input) and s* (output) are numbered
-	 * in "reverse" order (x0 is the high bit, x7 is the low bit).
-   */
-   
+/*
+* This S-box implementation is a straightforward translation of
+* the circuit described by Boyar and Peralta in "A new
+* combinational logic minimization technique with applications
+* to cryptology" (https://eprint.iacr.org/2009/191.pdf).
+*
+* Note that variables x* (input) and s* (output) are numbered
+* in "reverse" order (x0 is the high bit, x7 is the low bit).
+*/
 	let (x0, x1, x2, x3, x4, x5, x6, x7): (u64, u64, u64, u64, u64, u64, u64, u64);
 	let (y1, y2, y3, y4, y5, y6, y7, y8, y9): (u64, u64, u64, u64, u64, u64, u64, u64, u64);
 	let (y10, y11, y12, y13, y14, y15, y16, y17, y18, y19): (u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) ;
@@ -501,7 +500,7 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
   br_range_enc32le(out, w, 16);
 
 
-  // TODO: Check counter increase
+  // TODO: Check counter increase, looks like dead code in reference implementation
   // let mut idx = 0;
   // /* Increase counter for next 4 blocks */
   // idx += 3;
@@ -548,18 +547,16 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
   }
 }
 
-/*************************************************
-* Name:        aes256_prf
-*
-* Description: AES256 stream generation in CTR mode using 32-bit counter, 
-*              nonce is zero-padded to 12 bytes, counter starts at zero
-*
-* Arguments:   - unsigned char *output:      pointer to output
-*              - unsigned long long outlen:  length of requested output in bytes
-*              - const unsigned char *key:   pointer to 32-byte key
-*              - const unsigned char nonce:  1-byte nonce (will be zero-padded to 12 bytes)
-**************************************************/
 
+// Name:        aes256_prf
+//
+// Description: AES256 stream generation in CTR mode using 32-bit counter, 
+//              nonce is zero-padded to 12 bytes, counter starts at zero
+//
+// Arguments:   - unsigned char *output:      pointer to output
+//              - unsigned long long outlen:  length of requested output in bytes
+//              - const unsigned char *key:   pointer to 32-byte key
+//              - const unsigned char nonce:  1-byte nonce (will be zero-padded to 12 bytes)
 pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
 {
   let mut sk_exp = [0u64; 120];
@@ -570,19 +567,17 @@ pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
   br_aes_ct64_ctr_run(&mut sk_exp, &mut iv, 0, output, outlen);
 }
 
-/*************************************************
-* Name:        aes256xof_absorb
-*
-* Description: AES256 CTR used as a replacement for a XOF; this function
-*              "absorbs" a 32-byte key and two additional bytes that are zero-padded
-*              to a 12-byte nonce
-*
-* Arguments:   - aes256xof_ctx *s:          pointer to state to "absorb" key and IV into
-*              - const unsigned char *key:  pointer to 32-byte key
-*              - unsigned char x:           first additional byte to "absorb"
-*              - unsigned char y:           second additional byte to "absorb"
-**************************************************/
 
+// Name:        aes256xof_absorb
+//
+// Description: AES256 CTR used as a replacement for a XOF; this function
+//              "absorbs" a 32-byte key and two additional bytes that are zero-padded
+//              to a 12-byte nonce
+//
+// Arguments:   - aes256xof_ctx *s:          pointer to state to "absorb" key and IV into
+//              - const unsigned char *key:  pointer to 32-byte key
+//              - unsigned char x:           first additional byte to "absorb"
+//              - unsigned char y:           second additional byte to "absorb"
 pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
 {
   let mut skey = [0u64; 30];

@@ -1,18 +1,16 @@
-use crate::poly::*;
+use crate::poly::Poly;
 use crate::params::{KYBER_ETA, KYBER_N};
 
-/*************************************************
-* Name:        load32_littleendian
-*
-* Description: load bytes into a 32-bit integer
-*              in little-endian order
-*
-* Arguments:   - const unsigned char *x: pointer to input byte array
-*
-* Returns 32-bit unsigned integer loaded from x
-**************************************************/
 
-pub fn load32_littleendian(x: &[u8]) -> u32 
+// Name:        load32_littleendian
+//
+// Description: load bytes into a 32-bit integer
+//              in little-endian order
+//
+// Arguments:   - const unsigned char *x: pointer to input byte array
+//
+// Returns 32-bit unsigned integer loaded from x
+fn load32_littleendian(x: &[u8]) -> u32 
 {
   let mut r = x[0] as u32;
   r |= (x[1] as u32) << 8;
@@ -21,17 +19,15 @@ pub fn load32_littleendian(x: &[u8]) -> u32
   r
 }
 
-/*************************************************
-* Name:        cbd
-*
-* Description: Given an array of uniformly random bytes, compute
-*              polynomial with coefficients distributed according to
-*              a centered binomial distribution with parameter KYBER_ETA
-*
-* Arguments:   - poly *r:                  pointer to output polynomial
-*              - const unsigned char *buf: pointer to input byte array
-**************************************************/
 
+// Name:        cbd
+//
+// Description: Given an array of uniformly random bytes, compute
+//              polynomial with coefficients distributed according to
+//              a centered binomial distribution with parameter KYBER_ETA
+//
+// Arguments:   - poly *r:                  pointer to output polynomial
+//              - const unsigned char *buf: pointer to input byte array
 pub fn cbd(r: &mut Poly, buf: &[u8])
 {
   let (mut d, mut t, mut a, mut b); 

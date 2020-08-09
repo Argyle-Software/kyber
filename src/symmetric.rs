@@ -52,16 +52,15 @@ pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
   shake256(out, KYBER_SSBYTES as u64, input, inbytes);
 }
 
-/*************************************************
-* Name:        kyber_shake128_absorb
-*
-* Description: Absorb step of the SHAKE128 specialized for the Kyber context.
-*
-* Arguments:   - uint64_t *s:                     pointer to (uninitialized) output Keccak state
-*              - const unsigned char *input:      pointer to KYBER_SYMBYTES input to be absorbed into s
-*              - unsigned char i                  additional byte of input
-*              - unsigned char j                  additional byte of input
-**************************************************/
+
+// Name:        kyber_shake128_absorb
+//
+// Description: Absorb step of the SHAKE128 specialized for the Kyber context.
+//
+// Arguments:   - uint64_t *s:                     pointer to (uninitialized) output Keccak state
+//              - const unsigned char *input:      pointer to KYBER_SYMBYTES input to be absorbed into s
+//              - unsigned char i                  additional byte of input
+//              - unsigned char j                  additional byte of input
 pub fn kyber_shake128_absorb(
   s: &mut KeccakState,
   input: &[u8],
@@ -77,17 +76,16 @@ pub fn kyber_shake128_absorb(
 }
 
 
-/*************************************************
-* Name:        kyber_shake128_squeezeblocks
-*
-* Description: Squeeze step of SHAKE128 XOF. Squeezes full blocks of SHAKE128_RATE bytes each.
-*              Modifies the state. Can be called multiple times to keep squeezing,
-*              i.e., is incremental.
-*
-* Arguments:   - unsigned char *output:      pointer to output blocks
-*              - unsigned long long nblocks: number of blocks to be squeezed (written to output)
-*              - keccak_state *s:            pointer to in/output Keccak state
-**************************************************/
+
+// Name:        kyber_shake128_squeezeblocks
+//
+// Description: Squeeze step of SHAKE128 XOF. Squeezes full blocks of SHAKE128_RATE bytes each.
+//              Modifies the state. Can be called multiple times to keep squeezing,
+//              i.e., is incremental.
+//
+// Arguments:   - unsigned char *output:      pointer to output blocks
+//              - unsigned long long nblocks: number of blocks to be squeezed (written to output)
+//              - keccak_state *s:            pointer to in/output Keccak state
 pub fn kyber_shake128_squeezeblocks(
   output: &mut[u8], 
   nblocks: u64,
@@ -99,17 +97,16 @@ pub fn kyber_shake128_squeezeblocks(
 }
 
 
-/*************************************************
-* Name:        shake256_prf
-*
-* Description: Usage of SHAKE256 as a PRF, concatenates secret and public input
-*              and then generates outlen bytes of SHAKE256 output
-*              
-* Arguments:   - unsigned char *output:      pointer to output
-*              - unsigned long long outlen:  number of requested output bytes
-*              - const unsigned char * key:  pointer to the key (of length KYBER_SYMBYTES)
-*              - const unsigned char nonce:  single-byte nonce (public PRF input)
-**************************************************/
+
+// Name:        shake256_prf
+//
+// Description: Usage of SHAKE256 as a PRF, concatenates secret and public input
+//              and then generates outlen bytes of SHAKE256 output
+//              
+// Arguments:   - unsigned char *output:      pointer to output
+//              - unsigned long long outlen:  number of requested output bytes
+//              - const unsigned char * key:  pointer to the key (of length KYBER_SYMBYTES)
+//              - const unsigned char nonce:  single-byte nonce (public PRF input)
 pub fn shake256_prf(output: &mut[u8], outlen: u64, key: &[u8], nonce: u8)
 {
   let mut extkey = [0u8; KYBER_SYMBYTES+1];

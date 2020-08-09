@@ -1,23 +1,20 @@
 use crate::{
   params::*,
-  rng::*,
-  symmetric::*,
-  verify::*,
   indcpa::*,
-  error::*
+  symmetric::*,
+  rng::randombytes,
+  error::KyberError,
+  verify::{verify, cmov}
 };
 
-/*************************************************
-* Name:        crypto_kem_keypair
-*
-* Description: Generates public and private key
-*              for CCA-secure Kyber key encapsulation mechanism
-*
-* Arguments:   - unsigned char *pk: pointer to output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
-*              - unsigned char *sk: pointer to output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
-*
-* Returns 0 (success)
-**************************************************/
+
+// Name:        crypto_kem_keypair
+//
+// Description: Generates public and private key
+//              for CCA-secure Kyber key encapsulation mechanism
+//
+// Arguments:   - unsigned char *pk: pointer to output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
+//              - unsigned char *sk: pointer to output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair(pk: &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8;32])>) { 
   indcpa_keypair(pk, sk, seed);
   let end = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
@@ -32,18 +29,15 @@ pub fn crypto_kem_keypair(pk: &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8
   }
 }
 
-/*************************************************
-* Name:        crypto_kem_enc
-*
-* Description: Generates cipher text and shared
-*              secret for given public key
-*
-* Arguments:   - unsigned char *ct:       pointer to output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-*              - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-*              - const unsigned char *pk: pointer to input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
-*
-* Returns 0 (success)
-**************************************************/
+
+// Name:        crypto_kem_enc
+//
+// Description: Generates cipher text and shared
+//              secret for given public key
+//
+// Arguments:   - unsigned char *ct:       pointer to output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+//              - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+//              - const unsigned char *pk: pointer to input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc(ct: &mut[u8], ss: &mut[u8], pk: &[u8], seed: Option<&[u8]>) {
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
@@ -73,20 +67,17 @@ pub fn crypto_kem_enc(ct: &mut[u8], ss: &mut[u8], pk: &[u8], seed: Option<&[u8]>
   kdf(ss, &kr, 2*KYBER_SYMBYTES as u64);
 }
 
-/*************************************************
-* Name:        crypto_kem_dec
-*
-* Description: Generates shared secret for given
-*              cipher text and private key
-*
-* Arguments:   - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-*              - const unsigned char *ct: pointer to input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-*              - const unsigned char *sk: pointer to input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
-*
-* Returns 0.
-*
-* On failure, ss will contain a pseudo-random value.
-**************************************************/
+
+// Name:        crypto_kem_dec
+//
+// Description: Generates shared secret for given
+//              cipher text and private key
+//
+// Arguments:   - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+//              - const unsigned char *ct: pointer to input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+//              - const unsigned char *sk: pointer to input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
+//
+// On failure, ss will contain a pseudo-random value.
 pub fn crypto_kem_dec(ss: &mut[u8], ct: &[u8], sk: &[u8]) -> Result<(), KyberError> {
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
