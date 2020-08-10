@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+use kyber::{utils::decode_hex, KYBER_K, KYBER_90S};
 use std::fs::File;
 use std::path::PathBuf;
 use std::io::{prelude::*, BufReader};
@@ -16,7 +18,8 @@ pub struct Kat {
 impl From<&[String]> for Kat {
   fn from(kat: &[String]) -> Self {
     // Extract values from key:value lines
-    let values: Vec<String> = kat.iter()
+    let values: Vec<String>;
+    values = kat.iter()
                 .map(|kvs| 
                   {
                     if kvs.len() > 1 {
@@ -28,7 +31,7 @@ impl From<&[String]> for Kat {
                   }
                 ).collect();
     // Build KAT from values
-    Kat{
+    Kat {
       count: values[0].clone(),
       seed: values[1].clone(),
       pk: values[2].clone(),
@@ -39,26 +42,20 @@ impl From<&[String]> for Kat {
   }
 }
 
-fn decode_hex(s: &str) -> Vec<u8> {
-  (0..s.len())
-      .step_by(2)
-      .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("Parsing hex string"))
-      .collect::<Vec<u8>>()
-}
-
-// Get correct buffer filename based on security level chosen
+// Get KAT filename based on security level
 fn get_filename() -> String {
-  let filename = if cfg!(feature = "kyber764") {
-    "PQCkemKAT_2400.rsp"
-  } else {"PQCkemKAT_2400.rsp"};
-  filename.into()
-}
-
-fn get_filepath() -> PathBuf {
-  let mut path = get_test_dir();
-  let filename = get_filename();
-  path.extend(&[filename]);
-  path
+  let mut filename = match KYBER_K {
+    2 => "PQCkemKAT_1632".to_string(),
+    3 => "PQCkemKAT_2400".to_string(),
+    4 => "PQCkemKAT_3168".to_string(),
+    _ => panic!("No security level set")
+  };
+  if KYBER_90S {
+    filename.push_str("-90s.rsp");
+  } else {
+    filename.push_str(".rsp");
+  }
+  filename
 }
 
 fn get_test_dir() -> PathBuf {
@@ -67,12 +64,28 @@ fn get_test_dir() -> PathBuf {
   path
 }
 
+fn get_buffer_filepath(filename: &str) -> PathBuf {
+  let mut path = get_test_dir();
+  path.extend(&["rand_bufs", "outputs"]);
+  path.extend(&[filename]);
+  path
+}
+
+fn get_kat_filepath() -> PathBuf {
+  let mut path = get_test_dir();
+  let filename = get_filename();
+  path.extend(&["KATs"]);
+  path.extend(&[filename]);
+  path
+}
+
+
 fn load_file(filepath: PathBuf) -> File {
   File::open(filepath).expect("Error loading file")
 }
 
-fn parse_lines() -> Vec<String> {
-  let filepath = get_filepath();
+fn parse_kats() -> Vec<String> {
+  let filepath = get_kat_filepath();
   let file = load_file(filepath);
   let buf = BufReader::new(file);
   //skip file heading ie. "kyber512\n"
@@ -84,31 +97,24 @@ fn parse_lines() -> Vec<String> {
 
 // Packs rsp lines into Kat structs 
 pub fn build_kats() -> Vec<Kat> {
-  let lines = parse_lines();
+  let lines = parse_kats();
   let kats = lines.chunks_exact(7);
-  kats.map(|c| {
-          let ca = c;
-          let cb = ca.into();
-          cb
-          }
-        )
-        .collect::<Vec<Kat>>()
+  // From String slice into Vec<KAT>
+  kats.map(|c| {c.into()})
+      .collect::<Vec<Kat>>()
 }
 
 fn get_encode_buf_strings() -> Vec<String> {
-  let mut path = get_test_dir();
-  path.extend(&["rand_bufs", "outputs","encode_buffers"]);
-  let file = load_file(path);
-  let buf = BufReader::new(file);
+  let path = get_buffer_filepath("encode");
+  let buf = BufReader::new(load_file(path));
   buf.lines()
       .map(|l| l.expect("Parsing lines"))
       .collect()
 }
 
-pub fn get_encode_buffers() -> Vec<[u8;32]> {
-  let buf_strings = get_encode_buf_strings();
+pub fn get_encode_bufs() -> Vec<[u8;32]> {
   let mut bufs = Vec::new();
-  for s in buf_strings {
+  for s in get_encode_buf_strings() {
     let mut buf = [0u8; 32];
     buf.copy_from_slice(&decode_hex(&s));
     bufs.push(buf)
@@ -117,22 +123,20 @@ pub fn get_encode_buffers() -> Vec<[u8;32]> {
 }
 
 fn get_keypair_buffer_strings() -> Vec<(String, String)> {
-  let mut indcpa_path = get_test_dir();
-  indcpa_path.extend(&["rand_bufs", "outputs"]);
-  let mut crypto_kem_path = indcpa_path.clone();
-  indcpa_path.extend(&["indcpa_keypair"]);
-  crypto_kem_path.extend(&["crypto_kem_keypair"]);
+  let indcpa_path = get_buffer_filepath("indcpa_keypair");
+  let crypto_kem_path = get_buffer_filepath("crypto_kem_keypair");
   let indcpa_file = load_file(indcpa_path);
   let crypto_kem_file = load_file(crypto_kem_path);
   let incpa_buf = BufReader::new(indcpa_file);
   let crypto_kem_buf = BufReader::new(crypto_kem_file);
   incpa_buf.lines()
-            .map(|s| s.unwrap())
-            .zip(crypto_kem_buf.lines().map(|s| s.unwrap()))
-            .collect()
+    .map(|s| s.unwrap())
+    // Zip together iterators into a string tuple
+    .zip(crypto_kem_buf.lines().map(|s| s.unwrap()))
+    .collect()
 }
 
-pub fn get_keypair_buffers() -> Vec<([u8;32], [u8;32])> {
+pub fn get_keypair_bufs() -> Vec<([u8;32], [u8;32])> {
   let buf_strings = get_keypair_buffer_strings();
   buf_strings.iter()
   .map(|s| 

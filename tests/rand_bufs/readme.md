@@ -19,8 +19,8 @@ make
 
 ### Original Files
 
-* [rng.c](https://github.com/pq-crystals/kyber/blob/master/ref/rng.c)
-* [rng.h](https://github.com/pq-crystals/kyber/blob/master/ref/rng.h)
-* [PQCgenKAT_kem.c](https://github.com/pq-crystals/kyber/blob/master/ref/PQCgenKAT_kem.c)
+// [rng.c](https://github.com/pq-crystals/kyber/blob/master/ref/rng.c)
+// [rng.h](https://github.com/pq-crystals/kyber/blob/master/ref/rng.h)
+// [PQCgenKAT_kem.c](https://github.com/pq-crystals/kyber/blob/master/ref/PQCgenKAT_kem.c)
 
 
