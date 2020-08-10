@@ -17,10 +17,17 @@ mod symmetric;
 mod verify;
 pub mod utils;
 
-use error::KyberError;
-#[cfg(feature="verify-KATs")]
+pub use error::KyberError;
+#[cfg(feature="KATs")]
 pub use api::{crypto_kem_keypair, crypto_kem_enc, crypto_kem_dec};
-pub use params::{KYBER_PUBLICKEYBYTES, KYBER_SECRETKEYBYTES, KYBER_CIPHERTEXTBYTES, KYBER_SSBYTES};
+pub use params::{
+  KYBER_PUBLICKEYBYTES, 
+  KYBER_SECRETKEYBYTES, 
+  KYBER_CIPHERTEXTBYTES, 
+  KYBER_SSBYTES, 
+  KYBER_K, 
+  KYBER_90S
+};
 
 pub fn keypair() -> Result<([u8; KYBER_PUBLICKEYBYTES], [u8; KYBER_SECRETKEYBYTES]), KyberError> {
   let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
