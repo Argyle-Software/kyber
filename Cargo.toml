@@ -28,10 +28,10 @@ kyber764-90s = []
 kyber1024-90s = []
 
 # Additional features
-simd = []
+avx2 = []
 wasm = []
 
 # Verification Testing
 # Allows access to private api functions to seed the RNG output 
 # Do not use for any purpose other than running the Known Answer Tests
-verify-KATs = []
+KATs = []
