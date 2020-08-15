@@ -1,17 +1,15 @@
 #![allow(clippy::needless_range_loop)]
+
 const SHAKE128_RATE: usize = 168;
 const SHAKE256_RATE: usize = 136;
 const SHA3_256_RATE: usize = 136;
 const SHA3_512_RATE: usize =  72;
-
 const NROUNDS: usize = 24;
 
 fn rol(a: u64, offset: u64) -> u64 
 {
   (a << offset) ^ (a >> (64-offset))
 }
-
-
 
 // Name:        load64
 //
@@ -28,8 +26,6 @@ pub fn load64(x: &[u8]) -> u64
   }
   r
 }
-
-
 
 // Name:        store64
 //
@@ -72,8 +68,6 @@ const KECCAKF_ROUNDCONSTANTS: [u64; NROUNDS] = [
   0x0000000080000001u64,
   0x8000000080008008u64
 ];
-
-
 
 // Name:        KeccakF1600_StatePermute
 //
@@ -328,14 +322,6 @@ pub fn keccakf1600_statepermute(state: &mut[u64])
   state[24] = asu;
 }
 
-// TODO: Remove?
-// Copied from reference implementation, unused
-// fn min(a: u64, b: u64) -> u64 {
-//   std::cmp::min(a, b)
-// }
-
-
-
 // Name:        keccak_absorb
 //
 // Description: Absorb step of Keccak;
@@ -373,8 +359,6 @@ pub fn keccak_absorb(s: &mut[u64], r: usize, m: &[u8], mut mlen: u64, p: u8)
   }
 }
 
-
-
 // Name:        keccak_squeezeblocks
 //
 // Description: Squeeze step of Keccak. Squeezes full blocks of r bytes each.
@@ -397,8 +381,6 @@ pub fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: u64, s: &mut [u64], r: usi
     nblocks -= 1;
   }
 }
-
-
 
 // Name:        shake128_absorb
 //
@@ -428,8 +410,6 @@ pub fn shake128_squeezeblocks(output: &mut[u8], nblocks: u64, s: &mut[u64])
 {
   keccak_squeezeblocks(output, nblocks, s, SHAKE128_RATE);
 }
-
-
 
 // Name:        shake256
 //
@@ -463,8 +443,6 @@ pub fn shake256(output: &mut[u8], outlen: u64, input: &[u8], inlen: u64)
     }
 }
 
-
-
 // Name:        sha3_256
 //
 // Description: SHA3-256 with non-incremental API
@@ -486,7 +464,6 @@ pub fn sha3_256(output: &mut [u8], input: &[u8], inlen: usize)
   output[..32].copy_from_slice(&t[..32])
 }
 
-
 // Name:        sha3_512
 //
 // Description: SHA3-512 with non-incremental API
@@ -494,7 +471,6 @@ pub fn sha3_256(output: &mut [u8], input: &[u8], inlen: usize)
 // Arguments:   - unsigned char *output:      pointer to output (64 bytes)
 //              - const unsigned char *input: pointer to input
 //              - unsigned long long inlen:   length of input in bytes
-
 pub fn sha3_512(output: &mut [u8], input: &[u8], inlen: usize) {
   let mut s =[0u64; 25];
   let mut t = [0u8; SHA3_512_RATE];
@@ -507,4 +483,3 @@ pub fn sha3_512(output: &mut [u8], input: &[u8], inlen: usize) {
 
     output[..64].copy_from_slice(&t[..64])
 }
-
