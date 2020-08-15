@@ -6,10 +6,14 @@ edition = "2018"
 
 
 [dependencies]
-rand = "0.7.3"
+rand = { version = "0.7.3", features =["wasm-bindgen"]}
+wasm-bindgen = { version = "0.2.67", optional = true}
 
 [dev-dependencies]
 criterion = "0.3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [[bench]]
 name = "api"
@@ -23,15 +27,19 @@ harness = false
 kyber512 = []
 kyber764 = []
 kyber1024 =[]
-kyber512-90s = []
-kyber764-90s = []
-kyber1024-90s = []
+kyber512-90s = ["90s"]
+kyber764-90s = ["90s"]
+kyber1024-90s = ["90s"]
 
 # Additional features
 avx2 = []
-wasm = []
+wasm = ["wasm-bindgen"]
+
 
 # Verification Testing
 # Allows access to private api functions to seed the RNG output 
 # Do not use for any purpose other than running the Known Answer Tests
 KATs = []
+
+# Internal conditional flag
+90s = []
