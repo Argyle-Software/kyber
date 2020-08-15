@@ -1,5 +1,7 @@
 #![allow(clippy::many_single_char_names)]
 
+#[cfg(feature = "wasm")]
+mod wasm;
 // mod aes256;
 mod api;
 mod cbd;
@@ -17,9 +19,9 @@ mod symmetric;
 mod verify;
 pub mod utils;
 
-pub use error::KyberError;
 #[cfg(feature="KATs")]
 pub use api::{crypto_kem_keypair, crypto_kem_enc, crypto_kem_dec};
+pub use error::KyberError;
 pub use params::{
   KYBER_PUBLICKEYBYTES, 
   KYBER_SECRETKEYBYTES, 
@@ -29,14 +31,18 @@ pub use params::{
   KYBER_90S
 };
 
-pub fn keypair() -> Result<([u8; KYBER_PUBLICKEYBYTES], [u8; KYBER_SECRETKEYBYTES]), KyberError> {
+pub fn keypair() -> Keys {
   let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
   api::crypto_kem_keypair(&mut pk, &mut sk, None);
-  Ok((pk, sk))  
+  Keys {
+    public: pk,
+    secret: sk,
+    ..Default::default()
+  } 
 }
 
-pub fn encode(pk: &[u8]) -> Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError> {
+pub fn encapsulate(pk: &[u8]) -> Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError> {
   if pk.len() != KYBER_PUBLICKEYBYTES {
     return Err(KyberError::EncodeFail)
   }
@@ -46,10 +52,30 @@ pub fn encode(pk: &[u8]) -> Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBY
   Ok((ct, ss))
 }
 
-
-pub fn decode<'a>(ss: &'a mut [u8], ct: &[u8], sk: &[u8]) -> Result<&'a[u8], KyberError> {
-  match api::crypto_kem_dec(ss, ct, sk) {
+pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Result<[u8; KYBER_SSBYTES], KyberError> {
+  let mut ss = [0u8; KYBER_SSBYTES];
+  match api::crypto_kem_dec(&mut ss, ct, sk) {
     Ok(_) => Ok(ss),
     Err(e) => Err(e)
   }
 }
+
+#[derive(Copy, Clone)]
+pub struct Keys{
+    pub public: [u8; KYBER_PUBLICKEYBYTES],
+    pub secret: [u8; KYBER_SECRETKEYBYTES],
+    pub ciphertext: [u8; KYBER_CIPHERTEXTBYTES],
+    pub shared_secret: [u8; KYBER_SSBYTES],
+}
+
+impl Default for Keys {
+  fn default() -> Self {
+    Keys {
+      public: [0u8; KYBER_PUBLICKEYBYTES],
+      secret: [0u8; KYBER_SECRETKEYBYTES],
+      ciphertext: [0u8; KYBER_CIPHERTEXTBYTES],
+      shared_secret: [0u8; KYBER_SSBYTES]
+    }
+  }
+}
+
