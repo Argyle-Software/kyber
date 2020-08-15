@@ -26,6 +26,20 @@ Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is
 
 ### Benchmarking
 
+### WASM Development
+
+You'll need `wasm-pack`, `NPM` and the `wasm32-unknown-unknown` target installed for your toolchain.
+
+To build: 
+
+```
+wasm-pack build -- --features wasm
+```
+
+
+
+
+
 
 ### Contributing 
 
