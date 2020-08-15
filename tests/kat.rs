@@ -3,8 +3,8 @@ mod load;
 use load::*;
 use kyber::{*, utils::decode_hex};
 
-#[test]
 // Generate KAT keypairs from seeds.
+#[test]
 #[cfg(feature="KATs")]
 fn keypairs() {
   let kats = build_kats();
@@ -20,10 +20,10 @@ fn keypairs() {
   }
 }
 
+// Encapsulating KAT's using deterministic rand buffers
 #[test]
-// Encoding KAT's using deterministic rand buffers values
 #[cfg(feature="KATs")]
-fn encodings() {
+fn encaps() {
   let kats = build_kats();
   let bufs = get_encode_bufs();
   for (i, kat) in kats.iter().enumerate() {
@@ -38,15 +38,14 @@ fn encodings() {
   }
 }
 
+// Decapsulating KAT's
 #[test]
-// Decoding KAT's
-fn decodings() {
+fn decaps() {
   let kats = build_kats();
   for kat in kats {
-    let mut ss = decode_hex(&kat.ss);
     let sk = decode_hex(&kat.sk);
     let ct = decode_hex(&kat.ct);
-    let decode_result = decode(&mut ss, &ct, &sk);
-    assert!(decode_result.is_ok(), "KEM decoding failure");
+    let decap_result = decapsulate(&ct, &sk);
+    assert!(decap_result.is_ok(), "KEM decasulation failure");
   }
 }
