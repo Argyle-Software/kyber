@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use kyber::{utils::decode_hex, KYBER_K, KYBER_90S};
+use pqc_kyber::{utils::decode_hex, KYBER_K, KYBER_90S};
 use std::fs::File;
 use std::path::PathBuf;
 use std::io::{prelude::*, BufReader};

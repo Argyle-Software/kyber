@@ -1,10 +1,14 @@
 [package]
-name = "kyber"
+name = "pqc-kyber"
 version = "0.1.0"
-authors = ["Mitchell <17392435+MitchellBerry@users.noreply.github.com>"]
+authors = ["Mitchell Berry <17392435+MitchellBerry@users.noreply.github.com>"]
 edition = "2018"
-license = "Apache"
+license = "Apache-2.0"
+repository = "https://github.com/MitchellBerry/kyber"
+documentation = "https://docs.rs/crate/pqc-kyber/"
 categories = ["algorithms", "cryptography"]
+description = "A pure rust implementation of the Kyber algorithm"
+keywords = ["cryptography", "kyber", "kem", "key exchange", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
@@ -29,9 +33,6 @@ harness = false
 kyber512 = []
 kyber764 = []
 kyber1024 =[]
-kyber512-90s = ["90s"]
-kyber764-90s = ["90s"]
-kyber1024-90s = ["90s"]
 
 # Additional features
 avx2 = []
@@ -42,6 +43,3 @@ wasm = ["wasm-bindgen"]
 # Allows access to private api functions to seed the RNG output 
 # Do not use for any purpose other than running the Known Answer Tests
 KATs = []
-
-# Internal conditional flag
-90s = []

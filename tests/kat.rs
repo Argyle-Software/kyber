@@ -1,7 +1,7 @@
 mod load;
 
 use load::*;
-use kyber::{*, utils::decode_hex};
+use pqc_kyber::{*, utils::decode_hex};
 
 // Generate KAT keypairs from seeds.
 #[test]

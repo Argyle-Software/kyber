@@ -2,7 +2,7 @@
 
 //! # Kyber
 //! 
-//! A pure rust implmentation of the Kyber algorithm with wasm compilation.
+//! A pure rust implementation of the Kyber algorithm that compiles to wasm.
 //! 
 //! To select different security strengths from the default enable 
 //! in your `cargo.toml` the feature of `kyber512` or `kyber1024` 
@@ -10,7 +10,7 @@
 //! ## Usage 
 //!
 //! ```
-//! use kyber::*;
+//! use pqc_kyber::*;
 //! ```
 //! ##### KEM
 //! ```
@@ -96,6 +96,7 @@
 //!
 //!  assert_eq!(ka, kb);
 //! ```
+
 #[cfg(feature = "wasm")]
 mod wasm;
 // mod aes256;

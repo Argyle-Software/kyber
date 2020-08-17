@@ -1,4 +1,4 @@
-use kyber::*;
+use pqc_kyber::*;
 
 // Perform unilaterally authenticated key exchange
 #[test]
