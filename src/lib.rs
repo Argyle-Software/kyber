@@ -8,6 +8,7 @@ mod cbd;
 mod error;
 mod fips202;
 mod indcpa;
+mod kex;
 mod params;
 mod poly;
 mod polyvec;
@@ -20,7 +21,19 @@ mod verify;
 pub mod utils;
 
 #[cfg(feature="KATs")]
-pub use api::{crypto_kem_keypair, crypto_kem_enc, crypto_kem_dec};
+pub use api::{
+  crypto_kem_keypair, 
+  crypto_kem_enc, 
+  crypto_kem_dec
+};
+pub use kex::{
+  ake_init_a, 
+  ake_shared_a, 
+  ake_shared_b, 
+  uake_init_a, 
+  uake_shared_a, 
+  uake_shared_b
+};
 pub use error::KyberError;
 pub use params::{
   KYBER_PUBLICKEYBYTES, 
@@ -36,7 +49,7 @@ pub fn keypair() -> Keys {
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
   api::crypto_kem_keypair(&mut pk, &mut sk, None);
   Keys {
-    public: pk,
+    pubkey: pk,
     secret: sk,
     ..Default::default()
   } 
@@ -62,7 +75,7 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Result<[u8; KYBER_SSBYTES], KyberErr
 
 #[derive(Copy, Clone)]
 pub struct Keys{
-    pub public: [u8; KYBER_PUBLICKEYBYTES],
+    pub pubkey: [u8; KYBER_PUBLICKEYBYTES],
     pub secret: [u8; KYBER_SECRETKEYBYTES],
     pub ciphertext: [u8; KYBER_CIPHERTEXTBYTES],
     pub shared_secret: [u8; KYBER_SSBYTES],
@@ -71,7 +84,7 @@ pub struct Keys{
 impl Default for Keys {
   fn default() -> Self {
     Keys {
-      public: [0u8; KYBER_PUBLICKEYBYTES],
+      pubkey: [0u8; KYBER_PUBLICKEYBYTES],
       secret: [0u8; KYBER_SECRETKEYBYTES],
       ciphertext: [0u8; KYBER_CIPHERTEXTBYTES],
       shared_secret: [0u8; KYBER_SSBYTES]

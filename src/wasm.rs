@@ -7,7 +7,7 @@ pub fn keypair() -> Keys {
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
   api::crypto_kem_keypair(&mut pk, &mut sk, None);
   Keys{
-    public: Box::new(pk),
+    pubkey: Box::new(pk),
     secret: Box::new(sk),
     ..Default::default()
   }
@@ -40,7 +40,7 @@ pub fn decapsulate(ct: Box<[u8]>, sk: Box<[u8]>) -> Result<Keys, JsValue> {
 #[wasm_bindgen]
 #[derive(Default, Clone, Debug)]
 pub struct Keys{
-    public: Box<[u8]>,
+    pubkey: Box<[u8]>,
     secret: Box<[u8]>,
     ciphertext: Box<[u8]>,
     shared_secret: Box<[u8]>,
@@ -54,8 +54,8 @@ impl Keys {
   }
 
   #[wasm_bindgen(getter)]
-  pub fn public(&self) -> Box<[u8]> {
-    self.public.clone()
+  pub fn pubkey(&self) -> Box<[u8]> {
+    self.pubkey.clone()
   }
 
   #[wasm_bindgen(getter)]
@@ -74,8 +74,8 @@ impl Keys {
   }
 
   #[wasm_bindgen(setter)]
-  pub fn set_public(&mut self, public: Box<[u8]>) {
-    self.public = public;
+  pub fn set_pubkey(&mut self, pubkey: Box<[u8]>) {
+    self.pubkey = pubkey;
   }
 
   #[wasm_bindgen(setter)]
