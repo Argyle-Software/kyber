@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/mitchellberry/kyber/blob/master/LICENSE)
 
 
-A pure rust implementation of Kyber 
+A pure rust implementation of Kyber that can compile to WASM. 
 
 
 
