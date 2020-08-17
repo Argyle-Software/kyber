@@ -1,13 +1,5 @@
 use kyber::*;
 
-pub const KEX_UAKE_SENDABYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
-pub const KEX_UAKE_SENDBBYTES: usize = KYBER_CIPHERTEXTBYTES;
-
-pub const KEX_AKE_SENDABYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
-pub const KEX_AKE_SENDBBYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
-
-pub const KEX_SSBYTES: usize = KYBER_SSBYTES;
-
 // Perform unilaterally authenticated key exchange
 #[test]
 fn uake() {
