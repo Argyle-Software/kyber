@@ -3,7 +3,9 @@ name = "kyber"
 version = "0.1.0"
 authors = ["Mitchell <17392435+MitchellBerry@users.noreply.github.com>"]
 edition = "2018"
-
+license = "Apache"
+categories = ["algorithms", "cryptography"]
+readme = "readme.md"
 
 [dependencies]
 rand = { version = "0.7.3", features =["wasm-bindgen"]}
