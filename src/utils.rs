@@ -1,4 +1,4 @@
-/// Helper functions
+//! Basic helper functions
 
 // Encodes a byte slice into a hex string
 pub fn encode_hex(bytes: &[u8]) -> String {
