@@ -12,6 +12,7 @@ keywords = ["cryptography", "kyber", "kem", "key exchange", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
+rand_core = "0.5.1"
 rand = { version = "0.7.3", features =["wasm-bindgen"]}
 wasm-bindgen = { version = "0.2.67", optional = true}
 
@@ -25,11 +26,10 @@ crate-type = ["cdylib", "rlib"]
 name = "api"
 harness = false
 
-# Will throw a compile_error if more than one security level is chosen
-# "kyber764" is the default if no other security level is specified
-# As a feature it has no effect yet is made available for end-user clarity
 [features]
 # Security Levels
+# Will throw a compile_error if more than one level is chosen
+# "kyber764" is the default if none is specified
 kyber512 = []
 kyber764 = []
 kyber1024 =[]

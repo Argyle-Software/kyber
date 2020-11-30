@@ -1,7 +1,11 @@
-use rand::prelude::*;
+use rand_core::*;
+use crate::error::KyberError;
 
-pub fn randombytes(x: &mut [u8], len: usize)
+pub fn randombytes<R>(x: &mut [u8], len: usize, rng: &mut R) -> Result<(), KyberError>
+  where R: RngCore + CryptoRng,
 {
-  thread_rng().fill_bytes(&mut x[..len])
+  match rng.try_fill_bytes(&mut x[..len]) {
+    Ok(_) => Ok(()),
+    Err(e) => Err(KyberError::KeyPair(e))
+  }
 }
-

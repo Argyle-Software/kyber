@@ -6,7 +6,7 @@ use crate::{
   error::KyberError,
   verify::{verify, cmov}
 };
-
+use rand_core::*;
 
 // Name:        crypto_kem_keypair
 //
@@ -15,17 +15,28 @@ use crate::{
 //
 // Arguments:   - unsigned char *pk: pointer to output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 //              - unsigned char *sk: pointer to output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
-pub fn crypto_kem_keypair(pk: &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8;32])>) { 
-  indcpa_keypair(pk, sk, seed);
+pub fn crypto_kem_keypair<R>(
+  pk: &mut[u8], 
+  sk: &mut[u8], 
+  rng: &mut R,
+  seed: Option<([u8;32], [u8;32])> 
+) -> Result<(), KyberError> 
+  where R: RngCore + CryptoRng
+{ 
+  indcpa_keypair(pk, sk, seed, rng)?;
   let end = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   sk[KYBER_INDCPA_SECRETKEYBYTES..end].copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   
-  let pk_start = KYBER_SECRETKEYBYTES - (2 * KYBER_SYMBYTES);
-  hash_h(&mut sk[pk_start..], pk, KYBER_PUBLICKEYBYTES);
-
+  const PK_START: usize = KYBER_SECRETKEYBYTES - (2 * KYBER_SYMBYTES);
+  const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
+  hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
+  // If running KAT's use seed tuple, 
   match seed {
-    None => randombytes(&mut sk[KYBER_SECRETKEYBYTES-KYBER_SYMBYTES..],KYBER_SYMBYTES),
-    Some(s) => sk[KYBER_SECRETKEYBYTES-KYBER_SYMBYTES..].copy_from_slice(&s.1)
+    None => randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng),
+    Some(s) => {
+      sk[SK_START..].copy_from_slice(&s.1);
+      Ok(())
+    }
   }
 }
 
@@ -38,17 +49,25 @@ pub fn crypto_kem_keypair(pk: &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8
 // Arguments:   - unsigned char *ct:       pointer to output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
 //              - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
 //              - const unsigned char *pk: pointer to input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
-pub fn crypto_kem_enc(ct: &mut[u8], ss: &mut[u8], pk: &[u8], seed: Option<&[u8]>) {
+pub fn crypto_kem_enc<R>(
+  ct: &mut[u8], 
+  ss: &mut[u8], 
+  pk: &[u8],
+  rng: &mut R,
+  seed: Option<&[u8]>
+) -> Result<(), KyberError>
+  where R: RngCore + CryptoRng
+{
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  match seed {
+  let res = match seed {
     // Retreive OS randombytes
-    None => randombytes(&mut randbuf, KYBER_SYMBYTES),
+    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng),
     // Deterministic randbuf for KAT's
-    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s)
-  }
+    Some(s) => {randbuf[..KYBER_SYMBYTES].copy_from_slice(&s); Ok(())}
+  };
 
   // Don't release system RNG output 
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);
@@ -65,6 +84,7 @@ pub fn crypto_kem_enc(ct: &mut[u8], ss: &mut[u8], pk: &[u8], seed: Option<&[u8]>
 
   // hash concatenation of pre-k and H(c) to k
   kdf(ss, &kr, 2*KYBER_SYMBYTES as u64);
+  res
 }
 
 
