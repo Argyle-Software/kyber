@@ -1,10 +1,6 @@
 use crate::params::*;
 
-// TODO: unused - remove?
-// const MONT: usize = 2285; // 2^16 % Q
-
 const QINV: i32 = 62209; // q^(-1) mod 2^16
-
 
 // Name:        montgomery_reduce
 //
@@ -25,7 +21,6 @@ pub fn montgomery_reduce(a: i32) -> i16
   t as i16
 }
 
-
 // Name:        barrett_reduce
 //
 // Description: Barrett reduction; given a 16-bit integer a, computes
@@ -42,8 +37,6 @@ pub fn barrett_reduce(a: i16) -> i16
   t *= KYBER_Q as i32;
   a - t as i16
 }
-
-
 
 // Name:        csubq
 //
