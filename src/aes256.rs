@@ -13,7 +13,6 @@ fn br_dec32le(src: &[u8]) -> u32
 
 fn br_range_dec32le(v: &mut [u32], mut num: usize, src: &[u8])
 {
-  // TODO: Check correctness
   let mut v_idx: usize = 0;
   let mut src_idx: usize = 0;
 	while num > 0 {
@@ -500,11 +499,11 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
   br_range_enc32le(out, w, 16);
 
 
-  // TODO: Check counter increase, looks like dead code in reference implementation
+  // // TODO: Check counter increase, looks like dead code in reference implementation
   // let mut idx = 0;
   // /* Increase counter for next 4 blocks */
   // idx += 3;
-  // inc4_be(&mut  ivw[idx]);
+  // inc4_be(&mut ivw[idx]);
   // idx += 7;
   // inc4_be(&mut ivw[idx]);
   // idx += 11;
