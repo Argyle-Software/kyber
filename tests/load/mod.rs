@@ -1,8 +1,9 @@
 #![allow(dead_code)]
-use pqc_kyber::{utils::decode_hex, KYBER_K, KYBER_90S};
+use pqc_kyber::{KYBER_K, KYBER_90S};
 use std::fs::File;
 use std::path::PathBuf;
 use std::io::{prelude::*, BufReader};
+use super::decode_hex;
 
 #[derive(Debug)]
 // Known Answer Tests
