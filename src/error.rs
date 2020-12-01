@@ -1,10 +1,11 @@
 use std::error::Error;
 
 #[derive(Debug)]
+/// Error type for the various failure modes
 pub enum KyberError {
   EncodeFail,
   DecodeFail,
-  Rng(rand::Error)
+  KeyPair(rand::Error)
 }
 
 impl std::fmt::Display for KyberError {
@@ -12,7 +13,7 @@ impl std::fmt::Display for KyberError {
     match *self {
       KyberError::EncodeFail => write!(f, "Encoding Failure"),
       KyberError::DecodeFail => write!(f, "Decode Failure"),
-      KyberError::Rng(ref e) => e.fmt(f)
+      KyberError::KeyPair(ref e) => e.fmt(f)
     }
   }
 }
@@ -22,7 +23,7 @@ impl Error for KyberError {
     match *self {
       KyberError::EncodeFail => None,
       KyberError::DecodeFail => None,
-      KyberError::Rng(ref e) => Some(e)
+      KyberError::KeyPair(ref e) => Some(e)
     }
   }
 }
@@ -30,7 +31,7 @@ impl Error for KyberError {
 // Implement From trait for KyberError wrapper over rand failures.
 impl From<rand::Error> for KyberError {
   fn from(err: rand::Error) -> KyberError {
-    KyberError::Rng(err)
+    KyberError::KeyPair(err)
   }
 }
 
