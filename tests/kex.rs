@@ -1,8 +1,10 @@
 use pqc_kyber::*;
 
-// Perform unilaterally authenticated key exchange
+// Unilaterally authenticated key exchange
 #[test]
 fn uake() {
+  let mut rng = rand::thread_rng();
+
   let mut eska = [0u8; KYBER_SECRETKEYBYTES];
 
   let mut uake_senda = [0u8; KEX_UAKE_SENDABYTES];
@@ -13,21 +15,23 @@ fn uake() {
   let mut kb = [0u8; KEX_SSBYTES];
 
   // let alice_keys = keypair();
-  let bob_keys = keypair();
+  let bob_keys = keypair(&mut rng).unwrap();
 
   // Alice
   uake_init_a(
     &mut uake_senda, 
     &mut tk, 
     &mut eska, 
-    &bob_keys.pubkey
-  );
+    &bob_keys.public,
+    &mut rng
+  ).unwrap();
   // Bob
   uake_shared_b(
     &mut uake_sendb, 
     &mut kb, 
     &uake_senda, 
-    &bob_keys.secret
+    &bob_keys.secret,
+    &mut rng
   ).unwrap();
   // Alice
   uake_shared_a(
@@ -40,9 +44,10 @@ fn uake() {
   assert_eq!(ka, kb);
 }
 
-// Perform mutually authenticated key exchange
+// Mutually authenticated key exchange
 #[test]
 fn ake() {
+  let mut rng = rand::thread_rng();
   let mut eska = [0u8; KYBER_SECRETKEYBYTES];
 
   let mut ake_senda = [0u8; KEX_AKE_SENDABYTES];
@@ -52,24 +57,28 @@ fn ake() {
   let mut ka = [0u8; KEX_SSBYTES];
   let mut kb = [0u8; KEX_SSBYTES];
 
-  let alice_keys = keypair();
-  let bob_keys = keypair();
+  let alice_keys = keypair(&mut rng).unwrap();
+  let bob_keys = keypair(&mut rng).unwrap();
 
     // Alice
     ake_init_a(
       &mut ake_senda, 
       &mut tk, 
       &mut eska, 
-      &bob_keys.pubkey
-    );
+      &bob_keys.public,
+      &mut rng
+    ).unwrap();
+
     // Bob
     ake_shared_b(
       &mut ake_sendb, 
       &mut kb, 
       &ake_senda, 
       &bob_keys.secret,
-      &alice_keys.pubkey
+      &alice_keys.public,
+      &mut rng
     ).unwrap();
+
     // Alice
     ake_shared_a(
       &mut ka, 
