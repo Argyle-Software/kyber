@@ -178,21 +178,38 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 }
 
 
-// Name:        poly_getnoise
+// Name:        poly_getnoise_eta1
 //
 // Description: Sample a polynomial deterministically from a seed and a nonce,
 //              with output polynomial close to centered binomial distribution
-//              with parameter KYBER_ETA
+//              with parameter KYBER_ETA1
 //
 // Arguments:   - poly *r:                   pointer to output polynomial
 //              - const unsigned char *seed: pointer to input seed (pointing to array of length KYBER_SYMBYTES bytes)
 //              - unsigned char nonce:       one-byte input nonce
-pub fn poly_getnoise(r: &mut Poly, seed: &[u8], nonce: u8)
+pub fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
 {
-  const LENGTH: usize = KYBER_ETA*KYBER_N/4;
+  const LENGTH: usize = KYBER_ETA1*KYBER_N/4;
   let mut buf = [0u8; LENGTH];
   prf(&mut buf, LENGTH as u64, seed, nonce);
-  cbd(r, &buf);
+  poly_cbd_eta1(r, &buf);
+}
+
+// Name:        poly_getnoise_eta2
+//
+// Description: Sample a polynomial deterministically from a seed and a nonce,
+//              with output polynomial close to centered binomial distribution
+//              with parameter KYBER_ETA2
+//
+// Arguments:   - poly *r:                   pointer to output polynomial
+//              - const unsigned char *seed: pointer to input seed (pointing to array of length KYBER_SYMBYTES bytes)
+//              - unsigned char nonce:       one-byte input nonce
+pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
+{
+  const LENGTH: usize = KYBER_ETA2*KYBER_N/4;
+  let mut buf = [0u8; LENGTH];
+  prf(&mut buf, LENGTH as u64, seed, nonce);
+  poly_cbd_eta2(r, &buf);
 }
 
 

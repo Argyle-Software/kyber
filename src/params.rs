@@ -21,7 +21,12 @@ pub const KYBER_90S: bool = true;
 pub const KYBER_N: usize = 256;
 pub const KYBER_Q: usize = 3329;
 
-pub const KYBER_ETA: usize = 2;
+#[cfg(feature = "kyber512")]
+pub const KYBER_ETA1: usize = 3;
+#[cfg(not(feature = "kyber512"))]
+pub const KYBER_ETA1: usize = 2;
+
+pub const KYBER_ETA2: usize = 2;
 
 // size in bytes of hashes, and seeds
 pub const KYBER_SYMBYTES: usize = 32;
