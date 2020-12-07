@@ -73,12 +73,7 @@ mod symmetric;
 mod verify;
 pub mod utils;
 
-#[cfg(feature="KATs")]
-pub use api::{
-  crypto_kem_keypair, 
-  crypto_kem_enc, 
-  crypto_kem_dec
-};
+
 use rand::prelude::*;
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
@@ -90,6 +85,16 @@ pub use params::{
   KYBER_SSBYTES, 
   KYBER_K, 
   KYBER_90S
+};
+
+// cfg(test) doesn't work with integration testing
+// feature hack to expose internal private functions
+// for the Known Answer Tests
+#[cfg(features="KATs")]
+pub use api::{
+  crypto_kem_keypair, 
+  crypto_kem_enc, 
+  crypto_kem_dec
 };
 
 /// The result of encapsulating a public key which incleudes Ciphertext and a temporary key 
@@ -130,13 +135,16 @@ pub struct Kyber {
   /// Sent bak when responding to a key exchange initiation
   pub ake_send_b: AkeSendB,
 
-  // To use other RNG's use lower level contructions 
+  // Hard dependency on rand::ThreadRng
+  // For custom RNG's use lower level contructions
+  // For the most part you should never be using another
+  // rng except for embedded applications.
   rng: ThreadRng,
   // Ephermal key
   temp_key: TempKey,
-  // Ephemeral secret key
+  // Ephemeral key
   eska: Eska,
-  /// Flag to note that keypair has been set 
+  /// Flag to check keypair has been set 
   pub initialized: bool
 }
 
@@ -161,7 +169,7 @@ impl Kyber {
   /// Builds a Kyber struct with a new generated keypair. 
   /// 
   /// The only difference between this function and `Kyber::default()` 
-  /// is the key generation and setting the initialized flag.
+  /// is key generation and setting the initialized flag.
   /// 
   /// ```
   /// # use pqc_kyber::*;

@@ -5,7 +5,7 @@ use pqc_kyber::*;
 
 // Generate KAT keypairs from seeds.
 #[test]
-#[cfg(feature="KATs")]
+// #[cfg(feature="KATs")]
 fn keypairs() {
   let kats = build_kats();
   let keypair_bufs = get_keypair_bufs();
@@ -23,7 +23,7 @@ fn keypairs() {
 
 // Encapsulating KAT's using deterministic rand buffers
 #[test]
-#[cfg(feature="KATs")]
+// #[cfg(feature="KATs")]
 fn encaps() {
   let kats = build_kats();
   let bufs = get_encode_bufs();
