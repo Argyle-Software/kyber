@@ -1,5 +1,4 @@
 #![allow(clippy::precedence)]
-
 use crate::{
   poly::*,
   params::*
@@ -20,13 +19,12 @@ impl Polyvec {
   }
 }
 
-
 // Name:        polyvec_compress
 //
 // Description: Compress and serialize vector of polynomials
 //
-// Arguments:   - unsigned char *r: pointer to output byte array (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
-//              - const polyvec *a: pointer to input vector of polynomials
+// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
+//              - const polyvec *a: input vector of polynomials
 pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
 {
   polyvec_csubq(a);
@@ -74,15 +72,13 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
   }
 }
 
-
-
 // Name:        polyvec_decompress
 //
 // Description: De-serialize and decompress vector of polynomials;
 //              approximate inverse of polyvec_compress
 //
-// Arguments:   - polyvec *r:       pointer to output vector of polynomials
-//              - unsigned char *a: pointer to input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
+// Arguments:   - polyvec *r:       output vector of polynomials
+//              - [u8] a: input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
 pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) 
 {
   if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
@@ -116,14 +112,12 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
   } 
 }
 
-
-
 // Name:        polyvec_tobytes
 //
 // Description: Serialize vector of polynomials
 //
-// Arguments:   - unsigned char *r: pointer to output byte array (needs space for KYBER_POLYVECBYTES)
-//              - const polyvec *a: pointer to input vector of polynomials 
+// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECBYTES)
+//              - const polyvec *a: input vector of polynomials 
 pub fn polyvec_tobytes(r: &mut[u8], a: &mut Polyvec)
 {
   // TODO: No need for mutable poly ref  - poly.rs polyvec.rs - toindcpa.rs 
@@ -132,15 +126,13 @@ pub fn polyvec_tobytes(r: &mut[u8], a: &mut Polyvec)
   }
 }
 
-
-
 // Name:        polyvec_frombytes
 //
 // Description: De-serialize vector of polynomials;
 //              inverse of polyvec_tobytes
 //
-// Arguments:   - unsigned char *r: pointer to output byte array
-//              - const polyvec *a: pointer to input vector of polynomials (of length KYBER_POLYVECBYTES)
+// Arguments:   - [u8] r: output byte array
+//              - const polyvec *a: input vector of polynomials (of length KYBER_POLYVECBYTES)
 pub fn polyvec_frombytes(r: &mut Polyvec, a: &[u8])
 {
   for i in 0..KYBER_K {
@@ -148,13 +140,11 @@ pub fn polyvec_frombytes(r: &mut Polyvec, a: &[u8])
   }
 }
 
-
-
 // Name:        polyvec_ntt
 //
 // Description: Apply forward NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: pointer to in/output vector of polynomials
+// Arguments:   - polyvec *r: in/output vector of polynomials
 pub fn polyvec_ntt(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -162,13 +152,11 @@ pub fn polyvec_ntt(r: &mut Polyvec)
   }
 }
 
-
-
 // Name:        polyvec_invntt
 //
 // Description: Apply inverse NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: pointer to in/output vector of polynomials
+// Arguments:   - polyvec *r: in/output vector of polynomials
 pub fn polyvec_invntt(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -176,15 +164,13 @@ pub fn polyvec_invntt(r: &mut Polyvec)
   }
 }
 
-
-
 // Name:        polyvec_pointwise_acc
 //
 // Description: Pointwise multiply elements of a and b and accumulate into r
 //
-// Arguments: - poly *r:          pointer to output polynomial
-//            - const polyvec *a: pointer to first input vector of polynomials
-//            - const polyvec *b: pointer to second input vector of polynomials
+// Arguments: - poly *r:          output polynomial
+//            - const polyvec *a: first input vector of polynomials
+//            - const polyvec *b: second input vector of polynomials
 pub fn polyvec_pointwise_acc(r: &mut Poly, a: &Polyvec, b: &Polyvec)
 {
   let mut t = Poly::new();
@@ -196,15 +182,13 @@ pub fn polyvec_pointwise_acc(r: &mut Poly, a: &Polyvec, b: &Polyvec)
   poly_reduce(r);
 }
 
-
-
 // Name:        polyvec_reduce
 //
 // Description: Applies Barrett reduction to each coefficient 
 //              of each element of a vector of polynomials
 //              for details of the Barrett reduction see comments in reduce.c
 //
-// Arguments:   - poly *r:       pointer to input/output polynomial
+// Arguments:   - poly *r:       input/output polynomial
 pub fn polyvec_reduce(r: &mut Polyvec)
 {
  for i in 0..KYBER_K {
@@ -212,15 +196,13 @@ pub fn polyvec_reduce(r: &mut Polyvec)
  } 
 }
 
-
-
 // Name:        polyvec_csubq
 //
 // Description: Applies conditional subtraction of q to each coefficient 
 //              of each element of a vector of polynomials
 //              for details of conditional subtraction of q see comments in reduce.c
 //
-// Arguments:   - poly *r:       pointer to input/output polynomial
+// Arguments:   - poly *r:       input/output polynomial
 pub fn polyvec_csubq(r: &mut Polyvec)
 {
   for i in 0..KYBER_K{
@@ -228,15 +210,13 @@ pub fn polyvec_csubq(r: &mut Polyvec)
   }
 }
 
-
-
 // Name:        polyvec_add
 //
 // Description: Add vectors of polynomials
 //
-// Arguments: - polyvec *r:       pointer to output vector of polynomials
-//            - const polyvec *a: pointer to first input vector of polynomials
-//            - const polyvec *b: pointer to second input vector of polynomials
+// Arguments: - polyvec *r:       output vector of polynomials
+//            - const polyvec *a: first input vector of polynomials
+//            - const polyvec *b: second input vector of polynomials
 pub fn polyvec_add(r: &mut Polyvec, b: &Polyvec)
 {
   for i in 0..KYBER_K {

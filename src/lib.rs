@@ -71,8 +71,6 @@ mod rng;
 mod sha;
 mod symmetric;
 mod verify;
-pub mod utils;
-
 
 use rand::prelude::*;
 pub use rand_core::{RngCore, CryptoRng};
@@ -90,38 +88,38 @@ pub use params::{
 // cfg(test) doesn't work with integration testing
 // feature hack to expose internal private functions
 // for the Known Answer Tests
-#[cfg(features="KATs")]
+#[cfg(feature="KATs")]
 pub use api::{
   crypto_kem_keypair, 
   crypto_kem_enc, 
   crypto_kem_dec
 };
 
-/// The result of encapsulating a public key which incleudes Ciphertext and a temporary key 
+/// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated =  Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError>;
 /// The result of  decapsulating a ciphertext which produces a shared secret when confirmed
 pub type Decapsulated = Result<[u8; KYBER_SSBYTES], KyberError>;
-/// A Kyber public key
+/// Kyber public key
 pub type PublicKey = [u8; KYBER_PUBLICKEYBYTES];
-/// A Kyber secret key
+/// Kyber secret key
 pub type SecretKey = [u8; KYBER_SECRETKEYBYTES];
-/// The bytes to send when initiating a uilateral key exchange
+/// Bytes to send when initiating a unilateral key exchange
 pub type UakeSendA = [u8; KEX_UAKE_SENDABYTES]; 
-/// The bytes to send when responding to a unilateral key exchange
+/// Bytes to send when responding to a unilateral key exchange
 pub type UakeSendB = [u8; KEX_UAKE_SENDBBYTES]; 
-/// The bytes to send when initiating a mutual key exchange
+/// Bytes to send when initiating a mutual key exchange
 pub type AkeSendA = [u8; KEX_AKE_SENDABYTES]; 
-/// The bytes to send when responding to a mutual key exchange
+/// Bytes to send when responding to a mutual key exchange
 pub type AkeSendB = [u8; KEX_AKE_SENDBBYTES]; 
 
-// Ephermeral internal keys
+// Ephermeral keys
 type TempKey = [u8; KEX_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
 #[derive(Copy, Clone, Debug)]
 pub struct Kyber {
   /// A public/private keypair for key exchanges
-  /// Kyber is designed to be safe for key re-use and this value can
+  /// Kyber is designed to be safe against key re-use and can
   /// remain static if needed
   pub keys: Keys,
   /// The resulting symeticrical shared secret from a key exchange
@@ -134,18 +132,19 @@ pub struct Kyber {
   pub ake_send_a: AkeSendA,
   /// Sent bak when responding to a key exchange initiation
   pub ake_send_b: AkeSendB,
+    /// Flag to check keypair has been set 
+  pub initialized: bool,
 
   // Hard dependency on rand::ThreadRng
   // For custom RNG's use lower level contructions
   // For the most part you should never be using another
   // rng except for embedded applications.
   rng: ThreadRng,
+
   // Ephermal key
   temp_key: TempKey,
   // Ephemeral key
-  eska: Eska,
-  /// Flag to check keypair has been set 
-  pub initialized: bool
+  eska: Eska
 }
 
 impl Default for Kyber {
@@ -170,7 +169,6 @@ impl Kyber {
   /// 
   /// The only difference between this function and `Kyber::default()` 
   /// is key generation and setting the initialized flag.
-  /// 
   /// ```
   /// # use pqc_kyber::*;
   /// let mut alice = Kyber::initialize().unwrap();

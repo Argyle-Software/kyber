@@ -51,15 +51,12 @@ fn br_range_enc32le(dst: &mut [u8], v: &mut [u32], mut num: usize)
 
 fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 {
-/*
-* This S-box implementation is a straightforward translation of
-* the circuit described by Boyar and Peralta in "A new
-* combinational logic minimization technique with applications
-* to cryptology" (https://eprint.iacr.org/2009/191.pdf).
-*
-* Note that variables x* (input) and s* (output) are numbered
-* in "reverse" order (x0 is the high bit, x7 is the low bit).
-*/
+  // This S-box implementation is a straightforward translation of
+  // the circuit described by Boyar and Peralta in "A new
+  // combinational logic minimization technique with applications
+  // to cryptology" (https://eprint.iacr.org/2009/191.pdf).
+  // Note that variables x(input) and s(output) are numbered
+  // in "reverse" order (x0 is the high bit, x7 is the low bit).
 	let (x0, x1, x2, x3, x4, x5, x6, x7): (u64, u64, u64, u64, u64, u64, u64, u64);
 	let (y1, y2, y3, y4, y5, y6, y7, y8, y9): (u64, u64, u64, u64, u64, u64, u64, u64, u64);
 	let (y10, y11, y12, y13, y14, y15, y16, y17, y18, y19): (u64, u64, u64, u64, u64, u64, u64, u64, u64, u64) ;
@@ -84,9 +81,7 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 	x6 = q[1];
 	x7 = q[0];
 
-	/*
-	 * Top linear transformation.
-	 */
+	// Top linear transformation.
 	y14 = x3 ^ x5;
 	y13 = x0 ^ x6;
 	y9 = x0 ^ x3;
@@ -111,9 +106,7 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 	y21 = y13 ^ y16;
 	y18 = x0 ^ y16;
 
-	/*
-	 * Non-linear section.
-	 */
+	// Non-linear section.
 	t2 = y12 & y15;
 	t3 = y3 & y6;
 	t4 = t3 ^ t2;
@@ -179,9 +172,7 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
 	z16 = t45 & y14;
 	z17 = t41 & y8;
 
-	/*
-	 * Bottom linear transformation.
-	 */
+  // Bottom linear transformation.
 	t46 = z15 ^ z16;
 	t47 = z10 ^ z11;
 	t48 = z5 ^ z13;
@@ -308,7 +299,6 @@ fn br_aes_ct64_interleave_out(w: &mut[u32], q0: u64, q1: u64)
 	x1 &= 0x0000FFFF0000FFFFu64;
 	x2 &= 0x0000FFFF0000FFFFu64;
   x3 &= 0x0000FFFF0000FFFFu64;
-  // TODO: Reference code casts to u32, check correctness here
 	w[0] = x0 as u32 | (x0 >> 16) as u32 ;
 	w[1] = x1 as u32 | (x1 >> 16) as u32 ;
 	w[2] = x2 as u32 | (x2 >> 16) as u32 ;
@@ -358,7 +348,7 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
   for _ in (0..nkf).step_by(4) {
     let mut q = [0u64; 8];
 
-    // TODO: Confirm q modified and skey indx correct
+
     let (q0, q1) = q.split_at_mut(4); 
     br_aes_ct64_interleave_in(&mut q0[0], &mut  q1[0], &skey[skey_idx..] );
     q[1] = q[0];
@@ -472,7 +462,6 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
   let w = ivw;
   let mut q = [0u64; 8];
   for i in 0..4 {
-    // TODO: Confirm split at mut
     let (q0, q1) = q.split_at_mut(i + 4);
     br_aes_ct64_interleave_in(&mut q0[0], &mut q1[0], &w[(i << 2)..]);
   }
@@ -485,21 +474,16 @@ fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
     mix_columns(&mut q);
     add_round_key(&mut q, &sk_exp[i..]);
   }
-
   br_aes_ct64_bitslice_sbox(&mut q);
   shift_rows(&mut q);
-  // TODO: Check correct 
   add_round_key(&mut q, &sk_exp[14..]);
 
   br_aes_ct64_ortho(&mut q);
   for i in 0..4 {
-    // TODO: Check correctness here
     br_aes_ct64_interleave_out(&mut w[i..], q[i], q[i + 4]);
   }
   br_range_enc32le(out, w, 16);
 
-
-  // // TODO: Check counter increase, looks like dead code in reference implementation
   // let mut idx = 0;
   // /* Increase counter for next 4 blocks */
   // idx += 3;
@@ -546,16 +530,15 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
   }
 }
 
-
 // Name:        aes256_prf
 //
 // Description: AES256 stream generation in CTR mode using 32-bit counter, 
 //              nonce is zero-padded to 12 bytes, counter starts at zero
 //
-// Arguments:   - unsigned char *output:      pointer to output
-//              - unsigned long long outlen:  length of requested output in bytes
-//              - const unsigned char *key:   pointer to 32-byte key
-//              - const unsigned char nonce:  1-byte nonce (will be zero-padded to 12 bytes)
+// Arguments:   - [u8] output:      output
+//              - usize outlen:  length of requested output in bytes
+//              - const [u8] key:   32-byte key
+//              - const [u8]  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
 pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
 {
   let mut sk_exp = [0u64; 120];
@@ -566,17 +549,16 @@ pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
   br_aes_ct64_ctr_run(&mut sk_exp, &mut iv, 0, output, outlen);
 }
 
-
 // Name:        aes256xof_absorb
 //
 // Description: AES256 CTR used as a replacement for a XOF; this function
 //              "absorbs" a 32-byte key and two additional bytes that are zero-padded
 //              to a 12-byte nonce
 //
-// Arguments:   - aes256xof_ctx *s:          pointer to state to "absorb" key and IV into
-//              - const unsigned char *key:  pointer to 32-byte key
-//              - unsigned char x:           first additional byte to "absorb"
-//              - unsigned char y:           second additional byte to "absorb"
+// Arguments:   - aes256xof_ctx *s:          state to "absorb" key and IV into
+//              - const [u8] key:  32-byte key
+//              - [u8]  x:           first additional byte to "absorb"
+//              - [u8]  y:           second additional byte to "absorb"
 pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
 {
   let mut skey = [0u64; 30];

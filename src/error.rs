@@ -1,7 +1,7 @@
 use std::error::Error;
 
 #[derive(Debug)]
-/// Error type for the various failure modes
+/// Generic error type for the various failure modes
 pub enum KyberError {
   EncodeFail,
   DecodeFail,

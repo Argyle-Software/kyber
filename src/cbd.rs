@@ -1,13 +1,12 @@
 use crate::poly::Poly;
 use crate::params::{KYBER_N};
 
-
 // Name:        load32_littleendian
 //
 // Description: load 4 bytes into a 32-bit integer
 //              in little-endian order
 //
-// Arguments:   - const unsigned char *x: pointer to input byte array
+// Arguments:   - const [u8] x: input byte array
 //
 // Returns 32-bit unsigned integer loaded from x
 fn load32_littleendian(x: &[u8]) -> u32 
@@ -25,7 +24,7 @@ fn load32_littleendian(x: &[u8]) -> u32
 //              in little-endian order
 //              This function is only needed for Kyber-512
 //
-// Arguments:   - const unsigned char *x: pointer to input byte array
+// Arguments:   - const [u8] x: input byte array
 //
 // Returns 32-bit unsigned integer loaded from x
 fn load24_littleendian(x: &[u8]) -> u32 
@@ -36,15 +35,14 @@ fn load24_littleendian(x: &[u8]) -> u32
   r
 }
 
-
 // Name:        cbd2
 //
 // Description: Given an array of uniformly random bytes, compute
 //              polynomial with coefficients distributed according to
 //              a centered binomial distribution with parameter eta=2
 //
-// Arguments:   - poly *r:                  pointer to output polynomial
-//              - const unsigned char *buf: pointer to input byte array
+// Arguments:   - poly *r:                  output polynomial
+//              - const [u8] buf: input byte array
 pub fn cbd2(r: &mut Poly, buf: &[u8])
 {
   let (mut d, mut t, mut a, mut b); 
@@ -66,8 +64,8 @@ pub fn cbd2(r: &mut Poly, buf: &[u8])
 //              polynomial with coefficients distributed according to
 //              a centered binomial distribution with parameter eta=3
 //              This function is only needed for Kyber-512
-// Arguments:   - poly *r:                  pointer to output polynomial
-//              - const unsigned char *buf: pointer to input byte array
+// Arguments:   - poly *r:                  output polynomial
+//              - const [u8] buf: input byte array
 pub fn cbd3(r: &mut Poly, buf: &[u8])
 {
   let (mut d, mut t, mut a, mut b); 

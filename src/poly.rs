@@ -21,7 +21,7 @@ impl Default for Poly {
   }
 }
 
-// ::new() sounds nicer
+// new() is nicer
 impl Poly {
   pub fn new() -> Self {
     Self::default()
@@ -32,8 +32,8 @@ impl Poly {
 //
 // Description: Compression and subsequent serialization of a polynomial
 //
-// Arguments:   - unsigned char *r: pointer to output byte array (needs space for KYBER_POLYCOMPRESSEDBYTES bytes)
-//              - const poly *a:    pointer to input polynomial
+// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYCOMPRESSEDBYTES bytes)
+//              - const poly *a:    input polynomial
 pub fn poly_compress(r: &mut[u8], a: &mut Poly)
 {
   let mut t = [0u8; 8];
@@ -41,7 +41,6 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
 
   poly_csubq(a);
 
-  //todo: conditional compilation rather than match
   match KYBER_POLYCOMPRESSEDBYTES {
     96 => {
       for i in (0..KYBER_N).step_by(8) {
@@ -89,8 +88,8 @@ pub fn poly_compress(r: &mut[u8], a: &mut Poly)
 // Description: De-serialization and subsequent decompression of a polynomial;
 //              approximate inverse of poly_compress
 //
-// Arguments:   - poly *r:                pointer to output polynomial
-//              - const unsigned char *a: pointer to input byte array (of length KYBER_POLYCOMPRESSEDBYTES bytes)
+// Arguments:   - poly *r:                output polynomial
+//              - const [u8] a: input byte array (of length KYBER_POLYCOMPRESSEDBYTES bytes)
 pub fn poly_decompress(r: &mut Poly, a: &[u8])
 {
   match KYBER_POLYCOMPRESSEDBYTES {
@@ -140,13 +139,12 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
   }
 }
 
-
 // Name:        poly_tobytes
 //
 // Description: Serialization of a polynomial
 //
-// Arguments:   - unsigned char *r: pointer to output byte array (needs space for KYBER_POLYBYTES bytes)
-//              - const poly *a:    pointer to input polynomial
+// Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYBYTES bytes)
+//              - const poly *a:    input polynomial
 pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
 {
   poly_csubq(a);
@@ -161,14 +159,13 @@ pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
   }
 }
 
-
 // Name:        poly_frombytes
 //
 // Description: De-serialization of a polynomial;
 //              inverse of poly_tobytes
 //
-// Arguments:   - poly *r:                pointer to output polynomial
-//              - const unsigned char *a: pointer to input byte array (of KYBER_POLYBYTES bytes)
+// Arguments:   - poly *r:                output polynomial
+//              - const [u8] a: input byte array (of KYBER_POLYBYTES bytes)
 pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 {
   for i in 0..(KYBER_N/2) {
@@ -177,16 +174,15 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8])
   }
 }
 
-
 // Name:        poly_getnoise_eta1
 //
 // Description: Sample a polynomial deterministically from a seed and a nonce,
 //              with output polynomial close to centered binomial distribution
 //              with parameter KYBER_ETA1
 //
-// Arguments:   - poly *r:                   pointer to output polynomial
-//              - const unsigned char *seed: pointer to input seed (pointing to array of length KYBER_SYMBYTES bytes)
-//              - unsigned char nonce:       one-byte input nonce
+// Arguments:   - poly *r:                   output polynomial
+//              - const [u8] seed: input seed (pointing to array of length KYBER_SYMBYTES bytes)
+//              - [u8]  nonce:       one-byte input nonce
 pub fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
 {
   const LENGTH: usize = KYBER_ETA1*KYBER_N/4;
@@ -201,9 +197,9 @@ pub fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
 //              with output polynomial close to centered binomial distribution
 //              with parameter KYBER_ETA2
 //
-// Arguments:   - poly *r:                   pointer to output polynomial
-//              - const unsigned char *seed: pointer to input seed (pointing to array of length KYBER_SYMBYTES bytes)
-//              - unsigned char nonce:       one-byte input nonce
+// Arguments:   - poly *r:                   output polynomial
+//              - const [u8] seed: input seed (pointing to array of length KYBER_SYMBYTES bytes)
+//              - [u8]  nonce:       one-byte input nonce
 pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
 {
   const LENGTH: usize = KYBER_ETA2*KYBER_N/4;
@@ -220,14 +216,12 @@ pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
 //              a polynomial in place;
 //              inputs assumed to be in normal order, output in bitreversed order
 //
-// Arguments:   - uint16_t *r: pointer to in/output polynomial
+// Arguments:   - Poly r: in/output polynomial
 pub fn poly_ntt(r: &mut Poly) 
 {
   ntt(&mut r.coeffs);
   poly_reduce(r);
 }
-
-
 
 // Name:        poly_invntt
 //
@@ -235,23 +229,19 @@ pub fn poly_ntt(r: &mut Poly)
 //              a polynomial in place;
 //              inputs assumed to be in bitreversed order, output in normal order
 //
-// Arguments:   - uint16_t *a: pointer to in/output polynomial
-
-
+// Arguments:   - Poly a: in/output polynomial
 pub fn poly_invntt(r: &mut Poly)
 {
   invntt(&mut r.coeffs);
 }
 
-
-
 // Name:        poly_basemul
 //
 // Description: Multiplication of two polynomials in NTT domain
 //
-// Arguments:   - poly *r:       pointer to output polynomial
-//              - const poly *a: pointer to first input polynomial
-//              - const poly *b: pointer to second input polynomial
+// Arguments:   - poly *r:       output polynomial
+//              - const poly *a: first input polynomial
+//              - const poly *b: second input polynomial
 pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
   for i in 0..(KYBER_N/4) {
@@ -270,14 +260,12 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
   }
 }
 
-
-
 // Name:        poly_frommont
 //
 // Description: Inplace conversion of all coefficients of a polynomial 
 //              from Montgomery domain to normal domain
 //
-// Arguments:   - poly *r:       pointer to input/output polynomial
+// Arguments:   - poly *r:       input/output polynomial
 pub fn poly_frommont(r: &mut Poly)
 {
   let f = ((1u64 << 32) % KYBER_Q as u64) as i16;
@@ -287,13 +275,12 @@ pub fn poly_frommont(r: &mut Poly)
   }
 }
 
-
 // Name:        poly_reduce
 //
 // Description: Applies Barrett reduction to all coefficients of a polynomial
 //              for details of the Barrett reduction see comments in reduce.c
 //
-// Arguments:   - poly *r:       pointer to input/output polynomial
+// Arguments:   - poly *r:       input/output polynomial
 pub fn poly_reduce(r: &mut Poly)
 {
   for i in 0..KYBER_N {
@@ -301,14 +288,12 @@ pub fn poly_reduce(r: &mut Poly)
   }
 }
 
-
-
 // Name:        poly_csubq
 //
 // Description: Applies conditional subtraction of q to each coefficient of a polynomial
 //              for details of conditional subtraction of q see comments in reduce.c
 //
-// Arguments:   - poly *r:       pointer to input/output polynomial
+// Arguments:   - poly *r:       input/output polynomial
 pub fn poly_csubq(r: &mut Poly)
 {
   for i in 0..KYBER_N {
@@ -316,15 +301,13 @@ pub fn poly_csubq(r: &mut Poly)
   }
 }
 
-
-
 // Name:        poly_add
 //
 // Description: Add two polynomials
 //
-// Arguments: - poly *r:       pointer to output polynomial
-//            - const poly *a: pointer to first input polynomial
-//            - const poly *b: pointer to second input polynomial
+// Arguments: - poly *r:       output polynomial
+//            - const poly *a: first input polynomial
+//            - const poly *b: second input polynomial
 pub fn poly_add(r: &mut Poly, b: &Poly)
 {
   for i in 0..KYBER_N {
@@ -332,15 +315,13 @@ pub fn poly_add(r: &mut Poly, b: &Poly)
   }
 }
 
-
-
 // Name:        poly_sub
 //
 // Description: Subtract two polynomials
 //
-// Arguments: - poly *r:       pointer to output polynomial
-//            - const poly *a: pointer to first input polynomial
-//            - const poly *b: pointer to second input polynomial
+// Arguments: - poly *r:       output polynomial
+//            - const poly *a: first input polynomial
+//            - const poly *b: second input polynomial
 pub fn  poly_sub(r: &mut Poly, a: &Poly)
 {
   for i in 0..KYBER_N {
@@ -348,14 +329,12 @@ pub fn  poly_sub(r: &mut Poly, a: &Poly)
   }
 }
 
-
-
 // Name:        poly_frommsg
 //
 // Description: Convert 32-byte message to polynomial
 //
-// Arguments:   - poly *r:                  pointer to output polynomial
-//              - const unsigned char *msg: pointer to input message
+// Arguments:   - poly *r:                  output polynomial
+//              - const [u8] msg: input message
 pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 {
   let mut mask;
@@ -367,14 +346,12 @@ pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
   }
 }
 
-
-
 // Name:        poly_tomsg
 //
 // Description: Convert polynomial to 32-byte message
 //
-// Arguments:   - unsigned char *msg: pointer to output message
-//              - const poly *a:      pointer to input polynomial
+// Arguments:   - [u8] msg: output message
+//              - const poly *a:      input polynomial
 pub fn poly_tomsg(msg: &mut[u8], a: &mut Poly)
 {
   poly_csubq(a);
@@ -385,7 +362,6 @@ pub fn poly_tomsg(msg: &mut[u8], a: &mut Poly)
     for j in 0..8 {
       // TODO: Consider making KYBER_Q i16 everywhere 
       t = ((((a.coeffs[8*i+j] << 1) + (KYBER_Q/2) as i16) / KYBER_Q as i16) & 1) as u16;
-      // TODO: Check conversion
       msg[i] |= (t << j) as u8;
     }
   }

@@ -1,6 +1,7 @@
 use rand_core::*;
 use crate::error::KyberError;
 
+// Fills buffer x with len bytes from rng which satifisfies the marker trait CryptoRng
 pub fn randombytes<R>(x: &mut [u8], len: usize, rng: &mut R) -> Result<(), KyberError>
   where R: RngCore + CryptoRng,
 {

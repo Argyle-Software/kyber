@@ -13,8 +13,8 @@ use rand_core::*;
 // Description: Generates public and private key
 //              for CCA-secure Kyber key encapsulation mechanism
 //
-// Arguments:   - unsigned char *pk: pointer to output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
-//              - unsigned char *sk: pointer to output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
+// Arguments:   - [u8] pk: output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
+//              - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
@@ -46,9 +46,9 @@ pub fn crypto_kem_keypair<R>(
 // Description: Generates cipher text and shared
 //              secret for given public key
 //
-// Arguments:   - unsigned char *ct:       pointer to output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-//              - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-//              - const unsigned char *pk: pointer to input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
+// Arguments:   - [u8] ct:       output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+//              - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+//              - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc<R>(
   ct: &mut[u8], 
   ss: &mut[u8], 
@@ -93,9 +93,9 @@ pub fn crypto_kem_enc<R>(
 // Description: Generates shared secret for given
 //              cipher text and private key
 //
-// Arguments:   - unsigned char *ss:       pointer to output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-//              - const unsigned char *ct: pointer to input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-//              - const unsigned char *sk: pointer to input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
+// Arguments:   - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+//              - const [u8] ct: input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+//              - const [u8] sk: input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 //
 // On failure, ss will contain a pseudo-random value.
 pub fn crypto_kem_dec(ss: &mut[u8], ct: &[u8], sk: &[u8]) -> Result<(), KyberError> {

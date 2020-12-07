@@ -1,11 +1,9 @@
-// Conditional 90s version
+// #[cfg(features="90s")]
 // use sha2::{Sha256, Sha512, Digest};
 use crate::fips202::{sha3_256, sha3_512};
 
-// TODO: check if nlen parameter can be removed
 pub fn sha256(out: &mut[u8], input: &[u8], inlen: usize)
 {
-
   sha3_256(out, input, inlen);
   // TODO: Add 90s version conditional compilation
   // Uses sha2 below
