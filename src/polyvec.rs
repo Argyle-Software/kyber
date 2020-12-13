@@ -164,14 +164,14 @@ pub fn polyvec_invntt(r: &mut Polyvec)
   }
 }
 
-// Name:        polyvec_pointwise_acc
+// Name:        polyvec_basemul_acc_montgomery
 //
 // Description: Pointwise multiply elements of a and b and accumulate into r
 //
 // Arguments: - poly *r:          output polynomial
 //            - const polyvec *a: first input vector of polynomials
 //            - const polyvec *b: second input vector of polynomials
-pub fn polyvec_pointwise_acc(r: &mut Poly, a: &Polyvec, b: &Polyvec)
+pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec)
 {
   let mut t = Poly::new();
   poly_basemul(r, &a.vec[0], &b.vec[0]);
