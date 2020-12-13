@@ -198,19 +198,6 @@ pub fn polyvec_reduce(r: &mut Polyvec)
  } 
 }
 
-// Name:        polyvec_csubq
-//
-// Description: Applies conditional subtraction of q to each coefficient 
-//              of each element of a vector of polynomials
-//              for details of conditional subtraction of q see comments in reduce.c
-//
-// Arguments:   - poly *r:       input/output polynomial
-pub fn polyvec_csubq(r: &mut Polyvec)
-{
-  for i in 0..KYBER_K{
-    poly_csubq(&mut r.vec[i]);
-  }
-}
 
 // Name:        polyvec_add
 //

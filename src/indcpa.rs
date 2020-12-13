@@ -76,7 +76,7 @@ fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8])
 //              const [u8] seed: the input polynomial v
 fn pack_ciphertext(r: &mut[u8], b: &mut Polyvec, v: Poly)
 {
-  polyvec_compress(r, b);
+  polyvec_compress(r, *b);
   poly_compress(&mut r[KYBER_POLYVECCOMPRESSEDBYTES..], v);
 }
 
