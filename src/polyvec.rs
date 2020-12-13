@@ -25,17 +25,17 @@ impl Polyvec {
 //
 // Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
 //              - const polyvec *a: input vector of polynomials
-pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
+pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
 {
-  polyvec_csubq(a);
-
   if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
     let mut t = [0u16; 8];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/8 {
         for k in 0..8 {
-          t[k] = (((((a.vec[i].coeffs[8*j+k] as u32) << 11) + KYBER_Q as u32/2) / KYBER_Q as u32) & 0x7ff) as u16;
+          t[k]  = a.vec[i].coeffs[8*j+k] as u16;
+          t[k] += (((t[k] as i16) >> 15) & KYBER_Q as i16) as u16;
+          t[k]  = (((((t[k] as u32) << 11) + KYBER_Q as u32/2)/KYBER_Q as u32) & 0x7ff ) as u16;
         }
         r[idx+11*j   ] =  (t[0] & 0xff) as u8;
         r[idx+11*j+ 1] = ((t[0] >>  8) | ((t[1] & 0x1f) << 3)) as u8;
@@ -57,7 +57,9 @@ pub fn polyvec_compress(r: &mut[u8], a: &mut Polyvec)
     for i in 0..KYBER_K {
       for j in 0..KYBER_N/4 {
         for k in 0..4 {
-          t[k] = (((((a.vec[i].coeffs[4*j+k] as u32) << 10) + KYBER_Q as u32/2) / KYBER_Q as u32) & 0x3ff) as u16;
+          t[k]  = a.vec[i].coeffs[4*j+k] as u16;
+          t[k] += (((t[k] as i16) >> 15) & KYBER_Q as i16) as u16;
+          t[k]  = (((((t[k] as u32) << 10) + KYBER_Q as u32/2)/ KYBER_Q as u32) & 0x3ff) as u16;
         }
         r[idx+5*j   ] =  (t[0] & 0xff) as u8;
         r[idx+5*j+ 1] = ((t[0] >>  8) | ((t[1] & 0x3f) << 2)) as u8;
