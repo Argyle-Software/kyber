@@ -122,7 +122,7 @@ pub fn polyvec_tobytes(r: &mut[u8], a: &mut Polyvec)
 {
   // TODO: No need for mutable poly ref  - poly.rs polyvec.rs - toindcpa.rs 
   for i in 0..KYBER_K {
-    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], &mut a.vec[i]);
+    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], a.vec[i]);
   }
 }
 

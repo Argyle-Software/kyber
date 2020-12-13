@@ -312,5 +312,5 @@ pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
   poly_sub(&mut mp, &v);
   poly_reduce(&mut mp);
 
-  poly_tomsg(m, &mut mp);
+  poly_tomsg(m, mp);
 }

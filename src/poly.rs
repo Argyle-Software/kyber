@@ -150,14 +150,16 @@ pub fn poly_decompress(r: &mut Poly, a: &[u8])
 //
 // Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYBYTES bytes)
 //              - const poly *a:    input polynomial
-pub fn poly_tobytes(r: &mut[u8], a: &mut Poly)
+pub fn poly_tobytes(r: &mut[u8], a: Poly)
 {
-  poly_csubq(a);
   let (mut t0, mut t1);
 
   for i in 0..(KYBER_N/2) {
+    // map to positive standard representatives
     t0 = a.coeffs[2*i];
+    t0 += (t0 >> 15) & KYBER_Q as i16;
     t1 = a.coeffs[2*i+1];
+    t1 += (t1 >> 15) & KYBER_Q as i16;
     r[3*i] = (t0 & 0xff) as u8;
     r[3*i+1] = ((t0 >> 8) | ((t1 & 0xf) << 4)) as u8;
     r[3*i+2] = (t1 >> 4) as u8;
@@ -261,7 +263,7 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
       &mut r.coeffs[4*i+2..], 
       &a.coeffs[4*i+2..],
       &b.coeffs[4*i+2..],
--(ZETAS[64 + i]));
+      -(ZETAS[64 + i]));
   }
 }
 
@@ -293,22 +295,9 @@ pub fn poly_reduce(r: &mut Poly)
   }
 }
 
-// Name:        poly_csubq
-//
-// Description: Applies conditional subtraction of q to each coefficient of a polynomial
-//              for details of conditional subtraction of q see comments in reduce.c
-//
-// Arguments:   - poly *r:       input/output polynomial
-pub fn poly_csubq(r: &mut Poly)
-{
-  for i in 0..KYBER_N {
-    r.coeffs[i] = csubq(r.coeffs[i]);
-  }
-}
-
 // Name:        poly_add
 //
-// Description: Add two polynomials
+// Description: Add two polynomials; no modular reduction is performed
 //
 // Arguments: - poly *r:       output polynomial
 //            - const poly *a: first input polynomial
@@ -322,7 +311,7 @@ pub fn poly_add(r: &mut Poly, b: &Poly)
 
 // Name:        poly_sub
 //
-// Description: Subtract two polynomials
+// Description: Subtract two polynomials; no modular reduction is performed
 //
 // Arguments: - poly *r:       output polynomial
 //            - const poly *a: first input polynomial
@@ -357,16 +346,16 @@ pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 //
 // Arguments:   - [u8] msg: output message
 //              - const poly *a:      input polynomial
-pub fn poly_tomsg(msg: &mut[u8], a: &mut Poly)
+pub fn poly_tomsg(msg: &mut[u8], a: Poly)
 {
-  poly_csubq(a);
   let mut t;
 
   for i in 0..KYBER_SYMBYTES {
     msg[i] = 0;
     for j in 0..8 {
-      // TODO: Consider making KYBER_Q i16 everywhere 
-      t = ((((a.coeffs[8*i+j] << 1) + (KYBER_Q/2) as i16) / KYBER_Q as i16) & 1) as u16;
+      t  = a.coeffs[8*i+j];
+      t += (t >> 15) & KYBER_Q as i16;
+      t  = (((t << 1) + KYBER_Q as i16 /2) / KYBER_Q as i16) & 1;
       msg[i] |= (t << j) as u8;
     }
   }
