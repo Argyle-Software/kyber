@@ -395,8 +395,6 @@ pub fn shake128_absorb(s: &mut[u64], input: &[u8], inputbyte_len: u64)
   keccak_absorb(s, SHAKE128_RATE, input, inputbyte_len, 0x1F);
 }
 
-
-
 // Name:        shake128_squeezeblocks
 //
 // Description: Squeeze step of SHAKE128 XOF. Squeezes full blocks of SHAKE128_RATE bytes each.
