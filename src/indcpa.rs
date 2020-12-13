@@ -74,7 +74,7 @@ fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8])
 // Arguments:   [u8] r:          the output serialized ciphertext
 //              const poly *pk:            the input vector of polynomials b
 //              const [u8] seed: the input polynomial v
-fn pack_ciphertext(r: &mut[u8], b: &mut Polyvec, v: &mut Poly)
+fn pack_ciphertext(r: &mut[u8], b: &mut Polyvec, v: Poly)
 {
   polyvec_compress(r, b);
   poly_compress(&mut r[KYBER_POLYVECCOMPRESSEDBYTES..], v);
@@ -286,7 +286,7 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   polyvec_reduce(&mut b);
   poly_reduce(&mut v);
 
-  pack_ciphertext(c, &mut b, &mut v);
+  pack_ciphertext(c, &mut b, v);
 }
 
 // Name:        indcpa_dec
