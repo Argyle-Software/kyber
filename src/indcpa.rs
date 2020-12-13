@@ -108,17 +108,19 @@ fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8])
 fn rej_uniform(r: &mut[i16], len: usize, buf: &[u8], buflen: usize) -> usize
 {
   let (mut ctr, mut pos) = (0usize, 0usize);
-  let mut val;
+  let (mut val0, mut val1);
 
-  while ctr < len && pos + 2 <= buflen {
-    
-    val = buf[pos] as u16 | (buf[pos+1] as u16) << 8 ;
-    pos += 2;
+  while ctr < len && pos + 3 <= buflen {
+    val0 = ((buf[pos+0] >> 0) as u16 | (buf[pos+1] as u16) << 8) & 0xFFF;
+    val1 = ((buf[pos+1] >> 4) as u16 | (buf[pos+2] as u16) << 4) & 0xFFF;
+    pos += 3;
 
-    if val < 19*KYBER_Q as u16
-    {
-      val -= (val >> 12) * KYBER_Q as u16; // Barrett reduction
-      r[ctr] = val as i16;
+    if val0 < KYBER_Q as u16 {
+      r[ctr] = val0 as i16;
+      ctr += 1;
+    }
+    if ctr < len && val1 < KYBER_Q as u16 {
+      r[ctr] = val1 as i16;
       ctr += 1;
     }
   }
@@ -150,8 +152,10 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 { 
   let mut ctr;
   // 530 is expected number of required bytes
-  const MAXNBLOCKS: usize = (530+XOF_BLOCKBYTES)/XOF_BLOCKBYTES;
-  let mut buf = [0u8; XOF_BLOCKBYTES*MAXNBLOCKS+1];
+  const GEN_MATRIX_NBLOCKS: usize = (12*KYBER_N/8*(1 << 12)/KYBER_Q + XOF_BLOCKBYTES)/XOF_BLOCKBYTES;
+  let mut buf = [0u8; XOF_BLOCKBYTES*GEN_MATRIX_NBLOCKS+2];
+  let mut buflen: usize;
+  let mut off: usize;
 
   let mut state = XofState::new();
 
@@ -163,13 +167,18 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
       else {
         xof_absorb(&mut state, seed, j as u8, i as u8);
       }
-      xof_squeezeblocks(&mut buf, MAXNBLOCKS as u64, &mut state);
-      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, MAXNBLOCKS*XOF_BLOCKBYTES);
+      xof_squeezeblocks(&mut buf, GEN_MATRIX_NBLOCKS as u64, &mut state);
+      buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
+      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, buflen);
 
       while ctr < KYBER_N
       {
-        xof_squeezeblocks(&mut buf, 1, &mut state);
-        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, XOF_BLOCKBYTES);
+        off = buflen % 3;
+        for k in 0..off {
+          buf[k] = buf[buflen - off + k];
+        }
+        xof_squeezeblocks(&mut buf[off..], 1, &mut state);
+        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, buflen);
       }
     }
   }
@@ -216,7 +225,7 @@ pub fn indcpa_keypair<R>(pk : &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8
 
   // matrix-vector multiplication
   for i in 0..KYBER_K {
-    polyvec_pointwise_acc(&mut pkpv.vec[i], &a[i], &skpv);
+    polyvec_basemul_acc_montgomery(&mut pkpv.vec[i], &a[i], &skpv);
     poly_frommont(&mut pkpv.vec[i]);
   }
   polyvec_add(&mut pkpv, &e);
@@ -240,7 +249,7 @@ pub fn indcpa_keypair<R>(pk : &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 {
   let mut at = [Polyvec::new(); KYBER_K];
-  let (mut sp, mut pkpv, mut ep, mut bp) = (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
+  let (mut sp, mut pkpv, mut ep, mut b) = (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
   let (mut v, mut k, mut epp) = (Poly::new(), Poly::new(), Poly::new());
   let mut seed = [0u8; KYBER_SYMBYTES];
   let mut nonce = 0u8;
@@ -263,21 +272,21 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 
   // matrix-vector multiplication
   for i in 0..KYBER_K {    
-    polyvec_pointwise_acc(&mut bp.vec[i], &at[i], &sp);
+    polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
   }
 
-  polyvec_pointwise_acc(&mut v, &pkpv, &sp);
+  polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
 
-  polyvec_invntt(&mut bp);
+  polyvec_invntt(&mut b);
   poly_invntt(&mut v);
 
-  polyvec_add(&mut bp, &ep);
+  polyvec_add(&mut b, &ep);
   poly_add(&mut v, &epp);
   poly_add(&mut v, &k);
-  polyvec_reduce(&mut bp);
+  polyvec_reduce(&mut b);
   poly_reduce(&mut v);
 
-  pack_ciphertext(c, &mut bp, &mut v);
+  pack_ciphertext(c, &mut b, &mut v);
 }
 
 // Name:        indcpa_dec
@@ -290,14 +299,14 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 //              - const [u8] sk: input secret key (of length KYBER_INDCPA_SECRETKEYBYTES)
 pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
 {
-  let (mut bp, mut skpv) = (Polyvec::new(),Polyvec::new());
+  let (mut b, mut skpv) = (Polyvec::new(),Polyvec::new());
   let (mut v, mut mp) = (Poly::new(),Poly::new());
  
-  unpack_ciphertext(&mut bp, &mut v, c);
+  unpack_ciphertext(&mut b, &mut v, c);
   unpack_sk(&mut skpv, sk);
 
-  polyvec_ntt(&mut bp);
-  polyvec_pointwise_acc(&mut mp, &skpv, &bp);
+  polyvec_ntt(&mut b);
+  polyvec_basemul_acc_montgomery(&mut mp, &skpv, &b);
   poly_invntt(&mut mp);
 
   poly_sub(&mut mp, &v);
