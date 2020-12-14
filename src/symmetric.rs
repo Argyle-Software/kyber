@@ -9,14 +9,21 @@ pub const XOF_BLOCKBYTES: usize = 168;
 #[derive(Copy, Clone)]
 // State boilerplate
 pub struct KeccakState {
-  pub s: [u64; 25]
+  pub s: [u64; 25],
+  pub pos: usize
 }
 
 impl KeccakState {
   pub fn new() -> Self {
     KeccakState {
-      s: [0u64; 25]
+      s: [0u64; 25],
+      pos: 0usize
     }
+  }
+
+  pub fn reset(&mut self) {
+    self.s = [0u64; 25];
+    self.pos = 0;
   }
 }
 
@@ -37,19 +44,19 @@ pub fn xof_absorb(state: &mut KeccakState, input: &[u8], x: u8, y: u8)
   kyber_shake128_absorb(state, &input, x, y);
 }
 
-pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: &mut KeccakState)
+pub fn xof_squeezeblocks(out: &mut[u8], outblocks: usize, state: &mut KeccakState)
 {
   kyber_shake128_squeezeblocks(out, outblocks, state);
 }
 
-pub fn prf(out: &mut[u8], outbytes: u64, key: &[u8], nonce: u8)
+pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 {
   shake256_prf(out, outbytes, &key, nonce);
 }
 
-pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
+pub fn kdf(out: &mut[u8], input: &[u8], inbytes: usize)
 {
-  shake256(out, KYBER_SSBYTES as u64, input, inbytes);
+  shake256(out, KYBER_SSBYTES, input, inbytes);
 }
 
 // Name:        kyber_shake128_absorb
@@ -71,7 +78,7 @@ pub fn kyber_shake128_absorb(
   extseed[..KYBER_SYMBYTES].copy_from_slice(input);
   extseed[KYBER_SYMBYTES] = x;
   extseed[KYBER_SYMBYTES+1] = y;
-  shake128_absorb(&mut s.s, &extseed, KYBER_SYMBYTES as u64 + 2);
+  shake128_absorb(s, &extseed, KYBER_SYMBYTES + 2);
 }
 
 // Name:        kyber_shake128_squeezeblocks
@@ -85,11 +92,11 @@ pub fn kyber_shake128_absorb(
 //              - keccak_state *s:            in/output Keccak state
 pub fn kyber_shake128_squeezeblocks(
   output: &mut[u8], 
-  nblocks: u64,
+  nblocks: usize,
   s: &mut KeccakState 
 )
 {
-  shake128_squeezeblocks(output, nblocks, &mut s.s);
+  shake128_squeezeblocks(output, nblocks, s);
 }
 
 // Name:        shake256_prf
@@ -101,13 +108,13 @@ pub fn kyber_shake128_squeezeblocks(
 //              - u64 outlen:  number of requested output bytes
 //              - const [u8]  key:  the key (of length KYBER_SYMBYTES)
 //              - const [u8]  nonce:  single-byte nonce (public PRF input)
-pub fn shake256_prf(output: &mut[u8], outlen: u64, key: &[u8], nonce: u8)
+pub fn shake256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 {
   let mut extkey = [0u8; KYBER_SYMBYTES+1];
   extkey[..KYBER_SYMBYTES].copy_from_slice(key);
   extkey[KYBER_SYMBYTES] = nonce;
 
-  shake256(output, outlen, &extkey, KYBER_SYMBYTES as u64 + 1);
+  shake256(output, outlen, &extkey, KYBER_SYMBYTES + 1);
 }
 
 

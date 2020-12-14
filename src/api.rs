@@ -83,7 +83,7 @@ pub fn crypto_kem_enc<R>(
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
 
   // hash concatenation of pre-k and H(c) to k
-  kdf(ss, &kr, 2*KYBER_SYMBYTES as u64);
+  kdf(ss, &kr, 2*KYBER_SYMBYTES);
   res
 }
 
@@ -121,7 +121,7 @@ pub fn crypto_kem_dec(ss: &mut[u8], ct: &[u8], sk: &[u8]) -> Result<(), KyberErr
   // Overwrite pre-k with z on re-encryption failure 
   cmov(&mut kr, &sk[KYBER_SECRETKEYBYTES-KYBER_SYMBYTES..], KYBER_SYMBYTES, fail);
   // hash concatenation of pre-k and H(c) to k 
-  kdf(ss, &kr, 2*KYBER_SYMBYTES as u64);
+  kdf(ss, &kr, 2*KYBER_SYMBYTES);
 
   match fail {
     0 => Ok(()),

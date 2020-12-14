@@ -49,7 +49,7 @@ pub fn uake_shared_b<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   crypto_kem_enc(send, &mut buf, recv, rng, None)?;
   crypto_kem_dec(&mut buf[KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb)?;
-  shake256(k, KYBER_SYMBYTES as u64, &buf, 2*KYBER_SYMBYTES as u64);
+  shake256(k, KYBER_SYMBYTES, &buf, 2*KYBER_SYMBYTES);
   Ok(())
 }
 
@@ -64,7 +64,7 @@ pub fn uake_shared_a(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   crypto_kem_dec(&mut buf, recv, sk)?;
   buf[KYBER_SYMBYTES..].copy_from_slice(&tk[..]);
-  shake256(k, KYBER_SYMBYTES as u64, &buf, 2*KYBER_SYMBYTES as u64);
+  shake256(k, KYBER_SYMBYTES, &buf, 2*KYBER_SYMBYTES);
   Ok(())
 }
 
@@ -98,7 +98,7 @@ pub fn ake_shared_b<R>(
   crypto_kem_enc(send, &mut buf, recv, rng, None)?;
   crypto_kem_enc(&mut send[KYBER_CIPHERTEXTBYTES..], &mut buf[KYBER_SYMBYTES..], pka, rng, None)?;
   crypto_kem_dec(&mut buf[2*KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb)?;
-  shake256(k, KYBER_SYMBYTES as u64, &buf, 3*KYBER_SYMBYTES as u64);
+  shake256(k, KYBER_SYMBYTES, &buf, 3*KYBER_SYMBYTES);
   Ok(())
 }
 
@@ -115,6 +115,6 @@ pub fn ake_shared_a(
   crypto_kem_dec(&mut buf, recv, sk)?;
   crypto_kem_dec(&mut buf[KYBER_SYMBYTES..], &recv[KYBER_CIPHERTEXTBYTES..], ska)?;
   buf[2*KYBER_SYMBYTES..].copy_from_slice(&tk[..]);
-  shake256(k, KYBER_SYMBYTES as u64, &buf, 3*KYBER_SYMBYTES as u64);
+  shake256(k, KYBER_SYMBYTES, &buf, 3*KYBER_SYMBYTES);
   Ok(())
 }

@@ -194,7 +194,7 @@ pub fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
 {
   const LENGTH: usize = KYBER_ETA1*KYBER_N/4;
   let mut buf = [0u8; LENGTH];
-  prf(&mut buf, LENGTH as u64, seed, nonce);
+  prf(&mut buf, LENGTH, seed, nonce);
   poly_cbd_eta1(r, &buf);
 }
 
@@ -211,7 +211,7 @@ pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
 {
   const LENGTH: usize = KYBER_ETA2*KYBER_N/4;
   let mut buf = [0u8; LENGTH];
-  prf(&mut buf, LENGTH as u64, seed, nonce);
+  prf(&mut buf, LENGTH, seed, nonce);
   poly_cbd_eta2(r, &buf);
 }
 
