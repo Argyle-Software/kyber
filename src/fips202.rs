@@ -337,7 +337,7 @@ pub fn keccak_absorb(s: &mut[u64], mut pos: usize, r: usize, input: &[u8], mut i
   -> usize
 {
   let mut idx = 0usize;
-  while inlen >= r {
+  while pos+inlen >= r {
     for i in pos..r {
       s[i/8] ^= (input[idx] as u64) << 8 * (i%8);
       idx += 1;
@@ -586,7 +586,7 @@ fn shake128_squeeze(out: &mut[u8], outlen: usize, state: &mut KeccakState)
 // Arguments:   - keccak_state state: pointer to (uninitialized) output Keccak state
 //              - const [u8] in: input to be absorbed into s
 //              - usize inlen: length of input in bytes
-fn shake128_absorb_once(state: &mut KeccakState, input: &[u8], inlen: usize)
+pub fn shake128_absorb_once(state: &mut KeccakState, input: &[u8], inlen: usize)
 {
   keccak_absorb_once(&mut state.s, SHAKE128_RATE, input, inlen, 0x1F);
   state.pos = SHAKE128_RATE;
@@ -612,7 +612,7 @@ fn shake256_squeeze(out: &mut[u8], outlen: usize, state: &mut KeccakState)
   state.pos = keccak_squeeze(out, outlen, &mut state.s, state.pos, SHAKE256_RATE);
 }
 
-fn shake256_absorb_once(state: &mut KeccakState, input: &[u8], inlen: usize)
+pub fn shake256_absorb_once(state: &mut KeccakState, input: &[u8], inlen: usize)
 {
   keccak_absorb_once(&mut state.s, SHAKE256_RATE, input, inlen, 0x1F);
   state.pos = SHAKE256_RATE;

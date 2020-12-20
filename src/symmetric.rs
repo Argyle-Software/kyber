@@ -78,7 +78,7 @@ pub fn kyber_shake128_absorb(
   extseed[..KYBER_SYMBYTES].copy_from_slice(input);
   extseed[KYBER_SYMBYTES] = x;
   extseed[KYBER_SYMBYTES+1] = y;
-  shake128_absorb(s, &extseed, KYBER_SYMBYTES + 2);
+  shake128_absorb_once(s, &extseed, KYBER_SYMBYTES + 2);
 }
 
 // Name:        kyber_shake128_squeezeblocks
