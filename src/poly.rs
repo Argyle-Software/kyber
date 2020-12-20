@@ -41,24 +41,13 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
   let mut u: i16;
 
   match KYBER_POLYCOMPRESSEDBYTES {
-    96 => {
-      for i in (0..KYBER_N).step_by(8) {
-        for j in 0..8 {
-          t[j] = (((((a.coeffs[i+j] as u32) << 3) + KYBER_Q as u32/2) / KYBER_Q as u32) & 7) as u8;
-        }
-        r[k]   =  t[0]       | (t[1] << 3) | (t[2] << 6);
-        r[k+1] = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
-        r[k+2] = (t[5] >> 1) | (t[6] << 2) | (t[7] << 5);
-        k += 3;
-      }
-    },
     128 => {
-      for i in (0..KYBER_N).step_by(8) {
+      for i in 0..KYBER_N/8 {
         for j in 0..8 {
           // map to positive standard representatives
           u = a.coeffs[8*i+j];
-          u += (u >> 15) & KYBER_Q as i16;
-          t[j] = ((((u << 4) + KYBER_Q as i16/2) / KYBER_Q as i16) & 15) as u8;
+          u = (u >> 15) & KYBER_Q as i16;
+          t[j] = (((((u as u16) << 4) + KYBER_Q as u16 /2) / KYBER_Q as u16) & 15) as u8;
         }
         r[k]   = t[0] | (t[1] << 4);
         r[k+1] = t[2] | (t[3] << 4);
@@ -73,7 +62,7 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
           // map to positive standard representatives
           u = a.coeffs[8*i+j];
           u += (u >> 15) & KYBER_Q as i16;
-          t[j] = ((((u << 5) + KYBER_Q as i16/2) / KYBER_Q as i16) & 31) as u8;
+          t[j] = (((((u as u32) << 5) + KYBER_Q as u32/2) / KYBER_Q as u32) & 31) as u8;
         }
         r[k]   =  t[0]       | (t[1] << 5);
         r[k+1] = (t[1] >> 3) | (t[2] << 2) | (t[3] << 7);
@@ -83,7 +72,7 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
         k += 5;
       }
     },
-    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be one of (96, 128, 160)")
+    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be one of (128, 160)")
   }
 }
 
@@ -98,49 +87,33 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
 pub fn poly_decompress(r: &mut Poly, a: &[u8])
 {
   match KYBER_POLYCOMPRESSEDBYTES {
-    96 => {
-      let mut idx = 0usize;
-      for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i  ] =  ((((a[idx  ] & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+1] = (((((a[idx  ] >> 3) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+2] = (((((a[idx  ] >> 6) | ((a[idx+1] << 2) & 4)) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+3] = (((((a[idx+1] >> 1) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+4] = (((((a[idx+1] >> 4) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+5] = (((((a[idx+1] >> 7) | ((a[idx+2] << 1) & 6)) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+6] = (((((a[idx+2] >> 2) & 7) as usize * KYBER_Q) + 4) >> 3) as i16;
-        r.coeffs[i+7] = ((((a[idx+2] >> 5) as usize * KYBER_Q) + 4) >> 3) as i16;
-        idx += 3;
-      }
-    },
     128 => {
       let mut idx = 0usize;
-      for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i  ] = ((((a[idx  ] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+1] = ((((a[idx  ] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+2] = ((((a[idx+1] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+3] = ((((a[idx+1] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+4] = ((((a[idx+2] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+5] = ((((a[idx+2] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+6] = ((((a[idx+3] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-        r.coeffs[i+7] = ((((a[idx+3] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
-        idx += 4;
+      for i in 0..KYBER_N/2 {
+        r.coeffs[2*i+0] = ((((a[idx] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
+        r.coeffs[2*i+1] = ((((a[idx] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
+        idx += 1;
       }
     },
     160 => {
       let mut idx = 0usize;
-      for i in (0..KYBER_N).step_by(8) {
-        r.coeffs[i  ] =  ((((a[idx  ] & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+1] = (((((a[idx  ] >> 5) | ((a[idx+1] & 3) << 3)) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+2] = (((((a[idx+1] >> 2) & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+3] = (((((a[idx+1] >> 7) | ((a[idx+2] & 15) << 1)) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+4] = (((((a[idx+2] >> 4) | ((a[idx+3] &  1) << 4)) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+5] = (((((a[idx+3] >> 1) & 31) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+6] = (((((a[idx+3] >> 6) | ((a[idx+4] &  7) << 2)) as usize * KYBER_Q) + 16) >> 5) as i16;
-        r.coeffs[i+7] =  ((((a[idx+4] >> 3) as usize * KYBER_Q) + 16) >> 5) as i16;
+      let mut t = [0u8;8];
+      for i in 0..KYBER_N/8 {
+        t[0] = a[idx+0];
+        t[1] = (a[idx+0] >> 5) | (a[idx+1] << 3);
+        t[2] = a[idx+1] >> 2;
+        t[3] = (a[idx+1] >> 7) | (a[idx+2] << 1);
+        t[4] = (a[idx+2] >> 4) | (a[idx+3] << 4);
+        t[5] = a[idx+3] >> 1;
+        t[6] = (a[idx+3] >> 6) | (a[idx+4] << 2);
+        t[7] = a[idx+4] >> 3;
         idx += 5;
+        for j in 0..8 {
+          r.coeffs[8*i+j] = ((((t[j] as u32) & 31)*KYBER_Q as u32 + 16) >> 5) as i16;
+        }
       }
     },
-    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be either (96, 128, 160)")
+    _ => panic!("KYBER_POLYCOMPRESSEDBYTES needs to be either (128, 160)")
   }
 }
 
@@ -160,8 +133,8 @@ pub fn poly_tobytes(r: &mut[u8], a: Poly)
     t0 += (t0 >> 15) & KYBER_Q as i16;
     t1 = a.coeffs[2*i+1];
     t1 += (t1 >> 15) & KYBER_Q as i16;
-    r[3*i] = (t0 & 0xff) as u8;
-    r[3*i+1] = ((t0 >> 8) | ((t1 & 0xf) << 4)) as u8;
+    r[3*i] = (t0 >> 0) as u8;
+    r[3*i+1] = ((t0 >> 8) | (t1 << 4)) as u8;
     r[3*i+2] = (t1 >> 4) as u8;
   }
 }
@@ -176,8 +149,8 @@ pub fn poly_tobytes(r: &mut[u8], a: Poly)
 pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 {
   for i in 0..(KYBER_N/2) {
-    r.coeffs[2*i]   = (a[3*i] as u16          | (a[3*i+1] as u16 & 0x0f) << 8) as i16;
-    r.coeffs[2*i+1] = ((a[3*i+1] >> 4) as u16 | (a[3*i+2] as u16 & 0xff) << 4) as i16;
+    r.coeffs[2*i+0] = ((a[3*i+0] >> 0) as u16 | ((a[3*i+1] as u16) << 8) & 0xFFF) as i16;
+    r.coeffs[2*i+1] = ((a[3*i+1] >> 4) as u16 | ((a[3*i+2] as u16) << 4) & 0xFFF) as i16;
   }
 }
 
