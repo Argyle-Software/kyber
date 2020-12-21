@@ -1,4 +1,3 @@
-// #![allow(clippy::needless_range_loop)]
 use crate::{
   poly::*,
   polyvec::*,
@@ -36,7 +35,6 @@ fn pack_pk(r: &mut[u8], pk: &mut Polyvec, seed: &[u8])
 //              - const [u8] packedpk: input serialized public key
 fn unpack_pk(pk: &mut Polyvec, seed: &mut[u8], packedpk: &[u8])
 {
-  
   polyvec_frombytes(pk, packedpk);
   seed[..KYBER_SYMBYTES]
     .copy_from_slice(&packedpk[KYBER_POLYVECBYTES..(KYBER_SYMBYTES + KYBER_POLYVECBYTES)]);
@@ -132,7 +130,6 @@ fn gen_a(a: &mut [Polyvec], b: &[u8])
   gen_matrix(a, b, false);
 }
 
-
 fn gen_at(a: &mut [Polyvec], b: &[u8]) 
 {
   gen_matrix(a, b, true);
@@ -153,10 +150,9 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
   let mut ctr;
   // 530 is expected number of required bytes
   const GEN_MATRIX_NBLOCKS: usize = (12*KYBER_N/8*(1 << 12)/KYBER_Q + XOF_BLOCKBYTES)/XOF_BLOCKBYTES;
-  let mut buf = [0u8; XOF_BLOCKBYTES*GEN_MATRIX_NBLOCKS+2];
-  let mut buflen: usize;
+  const BUFLEN: usize = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
+  let mut buf = [0u8; BUFLEN+2];
   let mut off: usize;
-
   let mut state = XofState::new();
 
   for i in 0..KYBER_K {
@@ -168,17 +164,16 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
         xof_absorb(&mut state, seed, j as u8, i as u8);
       }
       xof_squeezeblocks(&mut buf, GEN_MATRIX_NBLOCKS, &mut state);
-      buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
-      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, buflen);
+      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, BUFLEN);
 
       while ctr < KYBER_N
       {
-        off = buflen % 3;
+        off = BUFLEN % 3;
         for k in 0..off {
-          buf[k] = buf[buflen - off + k];
+          buf[k] = buf[BUFLEN - off + k];
         }
         xof_squeezeblocks(&mut buf[off..], 1, &mut state);
-        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, buflen);
+        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, BUFLEN);
       }
     }
   }
@@ -191,7 +186,12 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 //
 // Arguments:   - [u8] pk: output public key (of length KYBER_INDCPA_PUBLICKEYBYTES bytes)
 //              - [u8] sk: output private key (of length KYBER_INDCPA_SECRETKEYBYTES bytes)
-pub fn indcpa_keypair<R>(pk : &mut[u8], sk: &mut[u8], seed: Option<([u8;32], [u8;32])>, rng: &mut R)
+pub fn indcpa_keypair<R>(
+  pk : &mut[u8], 
+  sk: &mut[u8], 
+  seed: Option<(&[u8], &[u8])>, 
+  rng: &mut R
+)
 -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
@@ -276,9 +276,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   }
 
   polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
-
-  polyvec_invntt(&mut b);
-  poly_invntt(&mut v);
+  polyvec_invntt_tomont(&mut b);
+  poly_invntt_tomont(&mut v);
 
   polyvec_add(&mut b, &ep);
   poly_add(&mut v, &epp);
@@ -307,7 +306,7 @@ pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
 
   polyvec_ntt(&mut b);
   polyvec_basemul_acc_montgomery(&mut mp, &skpv, &b);
-  poly_invntt(&mut mp);
+  poly_invntt_tomont(&mut mp);
 
   poly_sub(&mut mp, &v);
   poly_reduce(&mut mp);
