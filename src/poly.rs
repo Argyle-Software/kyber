@@ -46,7 +46,7 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
         for j in 0..8 {
           // map to positive standard representatives
           u = a.coeffs[8*i+j];
-          u = (u >> 15) & KYBER_Q as i16;
+          u += (u >> 15) & KYBER_Q as i16;
           t[j] = (((((u as u16) << 4) + KYBER_Q as u16 /2) / KYBER_Q as u16) & 15) as u8;
         }
         r[k]   = t[0] | (t[1] << 4);
@@ -57,7 +57,7 @@ pub fn poly_compress(r: &mut[u8], a: Poly)
       }
     },
     160 => {
-      for i in (0..KYBER_N).step_by(8) {
+      for i in 0..(KYBER_N/8) {
         for j in 0..8 {
           // map to positive standard representatives
           u = a.coeffs[8*i+j];
@@ -210,7 +210,7 @@ pub fn poly_ntt(r: &mut Poly)
 //              inputs assumed to be in bitreversed order, output in normal order
 //
 // Arguments:   - Poly a: in/output polynomial
-pub fn poly_invntt(r: &mut Poly)
+pub fn poly_invntt_tomont(r: &mut Poly)
 {
   invntt(&mut r.coeffs);
 }
