@@ -170,10 +170,10 @@ pub fn polyvec_ntt(r: &mut Polyvec)
 // Description: Apply inverse NTT to all elements of a vector of polynomials
 //
 // Arguments:   - polyvec *r: in/output vector of polynomials
-pub fn polyvec_invntt(r: &mut Polyvec)
+pub fn polyvec_invntt_tomont(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
-    poly_invntt(&mut r.vec[i]);
+    poly_invntt_tomont(&mut r.vec[i]);
   }
 }
 
