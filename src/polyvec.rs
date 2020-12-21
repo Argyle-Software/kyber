@@ -34,7 +34,7 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
       for j in 0..KYBER_N/8 {
         for k in 0..8 {
           t[k]  = a.vec[i].coeffs[8*j+k] as u16;
-          t[k] += (((t[k] as i16) >> 15) & KYBER_Q as i16) as u16;
+          t[k] = t[k].wrapping_add((((t[k] as i16) >> 15) & KYBER_Q as i16) as u16);
           t[k]  = (((((t[k] as u32) << 11) + KYBER_Q as u32/2)/KYBER_Q as u32) & 0x7ff ) as u16;
         }
         r[idx+0] = (t[0] >>  0) as u8;
