@@ -1,5 +1,5 @@
 use crate::poly::Poly;
-use crate::params::{KYBER_N};
+use crate::params::KYBER_N;
 
 // Name:        load32_littleendian
 //
