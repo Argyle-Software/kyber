@@ -1,6 +1,6 @@
 use crate::reduce::*;
 
-// Code to generate zetas and zetas_inv used in the number-theoretic transform:
+// Code to generate zetas used in the number-theoretic transform:
 //
 //#define KYBER_ROOT_OF_UNITY 17
 //
