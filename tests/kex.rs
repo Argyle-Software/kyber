@@ -1,6 +1,7 @@
 use pqc_kyber::*;
 
 // Unilaterally authenticated key exchange
+// Low Level Functions
 #[test]
 fn uake() {
   let mut rng = rand::thread_rng();
@@ -14,7 +15,6 @@ fn uake() {
   let mut ka = [0u8; KEX_SSBYTES];
   let mut kb = [0u8; KEX_SSBYTES];
 
-  // let alice_keys = keypair();
   let bob_keys = keypair(&mut rng).unwrap();
 
   // Alice
@@ -45,6 +45,7 @@ fn uake() {
 }
 
 // Mutually authenticated key exchange
+// Low Level Functions
 #[test]
 fn ake() {
   let mut rng = rand::thread_rng();

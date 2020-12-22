@@ -3,3 +3,4 @@ Cargo.lock
 /.vscode
 /tests/rand_bufs/generate
 package-lock.json
+/tests/KATs/tvecs*

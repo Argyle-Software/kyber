@@ -3,6 +3,15 @@ pub struct Aes256xofCtx {
   pub ivw: [u32; 16]
 }
 
+impl Aes256xofCtx {
+  pub fn new() -> Self {
+    Self {
+      sk_exp: [0u64; 120],
+      ivw: [0u32; 16]
+    }
+  }
+}
+
 fn br_dec32le(src: &[u8]) -> u32
 {
 	src[0] as u32
@@ -37,7 +46,7 @@ fn  br_enc32le(dst: &mut [u8], x: u32)
 	dst[3] = (x >> 24) as u8;
 }
 
-fn br_range_enc32le(dst: &mut [u8], v: &mut [u32], mut num: usize)
+fn br_range_enc32le(dst: &mut [u8], v: &[u32], mut num: usize)
 {
   let mut v_idx = 0;
   let mut dst_idx = 0;
@@ -305,7 +314,7 @@ fn br_aes_ct64_interleave_out(w: &mut[u32], q0: u64, q1: u64)
 	w[3] = x3 as u32 | (x3 >> 16) as u32 ;
 }
 
-const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
+const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 
 fn sub_word(x: u32) -> u32 {
   let mut q = [0u64; 8];
@@ -330,7 +339,7 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
   for i in nk..nkf {
     if j == 0 {
       tmp = (tmp << 24) | (tmp >> 8);
-			tmp = sub_word(tmp) ^ RCON[k] as u32;
+			tmp = sub_word(tmp) ^ RCON[k];
     } else if nk > 6 && j == 4 {
       tmp = sub_word(tmp);
     }
@@ -344,13 +353,12 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
   }
 
   j = 0;
-  let skey_idx = 0;
-  for _ in (0..nkf).step_by(4) {
+  for idx in (0..nkf).step_by(4) {
     let mut q = [0u64; 8];
 
 
     let (q0, q1) = q.split_at_mut(4); 
-    br_aes_ct64_interleave_in(&mut q0[0], &mut  q1[0], &skey[skey_idx..] );
+    br_aes_ct64_interleave_in(&mut q0[0], &mut  q1[0], &skey[idx..] );
     q[1] = q[0];
 		q[2] = q[0];
 		q[3] = q[0];
@@ -368,15 +376,24 @@ fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
       | (q[5] & 0x2222222222222222)
       | (q[6] & 0x4444444444444444)
       | (q[7] & 0x8888888888888888);
+    j += 2;
   }
 }
 
 fn br_aes_ct64_skey_expand(skey: &mut[u64], comp_skey: &[u64]) 
 {
-  let n = 15 << 1;
+  const N: usize = 15 << 1;
+  let mut u = 0;
   let mut v = 0;
-  for u in comp_skey.iter().take(n) {
-    let (mut x0, mut x1, mut x2, mut x3) = (*u, *u, *u, *u);
+  let mut x0: u64;
+  let mut x1: u64;
+  let mut x2: u64;
+  let mut x3: u64;
+  while u < N {
+    x0 = comp_skey[u];
+    x1 = comp_skey[u];
+    x2 = comp_skey[u];
+    x3 = comp_skey[u];
     x0 &= 0x1111111111111111;
 		x1 &= 0x2222222222222222;
 		x2 &= 0x4444444444444444;
@@ -384,11 +401,12 @@ fn br_aes_ct64_skey_expand(skey: &mut[u64], comp_skey: &[u64])
 		x1 >>= 1;
 		x2 >>= 2;
 		x3 >>= 3;
-		skey[v    ] = (x0 << 4) - x0;
-		skey[v + 1] = (x1 << 4) - x1;
-		skey[v + 2] = (x2 << 4) - x2;
-    skey[v + 3] = (x3 << 4) - x3;
+		skey[v    ] = (x0 << 4).wrapping_sub(x0);
+		skey[v + 1] = (x1 << 4).wrapping_sub(x1);
+		skey[v + 2] = (x2 << 4).wrapping_sub(x2);
+    skey[v + 3] = (x3 << 4).wrapping_sub(x3);
     v += 4;
+    u += 1;
   }
 }
 
@@ -451,59 +469,55 @@ fn mix_columns(q: &mut [u64])
 	q[7] = q6 ^ r6 ^ r7 ^ rotr32(q7 ^ r7);
 }
 
-fn inc4_be(x: &mut u32)
+fn inc4_be(x: u32) -> u32
 {
-  let t = br_swap32(*x) + 4;
-  *x = br_swap32(t)
+  let t = br_swap32(x) + 4;
+  br_swap32(t)
 }
 
 fn aes_ctr4x(out: &mut [u8], ivw: &mut [u32], sk_exp: &[u64])
 {
-  let w = ivw;
+  let mut w = [0u32; 16];
+  w.copy_from_slice(&ivw);
   let mut q = [0u64; 8];
+  let (q0, q1) = q.split_at_mut(4);
   for i in 0..4 {
-    let (q0, q1) = q.split_at_mut(i + 4);
-    br_aes_ct64_interleave_in(&mut q0[0], &mut q1[0], &w[(i << 2)..]);
+    br_aes_ct64_interleave_in(&mut q0[i], &mut q1[i], &w[(i << 2)..]);
   }
   br_aes_ct64_ortho(&mut q);
 
   add_round_key(&mut q, sk_exp);
-  for i in 0..14 {
+  for i in 1..14 {
     br_aes_ct64_bitslice_sbox(&mut q);
     shift_rows(&mut q);
     mix_columns(&mut q);
-    add_round_key(&mut q, &sk_exp[i..]);
+    add_round_key(&mut q, &sk_exp[(i << 3)..]);
   }
   br_aes_ct64_bitslice_sbox(&mut q);
   shift_rows(&mut q);
-  add_round_key(&mut q, &sk_exp[14..]);
+  add_round_key(&mut q, &sk_exp[112..]);
 
   br_aes_ct64_ortho(&mut q);
   for i in 0..4 {
-    br_aes_ct64_interleave_out(&mut w[i..], q[i], q[i + 4]);
+    br_aes_ct64_interleave_out(&mut w[(i << 2)..], q[i], q[i + 4]);
   }
-  br_range_enc32le(out, w, 16);
+  br_range_enc32le(out, &w, 16);
 
-  // let mut idx = 0;
-  // /* Increase counter for next 4 blocks */
-  // idx += 3;
-  // inc4_be(&mut ivw[idx]);
-  // idx += 7;
-  // inc4_be(&mut ivw[idx]);
-  // idx += 11;
-  // inc4_be(&mut ivw[idx]);
-  // idx += 15;
-  // inc4_be(&mut ivw[idx]);
+  /* Increase counter for next 4 blocks */
+  ivw[3] = inc4_be(ivw[3]);
+  ivw[7] = inc4_be(ivw[7]);
+  ivw[11] = inc4_be(ivw[11]);
+  ivw[15] = inc4_be(ivw[15]);
 }
 
-fn br_aes_ct64_ctr_init(sk_exp: &mut [u64], key: &mut[u8])
+fn br_aes_ct64_ctr_init(sk_exp: &mut [u64], key: &[u8])
 {
   let mut skey = [0u64; 30];
   br_aes_ct64_keysched(&mut skey, key);
 	br_aes_ct64_skey_expand(sk_exp, &skey);
 }
 
-fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8], mut len: usize)
+fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &[u8], cc: u32, data: &mut[u8], mut len: usize)
 {
   let mut ivw = [0u32; 16];
   br_range_dec32le(&mut ivw, 3, iv);
@@ -517,16 +531,16 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
 	ivw[11] = br_swap32(cc + 2);
   ivw[15] = br_swap32(cc + 3);
   
-  let mut data_idx = 0;
+  let mut idx = 0;
   while len > 64 {
-    aes_ctr4x(&mut data[data_idx..], &mut ivw, sk_exp);
-    data_idx += 64;
+    aes_ctr4x(&mut data[idx..], &mut ivw, sk_exp);
+    idx += 64;
     len -= 64;
   }
   if len > 0 {
     let mut tmp = [0u8; 64];
     aes_ctr4x(&mut tmp, &mut ivw, sk_exp);
-    data[..len].copy_from_slice(&tmp[..len])
+    data[idx..].copy_from_slice(&tmp[..len])
   }
 }
 
@@ -539,17 +553,14 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &mut[u8], cc: u32, data: &mut[u8],
 //              - usize outlen:  length of requested output in bytes
 //              - const [u8] key:   32-byte key
 //              - const [u8]  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
-pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
+pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: &[u8])
 {
   let mut sk_exp = [0u64; 120];
-  let mut iv = [0u8; 12];
-  iv[0] = nonce;
-
   br_aes_ct64_ctr_init(&mut sk_exp, key);
-  br_aes_ct64_ctr_run(&mut sk_exp, &mut iv, 0, output, outlen);
+  br_aes_ct64_ctr_run(&mut sk_exp, nonce, 0, output, outlen);
 }
 
-// Name:        aes256xof_absorb
+// Name:        aes256ctr_init
 //
 // Description: AES256 CTR used as a replacement for a XOF; this function
 //              "absorbs" a 32-byte key and two additional bytes that are zero-padded
@@ -557,19 +568,16 @@ pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &mut[u8], nonce: u8)
 //
 // Arguments:   - aes256xof_ctx *s:          state to "absorb" key and IV into
 //              - const [u8] key:  32-byte key
-//              - [u8]  x:           first additional byte to "absorb"
-//              - [u8]  y:           second additional byte to "absorb"
-pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
+//              - [u8]  nonce:           additional bytes to "absorb"
+pub fn aes256ctr_init(
+  s: &mut Aes256xofCtx, 
+  key: &[u8], 
+  nonce: [u8; 12]
+)
 {
-  let mut skey = [0u64; 30];
-  let mut iv = [0u8; 12];
-  br_aes_ct64_keysched(&mut skey, key);
-  br_aes_ct64_skey_expand(&mut s.sk_exp, &skey);
+  br_aes_ct64_ctr_init(&mut s.sk_exp, key);
   
-  iv[0] = x;
-  iv[1] = y;
-
-  br_range_dec32le(&mut s.ivw, 3, &iv);
+  br_range_dec32le(&mut s.ivw, 3, &nonce);
   let mut slice = [0u32; 3];
   slice.copy_from_slice(&s.ivw[..3]);
   s.ivw[4..7].copy_from_slice(&slice);
@@ -578,15 +586,19 @@ pub fn aes256xof_absorb(s: &mut Aes256xofCtx, key: &[u8], x: u8, y: u8)
   s.ivw[ 3] = br_swap32(0);
 	s.ivw[ 7] = br_swap32(1);
 	s.ivw[11] = br_swap32(2);
-  s.ivw[15] = br_swap32(3);  
+  s.ivw[15] = br_swap32(3);   
 }
 
-pub fn aes256xof_squeezeblocks(out: &mut[u8], mut nblocks: u64, s: &mut Aes256xofCtx)
+pub fn aes256xof_squeezeblocks(
+  out: &mut[u8], 
+  mut nblocks: usize, 
+  s: &mut Aes256xofCtx
+)
 {
-let mut idx = 0;
+  let mut idx = 0;
   while nblocks > 0 {
     aes_ctr4x(&mut out[idx..], &mut s.ivw, &s.sk_exp);
-    idx += 8;
+    idx += 64;
     nblocks -= 1;
   }
 }

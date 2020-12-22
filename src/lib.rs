@@ -1,10 +1,10 @@
 #![allow(clippy::many_single_char_names)]
 //! # Kyber
 //! 
-//! A pure rust implementation of the Kyber algorithm.
+//! A Rust implementation of the Kyber algorithm authored by 
 //! 
 //! 
-//! To select different security strengths from the default enable 
+//! As per the authors recommendation To select different security strengths from the default enable 
 //! in your `cargo.toml` the feature of `kyber512` or `kyber1024` 
 //! 
 //! ## Usage 
@@ -53,9 +53,7 @@
 //! ```
 
 
-#[cfg(feature = "wasm")]
-mod wasm;
-// mod aes256;
+#[cfg(feature = "90s")] mod aes256;
 mod api;
 mod cbd;
 mod error;
@@ -68,9 +66,9 @@ mod polyvec;
 mod ntt;
 mod reduce;
 mod rng;
-mod sha;
 mod symmetric;
 mod verify;
+#[cfg(feature = "wasm")] mod wasm;
 
 use rand::prelude::*;
 pub use rand_core::{RngCore, CryptoRng};
@@ -137,8 +135,8 @@ pub struct Kyber {
 
   // Hard dependency on rand::ThreadRng
   // For custom RNG's use lower level contructions
-  // For the most part you should never be using another
-  // rng except for embedded applications.
+  // For the most part you should not be using another
+  // rng unless you know what you are doing
   rng: ThreadRng,
 
   // Ephermal key

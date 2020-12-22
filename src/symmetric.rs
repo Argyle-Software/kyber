@@ -1,55 +1,151 @@
+#[cfg(feature = "90s")] use crate::aes256::*;
+#[cfg(feature = "90s")] use sha2::{Sha256, Sha512, Digest};
 use crate::{
   fips202::*, 
-  params::*,
-  sha::*
+  params::*
 };
 
-pub const XOF_BLOCKBYTES: usize = 168;
+// TODO: Rustrypto AES-CTR feature
+// #[cfg(feature = "90s")] use aes_ctr::Aes256Ctr;
+// #[cfg(feature = "90s")] use aes_ctr::cipher::{
+//   generic_array::GenericArray,
+//   stream::{NewStreamCipher, SyncStreamCipher}
+// };
 
+#[cfg(feature = "90s")] 
+pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
+
+#[cfg(feature = "90s")] 
+pub(crate) const XOF_BLOCKBYTES: usize =  AES256CTR_BLOCKBYTES;
+#[cfg(not(feature = "90s"))]
+pub(crate) const XOF_BLOCKBYTES: usize =  SHAKE128_RATE;
+
+#[cfg(not(feature = "90s"))]
+pub type XofState = KeccakState;
+#[cfg(feature = "90s")]
+pub type XofState = Aes256xofCtx;
+
+#[cfg(not(feature = "90s"))]
 #[derive(Copy, Clone)]
-// State boilerplate
 pub struct KeccakState {
-  pub s: [u64; 25]
+  pub s: [u64; 25],
+  pub pos: usize
 }
 
 impl KeccakState {
   pub fn new() -> Self {
     KeccakState {
-      s: [0u64; 25]
+      s: [0u64; 25],
+      pos: 0usize
     }
+  }
+
+  pub fn reset(&mut self) {
+    self.s = [0u64; 25];
+    self.pos = 0;
   }
 }
 
-pub type XofState = KeccakState;
-
-pub fn hash_h(out: &mut[u8], input: &[u8], inbytes: usize)
+// cfg!() macro would look nicer but it doesn't play well with my IDE :(
+// SHA3-256
+#[cfg(not(feature = "90s"))]
+pub fn hash_h(out: &mut[u8], input: &[u8], inlen: usize)
 {
-  sha256(out, input, inbytes);
+  sha3_256(out, input, inlen);
 }
 
-pub fn hash_g(out: &mut[u8], input: &[u8], inbytes: usize)
+// 90s mode SHA2-256
+#[cfg(feature = "90s")]
+pub fn hash_h(out: &mut[u8], input: &[u8], inlen: usize)
 {
-  sha512(out, input, inbytes);
+  let mut hasher = Sha256::new();
+  hasher.update(&input[..inlen]);
+  let digest = hasher.finalize();
+  out[..digest.len()].copy_from_slice(&digest);
 }
 
+// SHA3-512
+#[cfg(not(feature = "90s"))]
+pub fn hash_g(out: &mut[u8], input: &[u8], inlen: usize)
+{
+  sha3_512(out, input, inlen);
+}
+
+// 90s mode SHA2-512
+#[cfg(feature = "90s")]
+pub fn hash_g(out: &mut[u8], input: &[u8], inlen: usize)
+{
+  let mut hasher = Sha512::new();
+  hasher.update(&input[..inlen]);
+  let digest = hasher.finalize();
+  out[..digest.len()].copy_from_slice(&digest);
+}
+
+#[cfg(not(feature = "90s"))]
 pub fn xof_absorb(state: &mut KeccakState, input: &[u8], x: u8, y: u8)
 {
   kyber_shake128_absorb(state, &input, x, y);
 }
 
-pub fn xof_squeezeblocks(out: &mut[u8], outblocks: u64, state: &mut KeccakState)
+#[cfg(feature = "90s")]
+pub fn xof_absorb(state: &mut Aes256xofCtx, input: &[u8], x: u8, y: u8)
+{
+  let mut nonce = [0u8; 12];
+  nonce[0] = x;
+  nonce[1] = y;
+  aes256ctr_init(state, &input, nonce);
+}
+
+#[cfg(not(feature = "90s"))]
+pub fn xof_squeezeblocks(out: &mut[u8], outblocks: usize, state: &mut KeccakState)
 {
   kyber_shake128_squeezeblocks(out, outblocks, state);
 }
 
-pub fn prf(out: &mut[u8], outbytes: u64, key: &[u8], nonce: u8)
+#[cfg(feature = "90s")]
+pub fn xof_squeezeblocks(out: &mut[u8], outblocks: usize, state: &mut Aes256xofCtx)
+{
+  aes256xof_squeezeblocks(out, outblocks, state);
+}
+
+#[cfg(not(feature = "90s"))]
+pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 {
   shake256_prf(out, outbytes, &key, nonce);
 }
 
-pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
+#[cfg(feature = "90s")]
+pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 {
-  shake256(out, KYBER_SSBYTES as u64, input, inbytes);
+  aes256_prf(out, outbytes, &key, &expnonce);
+
+  // TODO: Add feature to use RustCrypto AES_CTR
+  // Better implementation with no lookup tables
+  // When ring stabilises add an option for it too.
+
+  // if cfg!(feature = "rustcrypto-aes") {
+    // let mut expnonce = [0u8; 16];
+    // expnonce[0] = nonce;
+    // let key = GenericArray::from_slice(key);
+    // let iv = GenericArray::from_slice(&expnonce);
+    // let mut cipher = Aes256Ctr::new(&key, &iv);
+    // cipher.apply_keystream(out);
+  // }
+}
+
+#[cfg(not(feature = "90s"))]
+pub fn kdf(out: &mut[u8], input: &[u8], inlen: usize)
+{
+  shake256(out, KYBER_SSBYTES, input, inlen);
+}
+
+#[cfg(feature = "90s")]
+pub fn kdf(out: &mut[u8], input: &[u8], inlen: usize)
+{
+  let mut hasher = Sha256::new();
+  hasher.update(&input[..inlen]);
+  let digest = hasher.finalize();
+  out[..digest.len()].copy_from_slice(&digest);
 }
 
 // Name:        kyber_shake128_absorb
@@ -60,6 +156,7 @@ pub fn kdf(out: &mut[u8], input: &[u8], inbytes: u64)
 //              - const [u8] input:      KYBER_SYMBYTES input to be absorbed into s
 //              - u8  x                  additional byte of input
 //              - u8  y                  additional byte of input
+#[cfg(not(feature = "90s"))]
 pub fn kyber_shake128_absorb(
   s: &mut KeccakState,
   input: &[u8],
@@ -71,7 +168,7 @@ pub fn kyber_shake128_absorb(
   extseed[..KYBER_SYMBYTES].copy_from_slice(input);
   extseed[KYBER_SYMBYTES] = x;
   extseed[KYBER_SYMBYTES+1] = y;
-  shake128_absorb(&mut s.s, &extseed, KYBER_SYMBYTES as u64 + 2);
+  shake128_absorb_once(s, &extseed, KYBER_SYMBYTES + 2);
 }
 
 // Name:        kyber_shake128_squeezeblocks
@@ -83,13 +180,14 @@ pub fn kyber_shake128_absorb(
 // Arguments:   - [u8] output:      output blocks
 //              - u64 nblocks: number of blocks to be squeezed (written to output)
 //              - keccak_state *s:            in/output Keccak state
+#[cfg(not(feature = "90s"))]
 pub fn kyber_shake128_squeezeblocks(
   output: &mut[u8], 
-  nblocks: u64,
+  nblocks: usize,
   s: &mut KeccakState 
 )
 {
-  shake128_squeezeblocks(output, nblocks, &mut s.s);
+  shake128_squeezeblocks(output, nblocks, s);
 }
 
 // Name:        shake256_prf
@@ -101,13 +199,13 @@ pub fn kyber_shake128_squeezeblocks(
 //              - u64 outlen:  number of requested output bytes
 //              - const [u8]  key:  the key (of length KYBER_SYMBYTES)
 //              - const [u8]  nonce:  single-byte nonce (public PRF input)
-pub fn shake256_prf(output: &mut[u8], outlen: u64, key: &[u8], nonce: u8)
+#[cfg(not(feature = "90s"))]
+pub fn shake256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 {
   let mut extkey = [0u8; KYBER_SYMBYTES+1];
   extkey[..KYBER_SYMBYTES].copy_from_slice(key);
   extkey[KYBER_SYMBYTES] = nonce;
-
-  shake256(output, outlen, &extkey, KYBER_SYMBYTES as u64 + 1);
+  shake256(output, outlen, &extkey, KYBER_SYMBYTES + 1);
 }
 
 
