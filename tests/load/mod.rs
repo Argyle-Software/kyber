@@ -1,61 +1,62 @@
 #![allow(dead_code)]
-use super::decode_hex;
 use std::fs::File;
 use std::path::PathBuf;
 use std::io::{prelude::*, BufReader};
 use pqc_kyber::{KYBER_K, KYBER_90S};
 
-#[derive(Debug)]
 // Known Answer Tests
+#[derive(Debug)]
 pub struct Kat {
-  pub count: String,
-  pub seed: String,
+  // Deterministic RNG buffers 
+  pub keygen_buffer1: String,
+  pub keygen_buffer2: String,
+  pub encap_buffer: String,
+  // Keys, Ciphertext and Shared Secret
   pub pk: String,
   pub sk: String,
   pub ct: String,
   pub ss: String
 }
 
+// Converts string octuples from tvec files into Kat structs
 impl From<&[String]> for Kat {
-  // Generic method for converting string sextuplets into Kat structs
   fn from(kat: &[String]) -> Self {
     // Extract values from key:value lines
-    let values: Vec<String>;
-    values = kat.iter()
-      .map(|kvs| 
-        {
-          if kvs.len() > 1 {
-            let kv: Vec<&str>  = kvs.split(" = ").collect();
-            kv[1].into()
+    let values: Vec<String> = kat.iter()
+      .map(
+        |katline| {
+          let val: Vec<&str> = katline.split(": ").collect();
+          if val.len() > 1 {
+              val[1].into()
           } else {
-            "".into()
+              val[0].into()
           }
         }
-      ).collect();
+      )
+      .collect();
     // Build KAT from values
     Kat {
-      count: values[0].clone(),
-      seed: values[1].clone(),
+      keygen_buffer1: values[0].clone(),
+      keygen_buffer2: values[1].clone(),
       pk: values[2].clone(),
       sk: values[3].clone(),
-      ct: values[4].clone(),
-      ss: values[5].clone(),
+      encap_buffer: values[4].clone(),
+      ct: values[5].clone(),
+      ss: values[6].clone(),
     }
   }
 }
 
-// Get KAT filename based on security level and if 90s mode is activated
+// Get KAT filename based on security level and if 90s mode
 fn get_filename() -> String {
   let mut filename = match KYBER_K {
-    2 => "PQCkemKAT_1632".to_string(),
-    3 => "PQCkemKAT_2400".to_string(),
-    4 => "PQCkemKAT_3168".to_string(),
+    2 => "tvecs512".to_string(),
+    3 => "tvecs768".to_string(),
+    4 => "tvecs1024".to_string(),
     _ => panic!("No security level set")
   };
   if KYBER_90S {
-    filename.push_str("-90s.rsp");
-  } else {
-    filename.push_str(".rsp");
+    filename.push_str("-90s");
   }
   filename
 }
@@ -67,90 +68,33 @@ fn get_test_dir() -> PathBuf {
   path
 }
 
-// RNG buffers path
-fn get_buffer_filepath(filename: &str) -> PathBuf {
-  let mut path = get_test_dir();
-  path.extend(&["rand_bufs", "outputs"]);
-  path.extend(&[filename]);
-  path
-}
-
 // KATs path
 fn get_kat_filepath() -> PathBuf {
   let mut path = get_test_dir();
-  let filename = get_filename();
   path.extend(&["KATs"]);
-  path.extend(&[filename]);
+  path.extend(&[get_filename()]);
   path
 }
 
 fn load_file(filepath: PathBuf) -> File {
-  File::open(filepath).expect("Error loading file")
+  File::open(filepath).expect("Error loading KAT file")
 }
 
 fn parse_kats() -> Vec<String> {
-  let filepath = get_kat_filepath();
-  let file = load_file(filepath);
+  let file = load_file(get_kat_filepath());
   let buf = BufReader::new(file);
-  //skip file heading lines ie. "kyber512\n"
   buf.lines()
-    .skip(2)
     .map(|l| l.expect("Unable to parse line"))
     .collect()
 }
 
-// Packs rsp lines into Kat structs 
+// Packs chunks of lines into Kat structs 
 pub fn build_kats() -> Vec<Kat> {
   let lines = parse_kats();
-  let kats = lines.chunks_exact(7);
-  // From String slice into Vec<KAT>
-  kats.map(|c| {c.into()})
-    .collect::<Vec<Kat>>()
+  let kats = lines.chunks_exact(8);
+  // Map String slices into Vec<KAT>
+  kats.map(
+    |c| {c.into()}
+  )
+  .collect::<Vec<Kat>>()
 }
-
-// Convert rng buffers file into strings
-fn get_encode_buf_strings() -> Vec<String> {
-  let path = get_buffer_filepath("encode");
-  let buf = BufReader::new(load_file(path));
-  buf.lines()
-    .map(|l| l.expect("Parsing lines"))
-    .collect()
-}
-
-// Convert strings into byte arrays
-pub fn get_encode_bufs() -> Vec<[u8;32]> {
-  let mut bufs = Vec::new();
-  for s in get_encode_buf_strings() {
-    let mut buf = [0u8; 32];
-    buf.copy_from_slice(&decode_hex(&s));
-    bufs.push(buf)
-  }
-  bufs
-}
-
-// 
-fn get_keypair_buffer_strings() -> Vec<(String, String)> {
-  let indcpa_file = load_file(get_buffer_filepath("indcpa_keypair"));
-  let crypto_kem_file = load_file(get_buffer_filepath("crypto_kem_keypair"));
-  let incpa_buf = BufReader::new(indcpa_file);
-  let crypto_kem_buf = BufReader::new(crypto_kem_file);
-  incpa_buf.lines()
-    .map(|s| s.unwrap())
-    // Zip together iterators into a string tuple
-    .zip(crypto_kem_buf.lines().map(|s| s.unwrap()))
-    .collect()
-}
-
-pub fn get_keypair_bufs() -> Vec<([u8;32], [u8;32])> {
-  let buf_strings = get_keypair_buffer_strings();
-  buf_strings.iter()
-  .map(|s| 
-    { 
-      let mut buf1 = [0u8; 32];
-      let mut buf2 = [0u8; 32];
-      buf1.copy_from_slice(&decode_hex(&s.0));
-      buf2.copy_from_slice(&decode_hex(&s.1));
-      (buf1, buf2)
-    }
-  ).collect()
-} 
