@@ -19,18 +19,21 @@ pub fn crypto_kem_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
   rng: &mut R,
-  seed: Option<([u8;32], [u8;32])> 
+  seed: Option<(&[u8], &[u8])> 
 ) -> Result<(), KyberError> 
   where R: RngCore + CryptoRng
 { 
-  indcpa_keypair(pk, sk, seed, rng)?;
-  let end = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
-  sk[KYBER_INDCPA_SECRETKEYBYTES..end].copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
-  
   const PK_START: usize = KYBER_SECRETKEYBYTES - (2 * KYBER_SYMBYTES);
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
+  const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
+  
+  indcpa_keypair(pk, sk, seed, rng)?;
+
+  sk[KYBER_INDCPA_SECRETKEYBYTES..END]
+    .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
-  // If running KAT's use seed tuple, 
+  
+  // If running KAT's use seed tuple
   match seed {
     None => randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng),
     Some(s) => {
@@ -98,28 +101,34 @@ pub fn crypto_kem_enc<R>(
 //              - const [u8] sk: input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 //
 // On failure, ss will contain a pseudo-random value.
-pub fn crypto_kem_dec(ss: &mut[u8], ct: &[u8], sk: &[u8]) -> Result<(), KyberError> {
+pub fn crypto_kem_dec(
+  ss: &mut[u8], 
+  ct: &[u8], 
+  sk: &[u8]
+) -> Result<(), KyberError> 
+{
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
   let mut cmp = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES + 2*KYBER_SYMBYTES];
 
   pk.copy_from_slice(&sk[KYBER_INDCPA_SECRETKEYBYTES..]);
-
+  
   indcpa_dec(&mut buf, ct, sk);
-  for i in 0..KYBER_SYMBYTES {
-    // Save hash by storing H(pk) in sk 
-    buf[KYBER_SYMBYTES+i] = sk[KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES+i];
-  }
+
+  // Multitarget countermeasure for coins + contributory KEM
+  const START: usize = KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES;
+  const END: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES; 
+  buf[KYBER_SYMBYTES..].copy_from_slice(&sk[START..END]);
   hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
+  
   // coins are in kr[KYBER_SYMBYTES..] 
   indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]);
-
   let fail = verify(ct, &cmp, KYBER_CIPHERTEXTBYTES);
   // overwrite coins in kr with H(c)
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
   // Overwrite pre-k with z on re-encryption failure 
-  cmov(&mut kr, &sk[KYBER_SECRETKEYBYTES-KYBER_SYMBYTES..], KYBER_SYMBYTES, fail);
+  cmov(&mut kr, &sk[END..], KYBER_SYMBYTES, fail);
   // hash concatenation of pre-k and H(c) to k 
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
 
