@@ -8,14 +8,17 @@ use pqc_kyber::*;
 #[cfg(feature="KATs")]
 fn keypairs() {
   let kats = build_kats();
-  let keypair_bufs = get_keypair_bufs();
   let mut _rng = rand::thread_rng(); // no-op for KATs
-  for (i, kat) in kats.iter().enumerate() {
+  for kat in kats {
     let known_pk = decode_hex(&kat.pk);
     let known_sk = decode_hex(&kat.sk);
+    let buf1 = decode_hex(&kat.keygen_buffer1);
+    let buf2 = decode_hex(&kat.keygen_buffer2);
+    let bufs = Some((&buf1[..], &buf2[..]));
     let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
     let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-    crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, Some(keypair_bufs[i]));
+    let res = crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs);
+    assert!(res.is_ok());
     assert_eq!(&pk[..], &known_pk[..], "Public key generation failure");
     assert_eq!(&sk[..], &known_sk[..], "Secret key generation failure");
   }
@@ -23,18 +26,20 @@ fn keypairs() {
 
 // Encapsulating KAT's using deterministic rand buffers
 #[test]
-#[cfg(feature="KATs")]
+#[cfg(all(feature="KATs"))]
 fn encaps() {
   let kats = build_kats();
-  let bufs = get_encode_bufs();
   let mut _rng = rand::thread_rng(); // no-op for KATs
-  for (i, kat) in kats.iter().enumerate() {
+  for kat in kats {
     let known_ct = decode_hex(&kat.ct);
     let known_ss = decode_hex(&kat.ss);
     let pk = decode_hex(&kat.pk);
+    let buf1 = decode_hex(&kat.encap_buffer);
+    let encap_buf = Some(&buf1[..]);
     let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
     let mut ss = [0u8; KYBER_SSBYTES];
-    crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, Some(&bufs[i]));
+    let res = crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf);
+    assert!(res.is_ok());
     assert_eq!(&ct[..], &known_ct[..], "Ciphertext creation failure");
     assert_eq!(&ss[..], &known_ss[..], "Shared secret creation failure");
   }
@@ -42,6 +47,7 @@ fn encaps() {
 
 // Decapsulating KAT's
 #[test]
+#[cfg(all(feature="KATs"))]
 fn decaps() {
   let kats = build_kats();
   for kat in kats {
