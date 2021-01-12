@@ -1,37 +1,21 @@
-use std::error::Error;
 
 #[derive(Debug)]
 /// Generic error type for the various failure modes
 pub enum KyberError {
-  EncodeFail,
-  DecodeFail,
-  KeyPair(rand::Error)
+  Encapsulation,
+  Decapsulation,
+  KeyPair,
+  Rng
 }
 
-impl std::fmt::Display for KyberError {
-  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl core::fmt::Display for KyberError {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     match *self {
-      KyberError::EncodeFail => write!(f, "Encoding Failure"),
-      KyberError::DecodeFail => write!(f, "Decode Failure"),
-      KyberError::KeyPair(ref e) => e.fmt(f)
+      KyberError::Encapsulation => write!(f, "Encapsulation Failure"),
+      KyberError::Decapsulation => write!(f, "Decapsulation Failure"),
+      KyberError::KeyPair => write!(f, "Keypair Generation Failure"),
+      KyberError::Rng => write!(f, "RNG Failure"),
     }
-  }
-}
-
-impl Error for KyberError {
-  fn source(&self) -> Option<&(dyn Error + 'static)> {
-    match *self {
-      KyberError::EncodeFail => None,
-      KyberError::DecodeFail => None,
-      KyberError::KeyPair(ref e) => Some(e)
-    }
-  }
-}
-
-// Implement From trait for KyberError wrapper over rand failures.
-impl From<rand::Error> for KyberError {
-  fn from(err: rand::Error) -> KyberError {
-    KyberError::KeyPair(err)
   }
 }
 
