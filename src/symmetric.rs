@@ -1,16 +1,13 @@
 #[cfg(feature = "90s")] use crate::aes256::*;
 #[cfg(feature = "90s")] use sha2::{Sha256, Sha512, Digest};
-use crate::{
-  fips202::*, 
-  params::*
-};
-
 // TODO: Rustrypto AES-CTR feature
 // #[cfg(feature = "90s")] use aes_ctr::Aes256Ctr;
 // #[cfg(feature = "90s")] use aes_ctr::cipher::{
 //   generic_array::GenericArray,
 //   stream::{NewStreamCipher, SyncStreamCipher}
 // };
+
+use crate::{fips202::*, params::*};
 
 #[cfg(feature = "90s")] 
 pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
@@ -46,7 +43,6 @@ impl KeccakState {
   }
 }
 
-// cfg!() macro would look nicer but it doesn't play well with my IDE :(
 // SHA3-256
 #[cfg(not(feature = "90s"))]
 pub fn hash_h(out: &mut[u8], input: &[u8], inlen: usize)
@@ -120,9 +116,10 @@ pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
   aes256_prf(out, outbytes, &key, &expnonce);
 
   // TODO: Add feature to use RustCrypto AES_CTR
-  // Better implementation with no lookup tables
-  // When ring stabilises add an option for it too.
-
+  // implementation with no lookup tables
+  // Perhaps add an option for ring also.
+  
+  // Working RustCrypto code:
   // if cfg!(feature = "rustcrypto-aes") {
     // let mut expnonce = [0u8; 16];
     // expnonce[0] = nonce;
