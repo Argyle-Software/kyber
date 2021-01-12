@@ -6,8 +6,8 @@
 //   generic_array::GenericArray,
 //   stream::{NewStreamCipher, SyncStreamCipher}
 // };
-
 use crate::{fips202::*, params::*};
+
 
 #[cfg(feature = "90s")] 
 pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
@@ -60,14 +60,12 @@ pub fn hash_h(out: &mut[u8], input: &[u8], inlen: usize)
   out[..digest.len()].copy_from_slice(&digest);
 }
 
-// SHA3-512
 #[cfg(not(feature = "90s"))]
 pub fn hash_g(out: &mut[u8], input: &[u8], inlen: usize)
 {
   sha3_512(out, input, inlen);
 }
 
-// 90s mode SHA2-512
 #[cfg(feature = "90s")]
 pub fn hash_g(out: &mut[u8], input: &[u8], inlen: usize)
 {
