@@ -6,7 +6,7 @@ use crate::{
   params::*
 };
 
-/// Unlateral key exchange send B size
+/// Unilateral key exchange send A size
 pub const KEX_UAKE_SENDABYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
 
 /// Unilateral key exchange send B size
@@ -21,7 +21,7 @@ pub const KEX_AKE_SENDBBYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
 /// Key exchange shared key size
 pub const KEX_SSBYTES: usize = KYBER_SSBYTES;
 
-/// Unilaterally authenticated key exchange initiation
+/// Unilaterally Authenticated Key Exchange initiation
 pub fn uake_init_a<R>(
   send: &mut[u8], 
   tk: &mut[u8], 

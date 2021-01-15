@@ -191,8 +191,7 @@ pub fn indcpa_keypair<R>(
   sk: &mut[u8], 
   seed: Option<(&[u8], &[u8])>, 
   rng: &mut R
-)
--> Result<(), KyberError>
+)-> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
   let mut a = [Polyvec::new(); KYBER_K];

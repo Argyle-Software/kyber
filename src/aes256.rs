@@ -1,3 +1,4 @@
+const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 pub struct Aes256xofCtx {
   pub sk_exp: [u64; 120],
   pub ivw: [u32; 16]
@@ -313,8 +314,6 @@ fn br_aes_ct64_interleave_out(w: &mut[u32], q0: u64, q1: u64)
 	w[2] = x2 as u32 | (x2 >> 16) as u32 ;
 	w[3] = x3 as u32 | (x3 >> 16) as u32 ;
 }
-
-const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 
 fn sub_word(x: u32) -> u32 {
   let mut q = [0u64; 8];

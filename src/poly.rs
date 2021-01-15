@@ -133,7 +133,7 @@ pub fn poly_tobytes(r: &mut[u8], a: Poly)
     t0 += (t0 >> 15) & KYBER_Q as i16;
     t1 = a.coeffs[2*i+1];
     t1 += (t1 >> 15) & KYBER_Q as i16;
-    r[3*i] = (t0 >> 0) as u8;
+    r[3*i+0] = (t0 >> 0) as u8;
     r[3*i+1] = ((t0 >> 8) | (t1 << 4)) as u8;
     r[3*i+2] = (t1 >> 4) as u8;
   }
@@ -289,7 +289,7 @@ pub fn poly_add(r: &mut Poly, b: &Poly)
 // Arguments: - poly *r:       output polynomial
 //            - const poly *a: first input polynomial
 //            - const poly *b: second input polynomial
-pub fn  poly_sub(r: &mut Poly, a: &Poly)
+pub fn poly_sub(r: &mut Poly, a: &Poly)
 {
   for i in 0..KYBER_N {
     r.coeffs[i] = a.coeffs[i] -  r.coeffs[i];

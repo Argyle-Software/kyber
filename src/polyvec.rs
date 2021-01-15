@@ -131,11 +131,10 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
 //
 // Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECBYTES)
 //              - const polyvec *a: input vector of polynomials 
-pub fn polyvec_tobytes(r: &mut[u8], a: &mut Polyvec)
+pub fn polyvec_tobytes(r: &mut[u8], a: &Polyvec)
 {
-  // TODO: No need for mutable poly ref  - poly.rs polyvec.rs - toindcpa.rs 
   for i in 0..KYBER_K {
-    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], a.vec[i]);
+    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], &a.vec[i]);
   }
 }
 

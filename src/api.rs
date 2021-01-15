@@ -1,12 +1,12 @@
+use rand_core::{RngCore, CryptoRng};
 use crate::{
   params::*,
   indcpa::*,
   symmetric::*,
   rng::randombytes,
   error::KyberError,
-  verify::{verify, cmov}
+  verify::*
 };
-use rand_core::*;
 
 // Name:        crypto_kem_keypair
 //
@@ -27,13 +27,13 @@ pub fn crypto_kem_keypair<R>(
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   
-  indcpa_keypair(pk, sk, seed, rng)?;
+  unsafe {indcpa_keypair(pk, sk, seed, rng)?;}
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
   
-  // If running KAT's use seed tuple
+  // TODO: Compile time operation
   match seed {
     None => randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng),
     Some(s) => {
@@ -42,6 +42,7 @@ pub fn crypto_kem_keypair<R>(
     }
   }
 }
+
 
 
 // Name:        crypto_kem_enc
@@ -65,8 +66,9 @@ pub fn crypto_kem_enc<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
+  // TODO: Make this a compile-time operation
   let res = match seed {
-    // Retreive OS randombytes
+    // Retrieve OS randombytes
     None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng),
     // Deterministic randbuf for KAT's
     Some(s) => {randbuf[..KYBER_SYMBYTES].copy_from_slice(&s); Ok(())}
@@ -80,7 +82,7 @@ pub fn crypto_kem_enc<R>(
   hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
 
   // coins are in kr[KYBER_SYMBYTES..]
-  indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);
+  unsafe {indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);}
 
   // overwrite coins in kr with H(c) 
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
@@ -123,7 +125,7 @@ pub fn crypto_kem_dec(
   hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
   
   // coins are in kr[KYBER_SYMBYTES..] 
-  indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]);
+  unsafe { indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]); }
   let fail = verify(ct, &cmp, KYBER_CIPHERTEXTBYTES);
   // overwrite coins in kr with H(c)
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
@@ -134,6 +136,6 @@ pub fn crypto_kem_dec(
 
   match fail {
     0 => Ok(()),
-    _ => Err(KyberError::DecodeFail)
+    _ => Err(KyberError::Decapsulation)
   }
 }
