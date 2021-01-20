@@ -1,76 +1,102 @@
-#![allow(clippy::many_single_char_names)]
 //! # Kyber
 //! 
 //! A Rust implementation of the Kyber algorithm authored by 
 //! 
 //! 
-//! As per the authors recommendation To select different security strengths from the default enable 
+//! To select different security strengths from the default enable 
 //! in your `cargo.toml` the feature of `kyber512` or `kyber1024` 
 //! 
 //! ## Usage 
+//! The Kyber struct is a higher-level construction for unilateral and mutual key exchange. 
+//! 
 //!
-//! It is recommended to use the Kyber struct and its in-built methods 
-//! for key exchange.
+//! #### Mutually Authenticated Key Exchange
+//! 
 //! ```
 //! use pqc_kyber::*;
 //! 
+//! # fn main() -> Result<(),KyberError> {
+//! let mut rng = rand::thread_rng();
+//! 
 //! // Initializes the rng and public/private keypair 
-//! let mut alice = Kyber::initialize().unwrap();
-//! let mut bob = Kyber::initialize().unwrap();
+//! let mut alice = Kyber::initialize(&mut rng)?;
+//! let mut bob = Kyber::initialize(&mut rng)?;
 //! 
 //! // Public keys
 //! let alice_public_key = alice.keys.public;
 //! let bob_public_key = bob.keys.public;
 //! 
 //! // Alice initiates key exchange
-//! let uake_send_a = alice.uake_initiate(bob_public_key).unwrap();
+//! let client_init = alice.ake_client_init(bob_public_key, &mut rng)?;
 //! 
-//! // Bob receives the initiation request
-//! let uake_send_b = bob.uake_receive(uake_send_a).unwrap();
+//! // Bob authenticates and responds
+//! let server_send = bob.ake_server_receive(client_init, alice_public_key, &mut rng)?;
 //! 
-//! // Alice gets a response
-//! alice.uake_confirm(uake_send_b).unwrap();
+//! // Alice authenticates the response and decapsulates the shared secret
+//! alice.ake_client_confirm(server_send)?;
 //! 
 //! // Both Kyber structs now have the shared secret
 //! assert_eq!(alice.shared_secret, bob.shared_secret);
-//! 
+//! # Ok(()) }
 //! ```
 //! ##### Key Encapsulation
-//! Lower level functions using the Kyber algortihm directly.
+//! Lower level functions using the Kyber algorithm directly.
 //! ```
 //! # use pqc_kyber::*;
+//! # fn main() -> Result<(),KyberError> {
+//! # let mut rng = rand::thread_rng();
 //! // Generate Keypair
-//! let mut rng = rand::thread_rng();
-//! let keys = keypair(&mut rng).unwrap();
+//! let keys_bob = keypair(&mut rng)?;
 //! 
 //! // Encapsulate
-//! let (ct, shared_secret_alice) = encapsulate(&keys.public, &mut rng).unwrap();
+//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
 //! 
 //! // Decapsulate
-//! let shared_secret_bob = decapsulate(&ct, &keys.secret).unwrap();
+//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
 //! 
 //! assert_eq!(shared_secret_alice, shared_secret_bob);
+//! # Ok(()) }
 //! ```
 
+#![no_std]
+#![allow(clippy::many_single_char_names)]
 
 #[cfg(feature = "90s")] mod aes256;
+// #[cfg(feature = "avx2")] 
+mod avx2;
+use avx2::align;
+use avx2::cbd;
+use avx2::consts;
+use avx2::fips202;
+use avx2::fips202x4;
+use avx2::indcpa;
+use avx2::keccak4x;
+use avx2::poly;
+use avx2::polyvec;
+use avx2::rejsample;
+// use avx2::verify;
+
 mod api;
-mod cbd;
 mod error;
-mod fips202;
-mod indcpa;
 mod kex;
 mod params;
-mod poly;
-mod polyvec;
-mod ntt;
-mod reduce;
 mod rng;
 mod symmetric;
 mod verify;
-#[cfg(feature = "wasm")] mod wasm;
 
-use rand::prelude::*;
+// #[cfg(not(feature = "avx2"))] mod reference {
+//   mod cbd;
+//   mod fips202;
+//   mod indcpa;
+//   mod poly;
+//   mod polyvec;
+//   mod ntt;
+//   mod reduce;
+//   #[cfg(feature = "wasm")] mod wasm;
+// }
+
+
+// use core::result::Result; 
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
 pub use error::KyberError;
@@ -84,8 +110,8 @@ pub use params::{
 };
 
 // cfg(test) doesn't work with integration testing
-// feature hack to expose internal private functions
-// for the Known Answer Tests
+// feature workaround to expose private functions
+// for Known Answer Test seeding
 #[cfg(feature="KATs")]
 pub use api::{
   crypto_kem_keypair, 
@@ -110,7 +136,7 @@ pub type AkeSendA = [u8; KEX_AKE_SENDABYTES];
 /// Bytes to send when responding to a mutual key exchange
 pub type AkeSendB = [u8; KEX_AKE_SENDBBYTES]; 
 
-// Ephermeral keys
+// Ephemeral keys
 type TempKey = [u8; KEX_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
@@ -119,8 +145,8 @@ pub struct Kyber {
   /// A public/private keypair for key exchanges
   /// Kyber is designed to be safe against key re-use and can
   /// remain static if needed
-  pub keys: Keys,
-  /// The resulting symeticrical shared secret from a key exchange
+  pub keys: Keypair,
+  /// The resulting symmetrical shared secret from a key exchange
   pub shared_secret: [u8; KYBER_SSBYTES],
   /// Sent when initiating a key exchange
   pub uake_send_a: UakeSendA,
@@ -130,26 +156,18 @@ pub struct Kyber {
   pub ake_send_a: AkeSendA,
   /// Sent bak when responding to a key exchange initiation
   pub ake_send_b: AkeSendB,
-    /// Flag to check keypair has been set 
+  /// Flag to check random keypair has been generated
   pub initialized: bool,
 
-  // Hard dependency on rand::ThreadRng
-  // For custom RNG's use lower level contructions
-  // For the most part you should not be using another
-  // rng unless you know what you are doing
-  rng: ThreadRng,
-
-  // Ephermal key
+  // Ephermal keys
   temp_key: TempKey,
-  // Ephemeral key
   eska: Eska
 }
 
 impl Default for Kyber {
   fn default() -> Self {
     Kyber {
-      rng: rand::thread_rng(),
-      keys: Keys::default(),
+      keys: Keypair::default(),
       shared_secret: [0u8; KYBER_SSBYTES],
       uake_send_a: [0u8; KEX_UAKE_SENDABYTES],
       uake_send_b: [0u8; KEX_UAKE_SENDBBYTES],
@@ -169,34 +187,37 @@ impl Kyber {
   /// is key generation and setting the initialized flag.
   /// ```
   /// # use pqc_kyber::*;
-  /// let mut alice = Kyber::initialize().unwrap();
-  /// assert!(alice.keys != Keys::default());
+  /// # fn main() -> Result<(),KyberError> {
+  /// # let mut rng = rand::thread_rng();
+  /// let mut alice = Kyber::initialize(&mut rng)?;
+  /// assert!(alice.initialized);
+  /// assert!(alice.keys != Keypair::default());
+  /// # Ok(()) }
   /// ```
-  pub fn initialize() -> Result<Kyber, KyberError> {
-    let mut rng = rand::thread_rng();
-    let keys = keypair(&mut rng)?;
-    Ok( Kyber {
-      rng,
-      keys,
-      initialized: true,
-      ..Default::default()
-    })
+  pub fn initialize<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Kyber, KyberError> 
+  {
+    let keys = keypair(rng)?;
+    Ok(Kyber{ keys, initialized: true, ..Default::default() })
   }
 
-  /// Replaces the current keypair with a provided Keys struct
+  /// Replaces the current keypair with a provided Keypair struct  
+  /// and sets the initialization flag true.
   /// ```
   /// # use pqc_kyber::*;
+  /// # fn main() -> Result<(),KyberError> {
   /// let mut alice = Kyber::default();
-  /// // Key exchange functions will fail if struct not initialized
+  /// // Key exchange functions will fail if random keypair not generated
   /// assert!(alice.initialized == false);
   /// // Generate a new keypair
-  /// let keypair = Keys::generate().unwrap();
-  /// // Set the keys
+  /// let mut rng = rand::thread_rng();
+  /// let keypair = Keypair::generate(&mut rng)?;
   /// alice.set_keys(keypair);
-  /// # assert_eq!(alice.keys, keypair);
-  /// # assert!(alice.initialized);
+  /// assert!(alice.initialized);
+  /// assert_eq!(alice.keys, keypair);
+  /// # Ok(()) }
   /// ```
-  pub fn set_keys(&mut self, keys: Keys) {
+  pub fn set_keys(&mut self, keys: Keypair) 
+  {
     self.keys = keys;
     self.initialized = true;
   }
@@ -204,13 +225,18 @@ impl Kyber {
   /// Generates a new keypair
   /// ```
   /// # use pqc_kyber::*;
-  /// let mut alice = Kyber::initialize().unwrap();
+  /// # fn main() -> Result<(),KyberError> {
+  /// # let mut rng = rand::thread_rng();
+  /// let mut alice = Kyber::initialize(&mut rng)?;
   /// let old_pubkey = alice.keys.public;
-  /// alice.new_keys().unwrap();
+  /// alice.new_keys(&mut rng)?;
   /// assert!( old_pubkey != alice.keys.public); 
+  /// # Ok(()) }
   /// ```
-  pub fn new_keys(&mut self) -> Result<(), KyberError> {
-    self.keys = Keys::generate()?;
+  pub fn new_keys<R>(&mut self, rng: &mut R) -> Result<(), KyberError> 
+    where R: CryptoRng + RngCore
+  {
+    self.keys = Keypair::generate(rng)?;
     self.initialized = true;
     Ok(())
   }
@@ -219,90 +245,117 @@ impl Kyber {
   /// ``` 
   /// # use pqc_kyber::*;
   /// # fn main() -> Result<(),KyberError> {
-  /// let mut alice = Kyber::initialize()?;
-  /// let mut bob = Kyber::initialize()?;
+  /// # let mut rng = rand::thread_rng();
+  /// let mut alice = Kyber::initialize(&mut rng)?;
+  /// let mut bob = Kyber::initialize(&mut rng)?;
   /// 
   /// let pubkey_bob = bob.keys.public;
-  /// let uake_send_a = alice.uake_initiate(pubkey_bob)?;
-  /// # Ok(())
-  /// # }
+  /// let client_init = alice.uake_client_init(pubkey_bob, &mut rng)?;
+  /// # Ok(()) }
   /// ```
-  pub fn uake_initiate(&mut self, pubkey: PublicKey) -> Result<UakeSendA, KyberError> {
+  pub fn uake_client_init<R>(&mut self, pubkey: PublicKey, rng: &mut R) -> Result<UakeSendA, KyberError> 
+    where R: CryptoRng + RngCore
+  {
     uake_init_a(
       &mut self.uake_send_a, 
       &mut self.temp_key, 
       &mut self.eska, 
       &pubkey, 
-      &mut self.rng)?;
+      rng
+    )?;
     Ok(self.uake_send_a)
   }
 
-  /// Handles the output of a `uake_initiate()` request and provides a response
+  /// Handles the output of a `uake_client_init()` request
   /// ```
   /// # use pqc_kyber::*;
-  /// # let mut alice = Kyber::initialize().expect("Kyber initialization");
-  /// # let mut bob = Kyber::initialize().expect("Kyber initialization");
+  /// # fn main() -> Result<(),KyberError> {
+  /// # let mut rng = rand::thread_rng();
+  /// # let mut alice = Kyber::initialize(&mut rng)?;
+  /// # let mut bob = Kyber::initialize(&mut rng)?;
   /// # let pubkey_bob = bob.keys.public;
-  /// # let uake_send_a = alice.uake_initiate(pubkey_bob).expect("KEX initiation");
-  /// // `uake_send_a` from the key exchange initiation
-  /// let uake_send_b = bob.uake_receive(uake_send_a).unwrap();
-  pub fn uake_receive(&mut self, uake_send_a: UakeSendA) -> Result<UakeSendB, KyberError> {
+  /// let client_init = alice.uake_client_init(pubkey_bob, &mut rng)?;
+  /// let server_send = bob.uake_server_receive(client_init, &mut rng)?;
+  /// # Ok(()) }
+  pub fn uake_server_receive<R>(
+    &mut self, uake_send_a: UakeSendA, 
+    rng: &mut R
+  ) -> Result<UakeSendB, KyberError> 
+    where R: CryptoRng + RngCore
+  {
     uake_shared_b(
       &mut self.uake_send_b, 
       &mut self.shared_secret,
       &uake_send_a, 
       &self.keys.secret,
-      &mut self.rng)?;
+      rng
+    )?;
     Ok(self.uake_send_b)
   }
 
-  /// Decasulates the shared secret from the output of `uake_receive()`
+  /// Decapsulates and authenticates the shared secret from the output of `uake_server_receive()`
   /// ```
   /// # use pqc_kyber::*;
-  /// # let mut alice = Kyber::initialize().unwrap();
-  /// # let mut bob = Kyber::initialize().unwrap();
+  /// # fn main() -> Result<(),KyberError> {
+  /// # let mut rng = rand::thread_rng();
+  /// # let mut alice = Kyber::initialize(&mut rng)?;
+  /// # let mut bob = Kyber::initialize(&mut rng)?;
   /// # let pubkey_bob = bob.keys.public;
-  /// # let uake_send_a = alice.uake_initiate(pubkey_bob).unwrap();
-  /// # let uake_send_b = bob.uake_receive(uake_send_a).unwrap();
-  /// alice.uake_confirm(uake_send_b).unwrap();
-  /// # assert_eq!(alice.shared_secret, bob.shared_secret);
-  pub fn uake_confirm(&mut self, uake_send_b: UakeSendB) -> Result<(), KyberError> {
+  /// # let client_init = alice.uake_client_init(pubkey_bob, &mut rng)?;
+  /// let server_send = bob.uake_server_receive(client_init, &mut rng)?;
+  /// let client_confirm = alice.uake_client_confirm(server_send);
+  /// assert!(client_confirm.is_ok());
+  /// assert_eq!(alice.shared_secret, bob.shared_secret);
+  /// # Ok(()) }
+  pub fn uake_client_confirm(&mut self, uake_send_b: UakeSendB) -> Result<(), KyberError> 
+  {
     uake_shared_a(
       &mut self.shared_secret, 
       &uake_send_b, 
       &self.temp_key, 
-      &self.eska)?;
+      &self.eska
+    )?;
     Ok(())
   }
 
-  pub fn ake_initiate(
+  pub fn ake_client_init<R>(
     &mut self, 
-    pubkey: PublicKey
-  ) -> Result<AkeSendA, KyberError> 
+    pubkey: PublicKey,
+    rng: &mut R
+  ) -> Result<AkeSendA, KyberError>
+    where R: CryptoRng + RngCore
   {
     ake_init_a(
       &mut self.ake_send_a, 
       &mut self.temp_key, 
       &mut self.eska, 
       &pubkey, 
-      &mut self.rng)?;
+      rng
+    )?;
     Ok(self.ake_send_a)
   }
 
-  pub fn ake_receive(&mut self, ake_send_a: AkeSendA, pubkey: PublicKey)
-   -> Result<AkeSendB, KyberError> 
-   {
+  pub fn ake_server_receive<R>(
+    &mut self, 
+    ake_send_a: AkeSendA, 
+    pubkey: PublicKey,
+    rng: &mut R
+  ) 
+  -> Result<AkeSendB, KyberError>
+    where R: CryptoRng + RngCore 
+  {
     ake_shared_b(
       &mut self.ake_send_b, 
       &mut self.shared_secret, 
       &ake_send_a, 
       &self.keys.secret, 
       &pubkey, 
-      &mut self.rng)?;
+      rng
+    )?;
     Ok(self.ake_send_b)
   }
 
-  pub fn ake_confirm(
+  pub fn ake_client_confirm(
     &mut self, 
     ake_send_b: AkeSendB
   ) -> Result<(), KyberError> 
@@ -317,30 +370,28 @@ impl Kyber {
   }
 }
 
-/// Lower-level keypair generation with a provided RNG.
+/// Keypair generation with a provided RNG.
 /// 
 /// ### Example
 /// ```
 /// # use pqc_kyber::*;
+/// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
-/// let keys = pqc_kyber::keypair(&mut rng).unwrap();
+/// let keys = pqc_kyber::keypair(&mut rng)?;
 /// let publickey = keys.public;
 /// let secretkey = keys.secret;
 /// assert_eq!(publickey.len(), KYBER_PUBLICKEYBYTES);
 /// assert_eq!(secretkey.len(), KYBER_SECRETKEYBYTES);
+/// # Ok(())}
 /// ```
 pub fn keypair<R: RngCore + CryptoRng>(
   rng: &mut R
-  ) -> Result<Keys, KyberError> 
+  ) -> Result<Keypair, KyberError> 
   {
   let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-  
   api::crypto_kem_keypair(&mut pk, &mut sk, rng, None)?;
-  Ok( Keys {
-    public: pk,
-    secret: sk
-  })
+  Ok( Keypair { public: pk, secret: sk })
 }
 
 /// Encapsulates a public key
@@ -348,13 +399,16 @@ pub fn keypair<R: RngCore + CryptoRng>(
 /// ### Example
 /// ```
 /// # use pqc_kyber::*; 
-/// # let mut rng = rand::thread_rng();
-/// # let keys = keypair(&mut rng).unwrap();
-/// let (ct, ss) = encapsulate(&keys.public, &mut rng).unwrap();
+/// # fn main() -> Result<(), KyberError> {
+/// let mut rng = rand::thread_rng();
+/// let keys = keypair(&mut rng)?;
+/// let (ct, ss) = encapsulate(&keys.public, &mut rng)?;
+/// # Ok(())}
 /// ```
-pub fn encapsulate<R: CryptoRng + RngCore>(pk: &[u8], rng: &mut R) -> Encapsulated {
+pub fn encapsulate<R: CryptoRng + RngCore>(pk: &[u8], rng: &mut R) -> Encapsulated 
+{
   if pk.len() != KYBER_PUBLICKEYBYTES {
-    return Err(KyberError::EncodeFail)
+    return Err(KyberError::Encapsulation)
   }
   let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut ss = [0u8; KYBER_SSBYTES];
@@ -368,13 +422,16 @@ pub fn encapsulate<R: CryptoRng + RngCore>(pk: &[u8], rng: &mut R) -> Encapsulat
 /// ### Example
 /// ```
 /// # use pqc_kyber::*;
-/// # let mut rng = rand::thread_rng();
-/// # let keys = keypair(&mut rng).unwrap();
-/// let (ct, ss1) = encapsulate(&keys.public, &mut rng).unwrap();
-/// let ss2 = decapsulate(&ct, &keys.secret).unwrap();
+/// # fn main() -> Result<(), KyberError> {
+/// let mut rng = rand::thread_rng();
+/// let keys = keypair(&mut rng)?;
+/// let (ct, ss1) = encapsulate(&keys.public, &mut rng)?;
+/// let ss2 = decapsulate(&ct, &keys.secret)?;
 /// assert_eq!(ss1, ss2);
+/// #  Ok(())}
 /// ```
-pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
+pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated 
+{
   let mut ss = [0u8; KYBER_SSBYTES];
   match api::crypto_kem_dec(&mut ss, ct, sk) {
     Ok(_) => Ok(ss),
@@ -384,31 +441,33 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 
 /// Contains a public/private keypair
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub struct Keys {
+pub struct Keypair {
     pub public: PublicKey,
     pub secret: SecretKey
 }
 
-impl Default for Keys {
+impl Default for Keypair {
   fn default() -> Self {
-    Keys {
+    Keypair {
       public: [0u8; KYBER_PUBLICKEYBYTES],
       secret: [0u8; KYBER_SECRETKEYBYTES]
     }
   }
 }
 
-impl Keys {
-  /// Securely generates a new keypair using `rand::thread_rng()`
+impl Keypair {
+  /// Securely generates a new keypair`
   /// ```
   /// # use pqc_kyber::*;
-  /// let real_keys = Keys::generate().unwrap();
-  /// let empty_keys = Keys::default();
-  /// assert!(real_keys != empty_keys); 
+  /// # fn main() -> Result<(), KyberError> {
+  /// let mut rng = rand::thread_rng();
+  /// let keys = Keypair::generate(&mut rng)?;
+  /// # let empty_keys = Keypair::default();
+  /// # assert!(empty_keys != keys); 
+  /// # Ok(()) }
   /// ```
-  pub fn generate() -> Result<Keys, KyberError> {
-    let mut rng = rand::thread_rng();
-    keypair(&mut rng)
+  pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Keypair, KyberError> {
+    keypair(rng)
   }
 }
 
