@@ -1,14 +1,14 @@
 [package]
 name = "pqc-kyber"
 version = "0.1.0"
-authors = ["Mitchell Berry <17392435+MitchellBerry@users.noreply.github.com>"]
+authors = ["Mitchell Berry <foss@mitchellberry.com>"]
 edition = "2018"
 license = "Apache-2.0"
 repository = "https://github.com/mberry/kyber"
 documentation = "https://docs.rs/crate/pqc-kyber/"
 categories = ["algorithms", "cryptography"]
-description = "A pure rust implementation of the Kyber algorithm"
-keywords = ["cryptography", "kyber", "kem", "kex", "key exchange", "post-quantum"]
+description = "A rust implementation of the Kyber algorithm"
+keywords = ["cryptography", "kyber", "kem", "key exchange", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
@@ -22,6 +22,9 @@ sha2 = { version = "0.9.2", optional = true }
 [dev-dependencies]
 criterion = "0.3"
 
+[build-dependencies]
+cc = "1.0.66"
+
 [lib]
 crate-type = ["cdylib", "rlib"]
 
@@ -31,8 +34,8 @@ harness = false
 
 [features]
 # Security Levels
-# Will throw a compile_error if more than one level is chosen
-# "kyber764" is the default if none is specified
+# Defaults to "kyber764" if none selected
+# Will throw a compile time error if more than one level is chosen
 kyber512 = []
 kyber764 = []
 kyber1024 =[]
@@ -42,8 +45,8 @@ avx2 = []
 wasm = ["wasm-bindgen"]
 90s = ["sha2"]
 
-
-# Verification Testing
-# Allows access to private api functions to seed the RNG output 
-# Do not use for any purpose other than running the Known Answer Tests
+# Known Answer Tests
+# Allows private internal api access to seed the RNG output 
+# Do not use this feature for any other purpose than 
+# running the known answer tests
 KATs = []
