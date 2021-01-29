@@ -1,10 +1,12 @@
-# Kyber
+
 
 <p align="center">
-  <img src="https://pq-crystals.org/kyber/src/kyber.png"/>
+  <img src="./kyber.png"/>
 </p>
 
 ----
+
+# Kyber
 
 [![Build Status](https://travis-ci.com/mitchellberry/kyber.svg?branch=master)](https://travis-ci.com/mitchellberry/kyber)
 [![Coverage Status](https://coveralls.io/repos/github/mitchellberry/kyber/badge.svg?branch=develop)](https://coveralls.io/github/mitchellberry/kyber?branch=develop)
@@ -13,7 +15,7 @@
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
 
-A pure rust implementation of Kyber that compiles to Wasm. This is a translation of the third round optimized submission written in C. Modifications may still occur in the near future. Please use at your own risk and read the [security considerations](#Security_Considerations) section. 
+A pure rust implementation of Kyber that compiles to Wasm. This is a translation of the reference repo written in C. Modifications may still occur in the near future. Please read the [security considerations](#Security_Considerations) section before using. 
 
 ---
 
@@ -160,7 +162,7 @@ npm i pqc-kyber
 
 See also the basic html demo in the examples that can be run and inspected.
 
-To compile you'll need `wasm-pack`, and either `wasm32-unknown-unknown` or `wasm32-unknown-escripten` targets installed for your toolchain. Also requires the wasm feature enabled.
+To compile you'll need `wasm-pack`, and either `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` targets installed for your toolchain. Also requires the wasm feature enabled.
 
 ```
 wasm-pack build -- --features wasm
