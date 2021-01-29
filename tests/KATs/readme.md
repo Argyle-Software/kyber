@@ -1,8 +1,8 @@
 # Known Answer Tests
 
-The test vectors need to be generated locally. The instructions below clone the C reference repo, compile the test binaries, generates and renames the vectors.
+The test vectors need to be generated locally. Running [build_kats.sh](./build_kats.sh) will automate the process, otherwise follow the instructions below to clone the C reference repo, compile the test binaries, then generate and rename the files.
 
-This results in 6 files each containing 10000 KATs, total size is ~600MB:
+This results in 6 files, each containing 10000 KATs, total size is ~600MB:
 
 * tvecs512
 * tvecs512-90s
@@ -11,7 +11,8 @@ This results in 6 files each containing 10000 KATs, total size is ~600MB:
 * tvecs1024
 * tvecs1024-90s
 
-These need to be then moved into the `$CARGO_ROOT/tests/KATs` folder to run the tests.
+These need to be then moved into the `tests/KATs` folder. The `SHA256SUMS_ORIG` file contains 
+the digests this library was tested against.
 
 
 C Reference Repo: https://github.com/pq-crystals/kyber
@@ -22,25 +23,26 @@ C Reference Repo: https://github.com/pq-crystals/kyber
 ```bash
 git clone https://github.com/pq-crystals/kyber.git;
 cd kyber/ref;
-make;
+make all;
 
-# Create vectors for each security level and mode
+# Write binary output to file for each security level and mode
+# Rename to match C repo sums
 for tvec in test_vectors*[^.c];
   do
   sub_str=${tvec/est_/};
   ./$tvec > ${sub_str/tor/};
 done;
 
+# Move test vectors and sha256sums into the PQC-Kyber KATs folder
+mv tvecs* <Project Root>/tests/KATs
+
 # SHA256SUMS
 for tvec in tvecs{5,7,1}*;
-  do
+do
   sha256sum $tvec >> SHA256SUMS;
 done;
 
-# Move test vectors and sha256sums into the PQC-Kyber KATs folder
-mv {tvecs*,SHA256SUMS} <Project Root>/tests/KATs
-
-# Confirm SHA256SUMS match rust repo
-# Please raise an issue if upstream tests vectors have changed
+# Confirm SHA256SUMS match rust repo KAT's
+# Please submit a github issue if upstream test vectors have changed
 diff SHA256SUMS_ORIG SHA256SUMS
 ```
