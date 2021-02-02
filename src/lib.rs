@@ -95,8 +95,6 @@ mod verify;
 //   #[cfg(feature = "wasm")] mod wasm;
 // }
 
-
-// use core::result::Result; 
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
 pub use error::KyberError;
@@ -109,9 +107,8 @@ pub use params::{
   KYBER_90S
 };
 
-// cfg(test) doesn't work with integration testing
-// feature workaround to expose private functions
-// for Known Answer Test seeding
+// Feature workaround to expose private functions
+// for Known Answer Tests
 #[cfg(feature="KATs")]
 pub use api::{
   crypto_kem_keypair, 
@@ -140,7 +137,7 @@ pub type AkeSendB = [u8; KEX_AKE_SENDBBYTES];
 type TempKey = [u8; KEX_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Kyber {
   /// A public/private keypair for key exchanges
   /// Kyber is designed to be safe against key re-use and can
@@ -384,10 +381,9 @@ impl Kyber {
 /// assert_eq!(secretkey.len(), KYBER_SECRETKEYBYTES);
 /// # Ok(())}
 /// ```
-pub fn keypair<R: RngCore + CryptoRng>(
-  rng: &mut R
-  ) -> Result<Keypair, KyberError> 
-  {
+pub fn keypair<R>(rng: &mut R) -> Result<Keypair, KyberError> 
+  where R: RngCore + CryptoRng
+{
   let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
   api::crypto_kem_keypair(&mut pk, &mut sk, rng, None)?;
@@ -405,7 +401,8 @@ pub fn keypair<R: RngCore + CryptoRng>(
 /// let (ct, ss) = encapsulate(&keys.public, &mut rng)?;
 /// # Ok(())}
 /// ```
-pub fn encapsulate<R: CryptoRng + RngCore>(pk: &[u8], rng: &mut R) -> Encapsulated 
+pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated 
+  where R: CryptoRng + RngCore
 {
   if pk.len() != KYBER_PUBLICKEYBYTES {
     return Err(KyberError::Encapsulation)
@@ -432,6 +429,9 @@ pub fn encapsulate<R: CryptoRng + RngCore>(pk: &[u8], rng: &mut R) -> Encapsulat
 /// ```
 pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated 
 {
+  if ct.len() != KYBER_CIPHERTEXTBYTES || sk.len() != KYBER_SECRETKEYBYTES {
+    return Err(KyberError::Decapsulation)
+  }
   let mut ss = [0u8; KYBER_SSBYTES];
   match api::crypto_kem_dec(&mut ss, ct, sk) {
     Ok(_) => Ok(ss),
