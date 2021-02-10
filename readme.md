@@ -8,20 +8,20 @@
 
 # Kyber
 
-[![Build Status](https://travis-ci.com/mitchellberry/kyber.svg?branch=master)](https://travis-ci.com/mitchellberry/kyber)
-[![Coverage Status](https://coveralls.io/repos/github/mitchellberry/kyber/badge.svg?branch=develop)](https://coveralls.io/github/mitchellberry/kyber?branch=develop)
-[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/mitchellberry/kyber/blob/master/LICENSE)
+[![Build Status](https://travis-ci.com/Argyle-Cybersystems/kyber.svg?branch=master)](https://travis-ci.com/Argyle-Cybersystems/kyber)
+[![Coverage Status](https://coveralls.io/repos/github/Argyle-Cybersystems/kyber/badge.svg?branch=develop)](https://coveralls.io/github/Argyle-Cybersystems/kyber?branch=develop)
+[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
 
-A pure rust implementation of Kyber that compiles to Wasm. This is a translation of the reference repo written in C. Modifications may still occur in the near future. Please read the [security considerations](#Security_Considerations) section before using. 
+A no_std rust implementation of Kyber that compiles to WASM, it is based on the reference repo written in C which is still being tweaked, there is likely to be some further modifications to the API. Please read the [security considerations](#Security_Considerations) section before using. 
 
 ---
 
 ### About
 
-Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. Kyber is one of the candidate algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography). The submission lists three different parameter sets aiming at different security levels. Specifically, Kyber-512 aims at security roughly equivalent to AES-128, Kyber-768 aims at security roughly equivalent to AES-192, and Kyber-1024 aims at security roughly equivalent to AES-256. 
+Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. Kyber is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography). The submission lists three different parameter sets aiming at different security levels. Specifically, Kyber-512 aims at security roughly equivalent to AES-128, Kyber-768 aims at security roughly equivalent to AES-192, and Kyber-1024 aims at security roughly equivalent to AES-256. 
 
 ---
 
@@ -36,22 +36,29 @@ pqc-kyber = 0.1.0
 
 ### Usage
 
+Kyber re-exports `rand:thread_rng()`. For embedded devices and testing purposes this can be disabled with the feature flag `byo-rng`. 
+
 ```rust
 use pqc_kyber::*;
+
+let mut rng = thread_rng();
 ```
 
 #### KEM
 
 ```rust
 // Generate Keypair
-let keys = keypair();
+let keys = keypair(&mut rng);
 
 // Encapsulate
-let (ct, ss1) = encapsulate(&keys.pubkey).unwrap();
+let (ct, ss1) = encapsulate(&mut rng, &keys.public).unwrap();
 
 // Decapsulate
-let ss2 = decapsulate(&ct, &keys.secret).unwrap();
+let ss2 = decapsulate(&mut rng, &ct, &keys.secret).unwrap();
 ```
+
+
+/////////////// FIX THIS
 
 #### Key Exchange
 ```rust
@@ -65,8 +72,8 @@ let mut tk = [0u8; KEX_SSBYTES];
 let mut ka = [0u8; KEX_SSBYTES];
 let mut kb = [0u8; KEX_SSBYTES];
 
-let alice_keys = keypair();
-let bob_keys = keypair();
+let alice_keys = keypair(&mut rng);
+let bob_keys = keypair(&mut rng);
 ```
 
 ##### Unilaterally Authenticated Key Exchange
@@ -127,20 +134,31 @@ assert_eq!(ka, kb);
 
 ---
 
+### Features
+
+TODO: Markdown Table of features
+
 
 ### Testing
 
-Key exchange and decapsulation can be tested as normal but for the keypairs and encapsulation requiring deterministic rng seeds you'll need to enable to the KATs feature
+The [run_all_tests](tests/run_all_tests.sh) script will traverse all codepaths by running a matrix of all security levels and variants.
 
+Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them. Do not use this feature outside of testing, as it exposes private API functions.
+
+```shell
+# Runs all KATs for kyber764
+cargo test --features "KATs"
 ```
-cargo test --features KATs
-```
+
+Please view the [testing readme](./tests/readme.md) for more comphrensive info.
 
 ---
 
 ### Benchmarking
 
-Uses criterion for benchmarking the KEM functions. If you have GNU Plot installed it will generate graphs in `target/criterion/`. Please check the benchmarks for regressions if you intend to submit a PR.
+Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `target/criterion/`.
+
+See the [benchmarking readme](./benches/readme.md)
 
 ```
 cargo bench
@@ -150,9 +168,11 @@ cargo bench
 
 ### WebAssembly
 
-This library compiled to Wasm is published on npm.
+This library has been compiled into a WASM binary package. Usage instructions are published on npm:
 
 https://www.npmjs.com/package/pqc-kyber
+
+Which is also located in the [wasm pkg folder readme](./pkg/README.md)
 
 To install:
 
@@ -162,21 +182,32 @@ npm i pqc-kyber
 
 See also the basic html demo in the examples that can be run and inspected.
 
-To compile you'll need `wasm-pack`, and either `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` targets installed for your toolchain. Also requires the wasm feature enabled.
+To use this lib for web assembly purposes you'll need the `wasm` feature enabled.
+
+```toml
+[dependencies]
+pqc-kyber = {version = "0.2.0", features = ["wasm"]
+```
+
+Along with `wasm-pack` and `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` target installed for your toolchain.
+
+To build:
 
 ```
 wasm-pack build -- --features wasm
 ```
 
+
+
 ---
 
 ### Contributing 
 
-Contributions welcome. Create a feature fork and submit a PR to the development branch. Please run the benchmarking to check for any regressions first.
+Contributions welcome. For PR's create a feature fork and submit it to the development branch.
 
 ### Security Considerations
 
-The NIST post quantum standardisation project is still ongoing and this algorithm is quite new.
+The NIST post quantum standardisation project is still ongoing 
 
 While care has been taken porting from the C reference codebase, this library has not undergone any security auditing nor can any guarantees be made about the potential for underlying vulnerabilities or potential side-channel attacks.
 
