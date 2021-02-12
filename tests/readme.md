@@ -17,8 +17,3 @@ Test files:
 * [kat.rs](./kat.rs)  - Runs a test suite using the Known Answer Test files at the selected security level
 
 * [kex.rs](./kex.rs) - Goes through a full key exchange procedure for both the UAKE and AKE functions.
-
-* [kyber.rs](./kyber.rs) - Generates 1000 different keys and encapsulates/decapsulates them using the higher level Kyber struct functions.
-
-
-
