@@ -61,7 +61,11 @@
 #![no_std]
 #![allow(clippy::many_single_char_names)]
 
-#[cfg(feature = "90s")] mod aes256;
+#[cfg(all(features="kyber1024", features="kyber512"))]
+compile_error!("Only one security level can be specified");
+
+#[cfg(feature = "90s")] 
+mod aes256;
 // #[cfg(feature = "avx2")] 
 mod avx2;
 use avx2::align;
@@ -83,17 +87,6 @@ mod params;
 mod rng;
 mod symmetric;
 mod verify;
-
-// #[cfg(not(feature = "avx2"))] mod reference {
-//   mod cbd;
-//   mod fips202;
-//   mod indcpa;
-//   mod poly;
-//   mod polyvec;
-//   mod ntt;
-//   mod reduce;
-//   #[cfg(feature = "wasm")] mod wasm;
-// }
 
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
@@ -140,8 +133,7 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Kyber {
   /// A public/private keypair for key exchanges
-  /// Kyber is designed to be safe against key re-use and can
-  /// remain static if needed
+  /// Kyber is designed to be safe against key re-use
   pub keys: Keypair,
   /// The resulting symmetrical shared secret from a key exchange
   pub shared_secret: [u8; KYBER_SSBYTES],
