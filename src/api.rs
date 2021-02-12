@@ -27,6 +27,7 @@ pub fn crypto_kem_keypair<R>(
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   
+  //Todo remove unsafe here
   unsafe {indcpa_keypair(pk, sk, seed, rng)?;}
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
