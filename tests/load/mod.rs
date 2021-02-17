@@ -58,6 +58,7 @@ fn get_filename() -> String {
   if KYBER_90S {
     filename.push_str("-90s");
   }
+  println!("Using KAT file: {}", &filename);
   filename
 }
 
