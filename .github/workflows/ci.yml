@@ -1,0 +1,27 @@
+name: All-Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ development ]
+
+jobs:
+  all-tests:
+    name: Known Answer Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - name: Generate KATs
+        working-directory: ./tests/KATs
+        run: ./build_kats.sh
+
+      - name: Run tests on all features
+        run: ./tests/run_all_tests.sh
