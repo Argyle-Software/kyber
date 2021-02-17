@@ -18,6 +18,16 @@ impl Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
   }
+  // Basic variable checking for development
+  // pub unsafe fn checksum(&self) -> i16 {
+  //   let mut out = 0;
+  //   for i in 0..KYBER_K {
+  //     for j in 0..KYBER_N {
+  //       out ^= &self.vec[i].coeffs[j];
+  //     }
+  //   }
+  //   out
+  // }
 }
 
 pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
@@ -138,11 +148,11 @@ pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8])
 {
   let mut f;
 
-  let q = _mm256_load_si256(QDATA.vec[_16XV/16..].as_ptr());
+  let q = _mm256_load_si256(QDATA.vec[_16XQ/16..].as_ptr());
   let shufbidx = _mm256_set_epi8(13,12,12,11,10, 9, 9, 8,
-                                            8, 7, 6, 5, 5, 4, 4, 3,
-                                           10, 9, 9, 8, 7, 6, 6, 5,
-                                            5, 4, 3, 2, 2, 1, 1, 0);
+                                  8, 7, 6, 5, 5, 4, 4, 3,
+                                  10, 9, 9, 8, 7, 6, 6, 5,
+                                  5, 4, 3, 2, 2, 1, 1, 0);
   let srlvdidx = _mm256_set_epi32(0,0,1,0,0,0,1,0);
   let srlvqidx = _mm256_set_epi64x(2,0,2,0);
   let shift = _mm256_set_epi16(4,32,1,8,32,1,4,32,4,32,1,8,32,1,4,32);
