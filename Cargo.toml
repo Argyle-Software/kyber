@@ -33,16 +33,23 @@ name = "api"
 harness = false
 
 [features]
-# Security Levels
+### Security Levels ###
 # Defaults to "kyber764" if none selected
-# Will throw a compile time error if more than one level is chosen
+# Will throw a compile-time error if more than one level is chosen
 kyber512 = []
 kyber1024 =[]
 
-# Additional features
-avx2 = []
-wasm = ["wasm-bindgen"]
+### Additional features ###
+# 90s mode uses AES-CTR and SHA2 as primitives instead
+# May provide speed-ups on certain hardware
 90s = ["sha2"]
+
+# Force usage of the reference codebase on x86_64 architectures
+reference = []
+
+# For compiling to wasm targets 
+wasm = ["wasm-bindgen"]
+
 
 # Known Answer Tests
 # Allows private internal api access to seed the RNG output 
