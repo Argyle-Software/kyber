@@ -55,7 +55,7 @@ impl GenMatrixBuf {
 //   }
 // }
 
-#[repr(C)]
+#[repr(C, align(8))]
 pub union Eta1Buf {
   pub coeffs: [u8; KYBER_ETA1*KYBER_N/4+32],
   pub vec: [__m256i; (KYBER_ETA1*KYBER_N/4+32+31)/32]
@@ -67,7 +67,7 @@ impl Eta1Buf {
   }
 }
 
-#[repr(C)]
+#[repr(C, align(8))]
 pub union Eta2Buf {
   pub coeffs: [u8; KYBER_ETA2*KYBER_N/4],
   pub vec: [__m256i; (KYBER_ETA2*KYBER_N/4+31)/32]
@@ -80,7 +80,7 @@ impl Eta2Buf {
 }
 
 #[derive(Copy, Clone)]
-#[repr(C)]
+#[repr(C, align(8))]
 pub union Eta4xBuf {
   pub coeffs: [u8; NOISE_NBLOCKS*SHAKE256_RATE],
   pub vec: [__m256i; (NOISE_NBLOCKS*SHAKE256_RATE+31)/32]
