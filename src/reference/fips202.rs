@@ -1,4 +1,5 @@
 #![allow(clippy::needless_range_loop, dead_code)]
+
 use crate::symmetric::KeccakState;
 
 pub(crate) const SHAKE128_RATE: usize = 168;

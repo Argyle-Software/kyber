@@ -134,7 +134,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
 pub fn polyvec_tobytes(r: &mut[u8], a: &Polyvec)
 {
   for i in 0..KYBER_K {
-    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], &a.vec[i]);
+    poly_tobytes(&mut r[i*KYBER_POLYBYTES..], a.vec[i]);
   }
 }
 

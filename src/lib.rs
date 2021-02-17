@@ -58,27 +58,22 @@
 //! # Ok(()) }
 //! ```
 
-#![no_std]
+// #![no_std]
 #![allow(clippy::many_single_char_names)]
-
-#[cfg(all(features="kyber1024", features="kyber512"))]
+#[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
 #[cfg(feature = "90s")] 
 mod aes256;
-// #[cfg(feature = "avx2")] 
+
+#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
 mod avx2;
-use avx2::align;
-use avx2::cbd;
-use avx2::consts;
-use avx2::fips202;
-use avx2::fips202x4;
-use avx2::indcpa;
-use avx2::keccak4x;
-use avx2::poly;
-use avx2::polyvec;
-use avx2::rejsample;
-// use avx2::verify;
+#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+use avx2::*;
+#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+mod reference;
+#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+use reference::*;
 
 mod api;
 mod error;
@@ -91,23 +86,11 @@ mod verify;
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
 pub use error::KyberError;
-pub use params::{
-  KYBER_PUBLICKEYBYTES, 
-  KYBER_SECRETKEYBYTES, 
-  KYBER_CIPHERTEXTBYTES, 
-  KYBER_SSBYTES, 
-  KYBER_K, 
-  KYBER_90S
-};
+pub use params::*;
 
-// Feature workaround to expose private functions
-// for Known Answer Tests
+// Feature workaround to expose private functions for Known Answer Tests
 #[cfg(feature="KATs")]
-pub use api::{
-  crypto_kem_keypair, 
-  crypto_kem_enc, 
-  crypto_kem_dec
-};
+pub use api::*;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated =  Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError>;
