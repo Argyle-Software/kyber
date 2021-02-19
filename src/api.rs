@@ -27,8 +27,7 @@ pub fn crypto_kem_keypair<R>(
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   
-  //Todo remove unsafe here
-  unsafe {indcpa_keypair(pk, sk, seed, rng)?;}
+  indcpa_keypair(pk, sk, seed, rng)?;
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
@@ -83,7 +82,7 @@ pub fn crypto_kem_enc<R>(
   hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
 
   // coins are in kr[KYBER_SYMBYTES..]
-  unsafe {indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);}
+  indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);
 
   // overwrite coins in kr with H(c) 
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
@@ -126,7 +125,7 @@ pub fn crypto_kem_dec(
   hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
   
   // coins are in kr[KYBER_SYMBYTES..] 
-  unsafe { indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]); }
+  indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]);
   let fail = verify(ct, &cmp, KYBER_CIPHERTEXTBYTES);
   // overwrite coins in kr with H(c)
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
