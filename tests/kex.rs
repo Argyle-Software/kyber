@@ -9,8 +9,7 @@ fn kyber_uake() {
   let pubkey_bob = bob.keys.public;
   let client_init = alice.uake_client_init(pubkey_bob, &mut rng).unwrap();
   let server_send = bob.uake_server_receive(client_init, &mut rng).unwrap();
-  let client_confirm = alice.uake_client_confirm(server_send);
-  assert!(client_confirm.is_ok());
+  let _client_confirm = alice.uake_client_confirm(server_send).unwrap();
   assert_eq!(alice.shared_secret, bob.shared_secret);
 }
 
@@ -23,15 +22,15 @@ fn kyber_ake() {
   let pubkey_bob = bob.keys.public;
   let client_init = alice.ake_client_init(pubkey_bob, &mut rng).unwrap();
   let server_send = bob.ake_server_receive(client_init, pubkey_alice, &mut rng).unwrap();
-  let client_confirm = alice.ake_client_confirm(server_send);
-  assert!(client_confirm.is_ok());
+  let _client_confirm = alice.ake_client_confirm(server_send).unwrap();
   assert_eq!(alice.shared_secret, bob.shared_secret);
 }
 
-// Unilaterally authenticated key exchange
 // Low Level Functions
+
+// Unilaterally authenticated key exchange
 #[test]
-fn uake() {
+fn low_level_uake() {
   let mut rng = rand::thread_rng();
 
   let mut eska = [0u8; KYBER_SECRETKEYBYTES];
@@ -62,9 +61,8 @@ fn uake() {
 }
 
 // Mutually authenticated key exchange
-// Low Level Functions
 #[test]
-fn ake() {
+fn low_level_ake() {
   let mut rng = rand::thread_rng();
   let mut eska = [0u8; KYBER_SECRETKEYBYTES];
 
