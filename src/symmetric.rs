@@ -1,3 +1,4 @@
+use crate::{fips202::*, params::*};
 #[cfg(feature = "90s")] use crate::aes256::*;
 #[cfg(feature = "90s")] use sha2::{Sha256, Sha512, Digest};
 // TODO: Rustrypto AES-CTR feature
@@ -6,7 +7,6 @@
 //   generic_array::GenericArray,
 //   stream::{NewStreamCipher, SyncStreamCipher}
 // };
-use crate::{fips202::*, params::*};
 
 
 #[cfg(feature = "90s")] 
@@ -22,7 +22,6 @@ pub type XofState = KeccakState;
 #[cfg(feature = "90s")]
 pub type XofState = Aes256xofCtx;
 
-#[cfg(not(feature = "90s"))]
 #[derive(Copy, Clone)]
 pub struct KeccakState {
   pub s: [u64; 25],
@@ -111,7 +110,7 @@ pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 #[cfg(feature = "90s")]
 pub fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 {
-  aes256_prf(out, outbytes, &key, &expnonce);
+  aes256_prf(out, outbytes, &key, nonce);
 
   // TODO: Add feature to use RustCrypto AES_CTR
   // implementation with no lookup tables

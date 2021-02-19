@@ -551,12 +551,14 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &[u8], cc: u32, data: &mut[u8], mu
 // Arguments:   - [u8] output:      output
 //              - usize outlen:  length of requested output in bytes
 //              - const [u8] key:   32-byte key
-//              - const [u8]  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
-pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: &[u8])
+//              - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
+pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 {
   let mut sk_exp = [0u64; 120];
+  let mut pad_nonce = [0u8; 12];
+  pad_nonce[0] = nonce;
   br_aes_ct64_ctr_init(&mut sk_exp, key);
-  br_aes_ct64_ctr_run(&mut sk_exp, nonce, 0, output, outlen);
+  br_aes_ct64_ctr_run(&mut sk_exp, &pad_nonce, 0, output, outlen);
 }
 
 // Name:        aes256ctr_init
