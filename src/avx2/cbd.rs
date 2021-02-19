@@ -3,6 +3,7 @@
 use core::arch::x86_64::*;
 use crate::params::KYBER_N;
 use crate::poly::*;
+use crate::align::Eta4xBuf;
 
 fn cbd2(r: &mut Poly, buf: &[__m256i]) {
   unsafe {
@@ -47,7 +48,7 @@ fn cbd2(r: &mut Poly, buf: &[__m256i]) {
   }
 }
 
-fn cbd3(r: &mut Poly, buf: &[__m256i]) {
+fn cbd3(r: &mut Poly, buf: &[u8]) {
   unsafe {
     let (mut f0, mut f1, mut f2, mut f3);
     let mask249: __m256i = _mm256_set1_epi32(0x249249);
@@ -61,7 +62,7 @@ fn cbd3(r: &mut Poly, buf: &[__m256i]) {
     );
 
     for i in 0..(KYBER_N/32) {
-      f0 = _mm256_loadu_si256(&buf[24*i] as *const __m256i);
+      f0 = _mm256_loadu_si256(buf[24*i..].as_ptr() as *const __m256i);
       f0 = _mm256_permute4x64_epi64(f0,0x94);
       f0 = _mm256_shuffle_epi8(f0,shufbidx);
 
@@ -101,17 +102,19 @@ fn cbd3(r: &mut Poly, buf: &[__m256i]) {
   }
 }
 
-pub fn poly_cbd_eta1(r: &mut Poly, buf: &[__m256i]) 
+pub fn poly_cbd_eta1(r: &mut Poly, buf: &Eta4xBuf) 
 {
-  if cfg!(feature="kyber512") {
-    cbd3(r, buf)
-  } 
-  else {
-    cbd2(r, buf)
+  unsafe {
+    if cfg!(feature="kyber512") {
+      cbd3(r, &buf.coeffs)
+    } 
+    else {
+      cbd2(r, &buf.vec)
+    }
   }
 }
 
 pub fn poly_cbd_eta2(r: &mut Poly, buf: &[__m256i]) 
 {
-  cbd2(r, buf)
+  cbd2(r, &buf)
 }
