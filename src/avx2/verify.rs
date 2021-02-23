@@ -7,8 +7,8 @@ pub fn verify(a: &[u8], b: &[u8], mut len: usize) -> u8
   unsafe {
     let mut h =  _mm256_setzero_si256();
     for i in 0..(len/32) {
-      f = _mm256_loadu_si256(a[32*i] as *const __m256i);
-      g = _mm256_loadu_si256(b[32*i] as *const __m256i);
+      f = _mm256_loadu_si256(a[32*i..].as_ptr() as *const __m256i);
+      g = _mm256_loadu_si256(b[32*i..].as_ptr() as *const __m256i);
       f = _mm256_xor_si256(f,g);
       h = _mm256_or_si256(h,f);
     }
@@ -19,8 +19,7 @@ pub fn verify(a: &[u8], b: &[u8], mut len: usize) -> u8
   for i in 0..len {
     r |= (a[idx+i] ^ b[idx+i]) as u64;
   }
-  r = r.wrapping_neg() >> 63;
-  r as u8
+  (r.wrapping_neg() >> 63) as u8
 }
 
 pub fn cmov(r: &mut[u8], x: &[u8], mut len: usize, mut b: u8)
@@ -29,14 +28,12 @@ pub fn cmov(r: &mut[u8], x: &[u8], mut len: usize, mut b: u8)
   unsafe {
     let bvec = _mm256_set1_epi64x(b as i64);
     for i in 0..(len/32) {
-      rvec = _mm256_loadu_si256(r[32*i] as *const __m256i);
-      xvec = _mm256_loadu_si256(x[32*i] as *const __m256i);
+      rvec = _mm256_loadu_si256(r[32*i..].as_ptr() as *const __m256i);
+      xvec = _mm256_loadu_si256(x[32*i..].as_ptr() as *const __m256i);
       rvec = _mm256_blendv_epi8(rvec,xvec,bvec);
       _mm256_storeu_si256(r[32*i..].as_mut_ptr() as *mut __m256i,rvec);
     }
   }
-  // r += 32*i;
-  // x += 32*i;
   let idx = 32*(len/32);
   len -= idx;
   b = b.wrapping_neg();
