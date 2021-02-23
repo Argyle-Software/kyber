@@ -24,6 +24,14 @@ impl Poly {
       coeffs: [0i16; KYBER_N]
     }
   }
+  // Basic variable checking for development
+  // pub unsafe fn checksum(&self) -> i16 {
+  //   let mut out = 0;
+  //   for x in &self.coeffs {
+  //     out ^= x;
+  //   }
+  //   out
+  // }
 }
 
 extern {
@@ -42,96 +50,7 @@ extern {
   fn nttfrombytes_avx(r: *mut i16, a: *const u8, q_data: &[i16; 640]);
 }
 
-#[cfg(feature="kyber512")]
-pub fn poly_compress(r: &mut[u8], a: Poly) 
-{
-  let (mut f0, mut f1, mut f2, mut f3);
-  let (mut t0, mut t1);
-  let v: __m256i  = _mm256_load_si256(&qdata.vec[_16XV/16]);
-  let shift1: __m256i  = _mm256_set1_epi16(1 << 8);
-  let mask: __m256i  = _mm256_set1_epi16(7);
-  let shift2: __m256i  = _mm256_set1_epi16((8 << 8) + 1);
-  let shift3: __m256i  = _mm256_set1_epi32((64 << 16) + 1);
-  let sllvdidx: __m256i  = _mm256_set1_epi64x(12u64 << 32);
-  let shufbidx: __m256i  = _mm256_set_epi8( 
-    8, 2, 1, 0,-1,-1,-1,-1,14,13,12, 6, 5, 4,10, 9,
-    -1,-1,-1,-1,14,13,12, 6, 5, 4,10, 9, 8, 2, 1, 0
-  );
-
-  for i in 0..KYBER_N/64 {
-    f0 = _mm256_load_si256(&a.vec[4*i+0]);
-    f1 = _mm256_load_si256(&a.vec[4*i+1]);
-    f2 = _mm256_load_si256(&a.vec[4*i+2]);
-    f3 = _mm256_load_si256(&a.vec[4*i+3]);
-    f0 = _mm256_mulhi_epi16(f0,v);
-    f1 = _mm256_mulhi_epi16(f1,v);
-    f2 = _mm256_mulhi_epi16(f2,v);
-    f3 = _mm256_mulhi_epi16(f3,v);
-    f0 = _mm256_mulhrs_epi16(f0,shift1);
-    f1 = _mm256_mulhrs_epi16(f1,shift1);
-    f2 = _mm256_mulhrs_epi16(f2,shift1);
-    f3 = _mm256_mulhrs_epi16(f3,shift1);
-    f0 = _mm256_and_si256(f0,mask);
-    f1 = _mm256_and_si256(f1,mask);
-    f2 = _mm256_and_si256(f2,mask);
-    f3 = _mm256_and_si256(f3,mask);
-    f0 = _mm256_packus_epi16(f0,f1);
-    f2 = _mm256_packus_epi16(f2,f3);
-    // a0 a1 a2 a3 b0 b1 b2 b3 a4 a5 a6 a7 b4 b5 b6 b7
-    f0 = _mm256_maddubs_epi16(f0,shift2);
-    // c0 c1 c2 c3 d0 d1 d2 d3 c4 c5 c6 c7 d4 d5 d6 d7
-    f2 = _mm256_maddubs_epi16(f2,shift2);
-    // a0 a1 b0 b1 a2 a3 b2 b3
-    f0 = _mm256_madd_epi16(f0,shift3);
-    // c0 c1 d0 d1 c2 c3 d2 d3
-    f2 = _mm256_madd_epi16(f2,shift3);
-    f0 = _mm256_sllv_epi32(f0,sllvdidx);
-    f2 = _mm256_sllv_epi32(f2,sllvdidx);
-    // a0 c0 c0 d0 a1 b1 c1 d1
-    f0 = _mm256_hadd_epi32(f0,f2);
-    // a0 b0 a1 b1 c0 d0 c1 d1
-    f0 = _mm256_permute4x64_epi64(f0,0xD8);
-    f0 = _mm256_shuffle_epi8(f0,shufbidx);
-    t0 = _mm256_castsi256_si128(f0);
-    t1 = _mm256_extracti128_si256(f0,1);
-    t0 = _mm_blend_epi32(t0,t1,0x08);
-    _mm_storeu_si128(&r[24*i+ 0] as *const __m128i,t0);
-    _mm_storel_epi64(&r[24*i+16] as *const __m128i,t1);
-  }
-}
-
-#[cfg(feature="kyber512")]
-pub fn poly_decompress(r: &mut Poly, a: &[u8]) 
-{
-  let (mut t, mut f);
-  let q:__m256i = _mm256_load_si256(&qdata.vec[_16XQ/16]);
-  let shufbidx:__m256i = _mm256_set_epi8(
-    5,5,5,5,5,4,4,4,4,4,4,3,3,3,3,3,
-    2,2,2,2,2,1,1,1,1,1,1,0,0,0,0,0
-  );
-  let mask:__m256i = _mm256_set_epi16(
-    224,28,896,112,14,448,56,7,
-    224,28,896,112,14,448,56,7
-  );
-  let shift:__m256i = _mm256_set_epi16(
-    128,1024,32,256,2048,64,512,4096,
-    128,1024,32,256,2048,64,512,4096
-  );
-
-  for i in 0..KYBER_N/16 {
-    t = _mm_castps_si128(_mm_load_ss(a[6*i+0] as f32));
-    t = _mm_insert_epi16(t, a[6*i+4] as i16 ,2);
-    f = _mm256_broadcastsi128_si256(t);
-    f = _mm256_blend_epi16(f,g,0);
-    f = _mm256_shuffle_epi8(f,shufbidx);
-    f = _mm256_and_si256(f,mask);
-    f = _mm256_mullo_epi16(f,shift);
-    f = _mm256_mulhrs_epi16(f,q);
-    _mm256_store_si256(&r.vec[i],f);
-  }
-}
-
-#[cfg(not(any(feature="kyber512", feature="kyber1024")))]
+#[cfg(any(feature="kyber512", not(feature="kyber1024")))]
 pub unsafe fn poly_compress(r: &mut[u8], a: Poly)
 {
   let (mut f0, mut f1, mut f2, mut f3);
@@ -168,7 +87,7 @@ pub unsafe fn poly_compress(r: &mut[u8], a: Poly)
   }
 }
 
-#[cfg(not(any(feature="kyber512", feature="kyber1024")))]
+#[cfg(any(feature="kyber512", not(feature="kyber1024")))]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) 
 {
   let (mut t, mut f);
@@ -193,11 +112,12 @@ pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8])
 
 
 #[cfg(feature="kyber1024")]
-pub unsafe fn poly_compress(r: &mut Poly, a: &[u8]) 
+pub unsafe fn poly_compress(r: &mut[u8], a: Poly) 
 {
   let (mut f0, mut f1);
   let (mut t0, mut t1);
-  let v: __m256i = _mm256_load_si256(&qdata.vec[_16XV/16]);
+  let mut tmp;
+  let v: __m256i = _mm256_load_si256(&QDATA.vec[_16XV/16]);
   let shift1: __m256i = _mm256_set1_epi16(1 << 10);
   let mask: __m256i = _mm256_set1_epi16(31);
   let shift2: __m256i = _mm256_set1_epi16((32 << 8) + 1);
@@ -209,8 +129,8 @@ pub unsafe fn poly_compress(r: &mut Poly, a: &[u8])
   );
 
   for i in 0..(KYBER_N/32) {
-    f0 = _mm256_load_si256(a.vec[2*i+0]);
-    f1 = _mm256_load_si256(a.vec[2*i+1]);
+    f0 = _mm256_load_si256(&a.vec[2*i+0]);
+    f1 = _mm256_load_si256(&a.vec[2*i+1]);
     f0 = _mm256_mulhi_epi16(f0,v);
     f1 = _mm256_mulhi_epi16(f1,v);
     f0 = _mm256_mulhrs_epi16(f0,shift1);
@@ -228,35 +148,46 @@ pub unsafe fn poly_compress(r: &mut Poly, a: &[u8])
     t0 = _mm256_castsi256_si128(f0);
     t1 = _mm256_extracti128_si256(f0,1);
     t0 = _mm_blendv_epi8(t0,t1,_mm256_castsi256_si128(shufbidx));
-    _mm_storeu_si128(r[20*i+ 0] as *const __mm128i,t0);
-    memcpy(&r[20*i+16],&t1,4);
+    _mm_storeu_si128(r[20*i+ 0..].as_mut_ptr() as *mut __m128i,t0);
+    // memcpy(&r[20*i+16],&t1,4);
+    tmp = _mm_cvtsi128_si32(t1);
+    r[20*i+16..20*i+20].copy_from_slice(&tmp.to_le_bytes());
   }
 }
 
 #[cfg(feature="kyber1024")]
-pub unsafe fn poly_decompress(r: &mut[u8], a: Poly)
+pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8])
 {
   let (mut t, mut f);
   let mut ti;
 
+  let q = _mm256_load_si256(&QDATA.vec[_16XQ/16]);
+  let shufbidx = _mm256_set_epi8(9,9,9,8,8,8,8,7,7,6,6,6,6,5,5,5,
+                                 4,4,4,3,3,3,3,2,2,1,1,1,1,0,0,0);
+  let mask = _mm256_set_epi16(248,1984,62,496,3968,124,992,31,
+                              248,1984,62,496,3968,124,992,31);
+  let shift = _mm256_set_epi16(128,16,512,64,8,256,32,1024,
+                               128,16,512,64,8,256,32,1024);
+
   for i in 0..KYBER_N/16 {
     t = _mm_loadl_epi64(a[10*i+0..].as_ptr() as *const __m128i);
-    ti = u16::from_le_bytes(a[10*i+8]..a[10*i+10]);
-    t = _mm_insert_epi16(t,ti,4);
+    ti = i32::from_le_bytes([a[10*i+8], a[10*i+9], 0, 0]);
+    // ti = i16::from_le_bytes(a[10*i+8..10*i+10]);
+    t = _mm_insert_epi16(t, ti, 4);
     f = _mm256_broadcastsi128_si256(t);
     f = _mm256_shuffle_epi8(f,shufbidx);
     f = _mm256_and_si256(f,mask);
     f = _mm256_mullo_epi16(f,shift);
     f = _mm256_mulhrs_epi16(f,q);
-    _mm256_store_si256(&r.vec[i],f);
+    _mm256_store_si256(r.vec[i..].as_mut_ptr() as *mut __m256i,f);
   }
 }
 
 pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 {
-  let mut buf_r = Poly::new();
-  unsafe { nttfrombytes_avx(buf_r.coeffs.as_mut_ptr(), a.as_ptr(), &QDATA.coeffs); }
-  unsafe { r.coeffs = buf_r.coeffs; }
+  unsafe { 
+    nttfrombytes_avx(r.coeffs.as_mut_ptr(), a.as_ptr(), &QDATA.coeffs);
+  }
 }
 
 pub fn poly_tobytes(r: &mut[u8], a: Poly)
@@ -310,36 +241,38 @@ pub unsafe fn poly_frommsg(r: &mut Poly, msg: &[u8])
   frommsg64(3, _mm256_shuffle_epi32(f, 255));
 }
 
-pub unsafe fn poly_tomsg(msg: &mut[u8], a: Poly)
+pub fn poly_tomsg(msg: &mut[u8], a: Poly)
 {
-  let (mut f0, mut f1, mut g0, mut g1);
-  let hq: __m256i = _mm256_set1_epi16((KYBER_Q - 1) as i16/2);
-  let hhq: __m256i = _mm256_set1_epi16((KYBER_Q - 1) as i16/4);
+  unsafe {
+    let (mut f0, mut f1, mut g0, mut g1);
+    let hq: __m256i = _mm256_set1_epi16((KYBER_Q - 1) as i16/2);
+    let hhq: __m256i = _mm256_set1_epi16((KYBER_Q - 1) as i16/4);
 
-  for i in 0..KYBER_N/32 {
-    f0 = _mm256_load_si256(&a.vec[2*i+0]);
-    f1 = _mm256_load_si256(&a.vec[2*i+1]);
-    f0 = _mm256_sub_epi16(hq, f0);
-    f1 = _mm256_sub_epi16(hq, f1);
-    g0 = _mm256_srai_epi16(f0, 15);
-    g1 = _mm256_srai_epi16(f1, 15);
-    f0 = _mm256_xor_si256(f0, g0);
-    f1 = _mm256_xor_si256(f1, g1);
-    f0 = _mm256_sub_epi16(f0, hhq);
-    f1 = _mm256_sub_epi16(f1, hhq);
-    f0 = _mm256_packs_epi16(f0, f1);
-    f0 = _mm256_permute4x64_epi64(f0, 0xD8);
-    let small = _mm256_movemask_epi8(f0);
-    msg[4*i..][..4].copy_from_slice(&small.to_ne_bytes());
+    for i in 0..KYBER_N/32 {
+      f0 = _mm256_load_si256(&a.vec[2*i+0]);
+      f1 = _mm256_load_si256(&a.vec[2*i+1]);
+      f0 = _mm256_sub_epi16(hq, f0);
+      f1 = _mm256_sub_epi16(hq, f1);
+      g0 = _mm256_srai_epi16(f0, 15);
+      g1 = _mm256_srai_epi16(f1, 15);
+      f0 = _mm256_xor_si256(f0, g0);
+      f1 = _mm256_xor_si256(f1, g1);
+      f0 = _mm256_sub_epi16(f0, hhq);
+      f1 = _mm256_sub_epi16(f1, hhq);
+      f0 = _mm256_packs_epi16(f0, f1);
+      f0 = _mm256_permute4x64_epi64(f0, 0xD8);
+      let small = _mm256_movemask_epi8(f0);
+      msg[4*i..][..4].copy_from_slice(&small.to_ne_bytes());
+    }
   }
 }
 
-pub unsafe fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
-{
-  let mut buf = Eta1Buf::new();
-  prf(&mut buf.coeffs, KYBER_ETA1*KYBER_N/4, seed, nonce);
-  poly_cbd_eta1(r, &buf.vec);
-}
+// pub unsafe fn poly_getnoise_eta1(r: &mut Poly, seed: &[u8], nonce: u8)
+// {
+//   let mut buf = Eta1Buf::new();
+//   prf(&mut buf.coeffs, KYBER_ETA1*KYBER_N/4, seed, nonce);
+//   poly_cbd_eta1(r, &buf.vec);
+// }
 
 pub unsafe fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
 {
@@ -348,7 +281,7 @@ pub unsafe fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
   poly_cbd_eta2(r, &buf.vec);
 }
 
-pub unsafe fn poly_getnoise_eta1_4x(
+pub fn poly_getnoise_eta1_4x(
   r0: &mut Poly,
   r1: &mut Poly,
   r2: &mut Poly,
@@ -360,33 +293,35 @@ pub unsafe fn poly_getnoise_eta1_4x(
   nonce3: u8,
 )
 {
-  let mut buf = [Eta4xBuf::new(),Eta4xBuf::new(),Eta4xBuf::new(),Eta4xBuf::new()];
-  let mut state = Keccakx4State::new();
-  let f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
-  _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[3].vec.as_mut_ptr(), f);
+  unsafe {
+    let mut buf = [Eta4xBuf::new(),Eta4xBuf::new(),Eta4xBuf::new(),Eta4xBuf::new()];
+    let mut state = Keccakx4State::new();
+    let f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
+    _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[3].vec.as_mut_ptr(), f);
 
-  buf[0].coeffs[32] = nonce0;
-  buf[1].coeffs[32] = nonce1;
-  buf[2].coeffs[32] = nonce2;
-  buf[3].coeffs[32] = nonce3;
+    buf[0].coeffs[32] = nonce0;
+    buf[1].coeffs[32] = nonce1;
+    buf[2].coeffs[32] = nonce2;
+    buf[3].coeffs[32] = nonce3;
 
-  shake256x4_absorb_once(
-    &mut state, 
-    &buf[0].coeffs, &buf[1].coeffs, &buf[2].coeffs, &buf[3].coeffs,
-    33
-  );
-  shake256x4_squeezeblocks(&mut buf, NOISE_NBLOCKS, &mut state);
+    shake256x4_absorb_once(
+      &mut state, 
+      &buf[0].coeffs, &buf[1].coeffs, &buf[2].coeffs, &buf[3].coeffs,
+      33
+    );
+    shake256x4_squeezeblocks(&mut buf, NOISE_NBLOCKS, &mut state);
 
-  poly_cbd_eta1(r0, &buf[0].vec);
-  poly_cbd_eta1(r1, &buf[1].vec);
-  poly_cbd_eta1(r2, &buf[2].vec);
-  poly_cbd_eta1(r3, &buf[3].vec);
+    poly_cbd_eta1(r0, &buf[0]);
+    poly_cbd_eta1(r1, &buf[1]);
+    poly_cbd_eta1(r2, &buf[2]);
+    poly_cbd_eta1(r3, &buf[3]);
+  }
 }
 
-pub unsafe fn poly_getnoise_eta1122_4x(
+pub fn poly_getnoise_eta1122_4x(
   r0: &mut Poly,
   r1: &mut Poly,
   r2: &mut Poly,
@@ -398,31 +333,33 @@ pub unsafe fn poly_getnoise_eta1122_4x(
   nonce3: u8,
 )
 {
-  let mut buf = [Eta4xBuf::new(); 4];
-  let mut state = Keccakx4State::new();
-  let f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
-  _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
-  _mm256_store_si256(buf[3].vec.as_mut_ptr(), f);
+  unsafe {
+    let mut buf = [Eta4xBuf::new(); 4];
+    let mut state = Keccakx4State::new();
+    let f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
+    _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
+    _mm256_store_si256(buf[3].vec.as_mut_ptr(), f);
 
-  buf[0].coeffs[32] = nonce0;
-  buf[1].coeffs[32] = nonce1;
-  buf[2].coeffs[32] = nonce2;
-  buf[3].coeffs[32] = nonce3;
+    buf[0].coeffs[32] = nonce0;
+    buf[1].coeffs[32] = nonce1;
+    buf[2].coeffs[32] = nonce2;
+    buf[3].coeffs[32] = nonce3;
 
-  shake256x4_absorb_once(
-    &mut state, 
-    &buf[0].coeffs, &buf[1].coeffs, 
-    &buf[2].coeffs, &buf[3].coeffs, 
-    33
-  );
-  shake256x4_squeezeblocks(&mut buf, NOISE_NBLOCKS, &mut state);
+    shake256x4_absorb_once(
+      &mut state, 
+      &buf[0].coeffs, &buf[1].coeffs, 
+      &buf[2].coeffs, &buf[3].coeffs, 
+      33
+    );
+    shake256x4_squeezeblocks(&mut buf, NOISE_NBLOCKS, &mut state);
 
-  poly_cbd_eta1(r0, &buf[0].vec);
-  poly_cbd_eta1(r1, &buf[1].vec);
-  poly_cbd_eta2(r2, &buf[2].vec);
-  poly_cbd_eta2(r3, &buf[3].vec);
+    poly_cbd_eta1(r0, &buf[0]);
+    poly_cbd_eta1(r1, &buf[1]);
+    poly_cbd_eta2(r2, &buf[2].vec);
+    poly_cbd_eta2(r3, &buf[3].vec);
+  }
 }
 
 pub fn poly_ntt(r: &mut Poly) 
