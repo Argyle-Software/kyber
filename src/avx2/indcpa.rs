@@ -135,14 +135,14 @@ fn rej_uniform(r: &mut[i16], len: usize, buf: &[u8], buflen: usize) -> usize
   ctr
 }
 
-pub unsafe fn gen_a(a: &mut[Polyvec], b: &[u8]) 
+pub fn gen_a(a: &mut[Polyvec], b: &[u8]) 
 {
-  gen_matrix(a, b, false);
+  unsafe { gen_matrix(a, b, false); }
 }
 
-pub unsafe fn gen_at(a: &mut[Polyvec], b: &[u8]) 
+pub fn gen_at(a: &mut[Polyvec], b: &[u8]) 
 {
-  gen_matrix(a, b, true);
+  unsafe { gen_matrix(a, b, true); }
 }
 
 #[cfg(feature="90s")]
@@ -182,16 +182,16 @@ unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 #[cfg(all(feature="kyber512", not(feature="90s")))]
 unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 {
-  let mut state: keccakx4_state;
+  let mut state =  Keccakx4State::new();
   let mut buf = [GenMatrixBuf::new(); 4];
 
-  let mut f = _mm256_loadu_si256(seed as *const __m256i);
-  _mm256_store_si256(buf[0].vec, f);
-  _mm256_store_si256(buf[1].vec, f);
-  _mm256_store_si256(buf[2].vec, f);
-  _mm256_store_si256(buf[3].vec, f);
+  let f = _mm256_loadu_si256(seed[..].as_ptr() as *const __m256i);
+  _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
+  _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
+  _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
+  _mm256_store_si256(buf[3].vec.as_mut_ptr(), f);
 
-  if(transposed) {
+  if transposed {
     buf[0].coeffs[32] = 0;
     buf[0].coeffs[33] = 0;
     buf[1].coeffs[32] = 0;
@@ -212,38 +212,37 @@ unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
     buf[3].coeffs[33] = 1;
   }
 
-  shake128x4_absorb_once(&state, buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, 34);
-  shake128x4_squeezeblocks(buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, REJ_UNIFORM_AVX_NBLOCKS, &state);
+  shake128x4_absorb_once(&mut state, &buf[0].coeffs, &buf[1].coeffs, &buf[2].coeffs, &buf[3].coeffs, 34);
+  shake128x4_squeezeblocks(&mut buf, REJ_UNIFORM_AVX_NBLOCKS, &mut state);
 
-  let mut ctr0 = rej_uniform_avx(a[0].vec[0].coeffs, buf[0].coeffs);
-  let mut ctr1 = rej_uniform_avx(a[0].vec[1].coeffs, buf[1].coeffs);
-  let mut ctr2 = rej_uniform_avx(a[1].vec[0].coeffs, buf[2].coeffs);
-  let mut ctr3 = rej_uniform_avx(a[1].vec[1].coeffs, buf[3].coeffs);
+  let mut ctr0 = rej_uniform_avx(&mut a[0].vec[0].coeffs, &buf[0].coeffs);
+  let mut ctr1 = rej_uniform_avx(&mut a[0].vec[1].coeffs, &buf[1].coeffs);
+  let mut ctr2 = rej_uniform_avx(&mut a[1].vec[0].coeffs, &buf[2].coeffs);
+  let mut ctr3 = rej_uniform_avx(&mut a[1].vec[1].coeffs, &buf[3].coeffs);
 
-  while(ctr0 < KYBER_N || ctr1 < KYBER_N || ctr2 < KYBER_N || ctr3 < KYBER_N) {
-    shake128x4_squeezeblocks(buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, 1, &state);
+  while ctr0 < KYBER_N || ctr1 < KYBER_N || ctr2 < KYBER_N || ctr3 < KYBER_N {
+    shake128x4_squeezeblocks(&mut buf, 1, &mut state);
 
-    ctr0 += rej_uniform(a[0].vec[0].coeffs + ctr0, KYBER_N - ctr0, buf[0].coeffs, SHAKE128_RATE);
-    ctr1 += rej_uniform(a[0].vec[1].coeffs + ctr1, KYBER_N - ctr1, buf[1].coeffs, SHAKE128_RATE);
-    ctr2 += rej_uniform(a[1].vec[0].coeffs + ctr2, KYBER_N - ctr2, buf[2].coeffs, SHAKE128_RATE);
-    ctr3 += rej_uniform(a[1].vec[1].coeffs + ctr3, KYBER_N - ctr3, buf[3].coeffs, SHAKE128_RATE);
+    ctr0 += rej_uniform(&mut a[0].vec[0].coeffs[ctr0..], KYBER_N - ctr0, &buf[0].coeffs, SHAKE128_RATE);
+    ctr1 += rej_uniform(&mut a[0].vec[1].coeffs[ctr1..], KYBER_N - ctr1, &buf[1].coeffs, SHAKE128_RATE);
+    ctr2 += rej_uniform(&mut a[1].vec[0].coeffs[ctr2..], KYBER_N - ctr2, &buf[2].coeffs, SHAKE128_RATE);
+    ctr3 += rej_uniform(&mut a[1].vec[1].coeffs[ctr3..], KYBER_N - ctr3, &buf[3].coeffs, SHAKE128_RATE);
   }
 
-  poly_nttunpack(&a[0].vec[0]);
-  poly_nttunpack(&a[0].vec[1]);
-  poly_nttunpack(&a[1].vec[0]);
-  poly_nttunpack(&a[1].vec[1]);
+  poly_nttunpack(&mut a[0].vec[0]);
+  poly_nttunpack(&mut a[0].vec[1]);
+  poly_nttunpack(&mut a[1].vec[0]);
+  poly_nttunpack(&mut a[1].vec[1]);
 }
 
 #[cfg(all(not(feature="kyber512"), not(feature="kyber1024"), not(feature="90s")))]
 unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 {
-  let mut f;
   let mut state =  Keccakx4State::new();
   let mut state1x =  KeccakState::new();
   let mut buf = [GenMatrixBuf::new(); 4];
 
-    f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
+  let mut f = _mm256_loadu_si256(seed.as_ptr() as *const __m256i);
   _mm256_store_si256(buf[0].vec.as_mut_ptr(), f);
   _mm256_store_si256(buf[1].vec.as_mut_ptr(), f);
   _mm256_store_si256(buf[2].vec.as_mut_ptr(), f);
@@ -373,53 +372,56 @@ unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 {
   let mut f;
-  let mut state: keccakx4_state;
+  let mut state = Keccakx4State::new();
   let mut buf = [GenMatrixBuf::new(); 4];
   
-  for i in 0..4 {
-    f = _mm256_loadu_si256(seed as *const __m256i);
-    _mm256_store_si256(buf[0].vec, f);
-    _mm256_store_si256(buf[1].vec, f);
-    _mm256_store_si256(buf[2].vec, f);
-    _mm256_store_si256(buf[3].vec, f);
+  for i in 0..4usize {
+    f = _mm256_loadu_si256(seed[..].as_ptr() as *const __m256i);
+    _mm256_store_si256(buf[0].coeffs.as_mut_ptr() as *mut __m256i, f);
+    _mm256_store_si256(buf[1].coeffs.as_mut_ptr() as *mut __m256i, f);
+    _mm256_store_si256(buf[2].coeffs.as_mut_ptr() as *mut __m256i, f);
+    _mm256_store_si256(buf[3].coeffs.as_mut_ptr() as *mut __m256i, f);
 
     if transposed {
-      for j in 0..3 {
-        buf[j].coeffs[32] = i;
-        buf[j].coeffs[33] = j;
+      for j in 0..4 {
+        buf[j].coeffs[32] = i as u8;
+        buf[j].coeffs[33] = j as u8;
       }
     } else {
-      for j in 0..3 {
-        buf[j].coeffs[32] = j;
-        buf[j].coeffs[33] = i;
+      for j in 0..4 {
+        buf[j].coeffs[32] = j as u8;
+        buf[j].coeffs[33] = i as u8;
       }
     }
 
-    shake128x4_absorb_once(&state, buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, 34);
-    shake128x4_squeezeblocks(buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, REJ_UNIFORM_AVX_NBLOCKS, &state);
+    shake128x4_absorb_once(
+      &mut state, 
+      &buf[0].coeffs, &buf[1].coeffs, &buf[2].coeffs, &buf[3].coeffs, 34
+    );
+    shake128x4_squeezeblocks(&mut buf, REJ_UNIFORM_AVX_NBLOCKS, &mut state);
 
-    let mut ctr0 = rej_uniform_avx(a[i].vec[0].coeffs, buf[0].coeffs);
-    let mut ctr1 = rej_uniform_avx(a[i].vec[1].coeffs, buf[1].coeffs);
-    let mut ctr2 = rej_uniform_avx(a[i].vec[2].coeffs, buf[2].coeffs);
-    let mut ctr3 = rej_uniform_avx(a[i].vec[3].coeffs, buf[3].coeffs);
+    let mut ctr0 = rej_uniform_avx(&mut a[i].vec[0].coeffs, &buf[0].coeffs);
+    let mut ctr1 = rej_uniform_avx(&mut a[i].vec[1].coeffs, &buf[1].coeffs);
+    let mut ctr2 = rej_uniform_avx(&mut a[i].vec[2].coeffs, &buf[2].coeffs);
+    let mut ctr3 = rej_uniform_avx(&mut a[i].vec[3].coeffs, &buf[3].coeffs);
 
-    while(ctr0 < KYBER_N || ctr1 < KYBER_N || ctr2 < KYBER_N || ctr3 < KYBER_N) {
-      shake128x4_squeezeblocks(buf[0].coeffs, buf[1].coeffs, buf[2].coeffs, buf[3].coeffs, 1, &state);
+    while ctr0 < KYBER_N || ctr1 < KYBER_N || ctr2 < KYBER_N || ctr3 < KYBER_N {
+      shake128x4_squeezeblocks(&mut buf, 1, &mut state);
 
-      ctr0 += rej_uniform(&mut a[i].vec[0].coeffs[ctr0..], KYBER_N - ctr0, buf[0].coeffs, SHAKE128_RATE);
-      ctr1 += rej_uniform(&mut a[i].vec[1].coeffs[ctr1..], KYBER_N - ctr1, buf[1].coeffs, SHAKE128_RATE);
-      ctr2 += rej_uniform(&mut a[i].vec[2].coeffs[ctr2..], KYBER_N - ctr2, buf[2].coeffs, SHAKE128_RATE);
-      ctr3 += rej_uniform(&mut a[i].vec[3].coeffs[ctr3..], KYBER_N - ctr3, buf[3].coeffs, SHAKE128_RATE);
+      ctr0 += rej_uniform(&mut a[i].vec[0].coeffs[ctr0..], KYBER_N - ctr0, &buf[0].coeffs, SHAKE128_RATE);
+      ctr1 += rej_uniform(&mut a[i].vec[1].coeffs[ctr1..], KYBER_N - ctr1, &buf[1].coeffs, SHAKE128_RATE);
+      ctr2 += rej_uniform(&mut a[i].vec[2].coeffs[ctr2..], KYBER_N - ctr2, &buf[2].coeffs, SHAKE128_RATE);
+      ctr3 += rej_uniform(&mut a[i].vec[3].coeffs[ctr3..], KYBER_N - ctr3, &buf[3].coeffs, SHAKE128_RATE);
     }
 
-    poly_nttunpack(&a[i].vec[0]);
-    poly_nttunpack(&a[i].vec[1]);
-    poly_nttunpack(&a[i].vec[2]);
-    poly_nttunpack(&a[i].vec[3]);
+    poly_nttunpack(&mut a[i].vec[0]);
+    poly_nttunpack(&mut a[i].vec[1]);
+    poly_nttunpack(&mut a[i].vec[2]);
+    poly_nttunpack(&mut a[i].vec[3]);
   } 
 }
  
-pub unsafe  fn indcpa_keypair<R>(
+pub fn indcpa_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
   seed: Option<(&[u8], &[u8])>, 
@@ -427,13 +429,14 @@ pub unsafe  fn indcpa_keypair<R>(
 ) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
-  // let mut buf = [0u8; 2*KYBER_SYMBYTES];
+
   let mut a = [Polyvec::new(); KYBER_K];
   let (mut e, mut pkpv, mut skpv) = (Polyvec::new(), Polyvec::new(), Polyvec::new());
   // let mut nonce = 0u8;
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
+  // TODO: Compile time KAT bytes
   match seed {
     None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?,
     Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0)
@@ -471,26 +474,27 @@ pub unsafe  fn indcpa_keypair<R>(
     let (e0, e1) = e.vec.split_at_mut(1);
     poly_getnoise_eta1_4x(&mut skpv0[0], &mut skpv1[0], &mut e0[0], &mut e1[0], noiseseed, 0, 1, 2, 3);
   } 
-  else if cfg!(any(not(feature="kyber512"), not(feature="kyber1024"))) 
-  {
-    let (skpv0, skpv1) =skpv.vec.split_at_mut(1);
-    let (skpv1, skpv2) =skpv1.split_at_mut(1);
-    poly_getnoise_eta1_4x(&mut skpv0[0], &mut skpv1[0], &mut skpv2[0], &mut e.vec[0], noiseseed, 0, 1, 2, 3);
-    let (e1, e2) = e.vec.split_at_mut(2);
-    let (pkpv0, pkpv1) = pkpv.vec.split_at_mut(1);
-    poly_getnoise_eta1_4x(&mut e1[1], &mut e2[0], &mut pkpv0[0], &mut pkpv1[0], noiseseed, 4, 5, 6, 7);
-  } 
   else if cfg!(feature="kyber1024") 
   {
-    let (skpv0, skpv1) =skpv.vec.split_at_mut(1);
-    let (skpv1, skpv2) =skpv1.split_at_mut(1);
-    let (skpv2, skpv3) =skpv2.split_at_mut(1);
+    let (skpv0, skpv1) = skpv.vec.split_at_mut(1);
+    let (skpv1, skpv2) = skpv1.split_at_mut(1);
+    let (skpv2, skpv3) = skpv2.split_at_mut(1);
     poly_getnoise_eta1_4x(&mut skpv0[0], &mut skpv1[0], &mut skpv2[0], &mut skpv3[0], noiseseed,  0, 1, 2, 3);
     let (e0, e1) = e.vec.split_at_mut(1);
     let (e1, e2) = e1.split_at_mut(1);
     let (e2, e3) = e2.split_at_mut(1);
     poly_getnoise_eta1_4x(&mut e0[0], &mut e1[0], &mut e2[0], &mut e3[0], noiseseed, 4, 5, 6, 7);
   }
+  else // kyber764 
+  {
+    let (skpv0, skpv1) = skpv.vec.split_at_mut(1);
+    let (skpv1, skpv2) = skpv1.split_at_mut(1);
+    poly_getnoise_eta1_4x(&mut skpv0[0], &mut skpv1[0], &mut skpv2[0], &mut e.vec[0], noiseseed, 0, 1, 2, 3);
+    let (e1, e2) = e.vec.split_at_mut(2);
+    let (pkpv0, pkpv1) = pkpv.vec.split_at_mut(1);
+    poly_getnoise_eta1_4x(&mut e1[1], &mut e2[0], &mut pkpv0[0], &mut pkpv1[0], noiseseed, 4, 5, 6, 7);
+  } 
+
   polyvec_ntt(&mut skpv);
   polyvec_reduce(&mut skpv);
   polyvec_ntt(&mut e);
@@ -508,78 +512,80 @@ pub unsafe  fn indcpa_keypair<R>(
   Ok(())
 }
 
-pub unsafe fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8]) 
+pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8]) 
 {
-  let mut at = [Polyvec::new(); KYBER_K];
-  let (mut sp, mut pkpv, mut ep, mut b) = (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
-  let (mut v, mut k, mut epp) = (Poly::new(), Poly::new(), Poly::new());
-  let mut seed = [0u8; KYBER_SYMBYTES];
-  // let mut nonce = 0u8;
-  // let mut buf = IndcpaBuf::new();
+  unsafe {
+    let mut at = [Polyvec::new(); KYBER_K];
+    let (mut sp, mut pkpv, mut ep, mut b) = (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
+    let (mut v, mut k, mut epp) = (Poly::new(), Poly::new(), Poly::new());
+    let mut seed = [0u8; KYBER_SYMBYTES];
+    // let mut nonce = 0u8;
+    // let mut buf = IndcpaBuf::new();
 
-  unpack_pk(&mut pkpv, &mut seed, pk);
-  poly_frommsg(&mut k, m);
-  gen_at(&mut at, &seed);
+    unpack_pk(&mut pkpv, &mut seed, pk);
+    poly_frommsg(&mut k, m);
+    gen_at(&mut at, &seed);
 
-  if cfg!(features="90s") {
-    // Assumes divisibility
-    // const NOISE_NBLOCKS: usize  = ((KYBER_ETA1*KYBER_N/4)/AES256CTR_BLOCKBYTES);
-    // const CIPHERTEXTNOISE_NBLOCKS: usize  = ((KYBER_ETA2*KYBER_N/4)/AES256CTR_BLOCKBYTES);
-    // let mut nonce = 0u64;
-    // let mut state: aes256ctr_ctx;
+    if cfg!(features="90s") {
+      // Assumes divisibility
+      // const NOISE_NBLOCKS: usize  = ((KYBER_ETA1*KYBER_N/4)/AES256CTR_BLOCKBYTES);
+      // const CIPHERTEXTNOISE_NBLOCKS: usize  = ((KYBER_ETA2*KYBER_N/4)/AES256CTR_BLOCKBYTES);
+      // let mut nonce = 0u64;
+      // let mut state: aes256ctr_ctx;
 
-    // aes256ctr_init(&state, coins, nonce);
-    // nonce += 1;
-    // for i in 0..KYBER_K {
-    //   aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
-    //   state.n = _mm_loadl_epi64(nonce as *const __m128i);
-    //   nonce += 1;
-    //   poly_cbd_eta2(&mut ep.vec[i], buf.vec);
-    // }
-    // aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
-    // state.n = _mm_loadl_epi64(nonce as *const __m128i);
-    // nonce += 1;
-    // poly_cbd_eta2(&mut epp, buf.vec);
-  } else if cfg!(feature="kyber512") {
-    let (sp0, sp1) =sp.vec.split_at_mut(1);
-    let (ep0, ep1) = ep.vec.split_at_mut(1);
-    poly_getnoise_eta1122_4x(&mut sp0[0], &mut sp1[0], &mut ep0[0], &mut ep1[0], coins, 0, 1, 2, 3);
-    poly_getnoise_eta2(&mut epp, coins, 4); 
-  } 
-  else if cfg!(not(any(feature="kyber512", feature="kyber1024"))) {
-    let (sp0, sp1) =sp.vec.split_at_mut(1);
-    let (sp1, sp2) =sp1.split_at_mut(1);
-    poly_getnoise_eta1_4x(&mut sp0[0], &mut sp1[0], &mut sp2[0], &mut ep.vec[0], coins, 0, 1, 2 ,3);
-    let (ep1, ep2) = ep.vec.split_at_mut(2);
-    poly_getnoise_eta1_4x(&mut ep1[1], &mut ep2[0], &mut epp, &mut b.vec[0], coins,  4, 5, 6, 7);
-  } 
-  else if cfg!(feature="kyber1024") {
-    let (sp0, sp1) =sp.vec.split_at_mut(1);
-    let (sp1, sp2) =sp1.split_at_mut(1);
-    let (sp2, sp3) =sp2.split_at_mut(1);
-    poly_getnoise_eta1_4x(&mut sp0[0], &mut sp1[0], &mut sp2[0],&mut sp3[0], coins, 0, 1, 2, 3);
-    let (ep0, ep1) =ep.vec.split_at_mut(1);
-    let (ep1, ep2) =ep1.split_at_mut(1);
-    let (ep2, ep3) =ep2.split_at_mut(1);
-    poly_getnoise_eta1_4x(&mut ep0[0], &mut ep1[0], &mut ep2[0],&mut ep3[0], coins, 4, 5, 6, 7);
-    poly_getnoise_eta2(&mut epp, coins, 8);
-  }
+      // aes256ctr_init(&state, coins, nonce);
+      // nonce += 1;
+      // for i in 0..KYBER_K {
+      //   aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
+      //   state.n = _mm_loadl_epi64(nonce as *const __m128i);
+      //   nonce += 1;
+      //   poly_cbd_eta2(&mut ep.vec[i], buf.vec);
+      // }
+      // aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
+      // state.n = _mm_loadl_epi64(nonce as *const __m128i);
+      // nonce += 1;
+      // poly_cbd_eta2(&mut epp, buf.vec);
+    } else if cfg!(feature="kyber512") {
+      let (sp0, sp1) = sp.vec.split_at_mut(1);
+      let (ep0, ep1) = ep.vec.split_at_mut(1);
+      poly_getnoise_eta1122_4x(&mut sp0[0], &mut sp1[0], &mut ep0[0], &mut ep1[0], coins, 0, 1, 2, 3);
+      poly_getnoise_eta2(&mut epp, coins, 4); 
+    } 
+    else if cfg!(not(any(feature="kyber512", feature="kyber1024"))) {
+      let (sp0, sp1) = sp.vec.split_at_mut(1);
+      let (sp1, sp2) = sp1.split_at_mut(1);
+      poly_getnoise_eta1_4x(&mut sp0[0], &mut sp1[0], &mut sp2[0], &mut ep.vec[0], coins, 0, 1, 2 ,3);
+      let (ep1, ep2) = ep.vec.split_at_mut(2);
+      poly_getnoise_eta1_4x(&mut ep1[1], &mut ep2[0], &mut epp, &mut b.vec[0], coins,  4, 5, 6, 7);
+    } 
+    else if cfg!(feature="kyber1024") {
+      let (sp0, sp1) = sp.vec.split_at_mut(1);
+      let (sp1, sp2) = sp1.split_at_mut(1);
+      let (sp2, sp3) = sp2.split_at_mut(1);
+      poly_getnoise_eta1_4x(&mut sp0[0], &mut sp1[0], &mut sp2[0],&mut sp3[0], coins, 0, 1, 2, 3);
+      let (ep0, ep1) = ep.vec.split_at_mut(1);
+      let (ep1, ep2) = ep1.split_at_mut(1);
+      let (ep2, ep3) = ep2.split_at_mut(1);
+      poly_getnoise_eta1_4x(&mut ep0[0], &mut ep1[0], &mut ep2[0],&mut ep3[0], coins, 4, 5, 6, 7);
+      poly_getnoise_eta2(&mut epp, coins, 8);
+    }
   
-  polyvec_ntt(&mut sp);
+    polyvec_ntt(&mut sp);
 
-  for i in 0..KYBER_K {
-    polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
+    for i in 0..KYBER_K {
+      polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
+    }
+
+    polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
+    polyvec_invntt_tomont(&mut b);
+    poly_invntt_tomont(&mut v);
+    polyvec_add(&mut b, &ep);
+    poly_add(&mut v, &epp);
+    poly_add(&mut v, &k);
+    polyvec_reduce(&mut b);
+    poly_reduce(&mut v);
+    pack_ciphertext(c, &b, v);
   }
-
-  polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
-  polyvec_invntt_tomont(&mut b);
-  poly_invntt_tomont(&mut v);
-  polyvec_add(&mut b, &ep);
-  poly_add(&mut v, &epp);
-  poly_add(&mut v, &k);
-  polyvec_reduce(&mut b);
-  poly_reduce(&mut v);
-  pack_ciphertext(c, &b, v);
 }
 
 pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
@@ -592,10 +598,10 @@ pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
 
   polyvec_ntt(&mut b);
   polyvec_basemul_acc_montgomery(&mut mp, &skpv, &b);
+  
   poly_invntt_tomont(&mut mp);
-
   poly_sub(&mut mp, &v);
   poly_reduce(&mut mp);
 
-  unsafe {poly_tomsg(m, mp);}
+  poly_tomsg(m, mp);
 }
