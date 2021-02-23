@@ -1,13 +1,16 @@
-// Copyright 2021 Mitchell Berry
-// Licensed under the Apache License, Version 2.0 (the "License");
-
-// Macros and code structure is based off the work of
-// Marek Kotewicz and contributors to the tiny-keccak crate.
+// Macro and function code structure is the work of Marek Kotewicz 
+// plus contributors to the tiny-keccak crate licensed under
+// Creative Commons CC0 1.0 Universal. Thankyou.
 // https://github.com/debris/tiny-keccak
-// Replicates the C function 
-// `KeccakP-1600-times4` from the 
-// eXtended Keccak Code Package 
-// https://github.com/XKCP/XKCP
+
+// Copyright 2020-2021 Mitchell Berry
+// Licensed under the Apache License, Version 2.0
+
+// Drop-in Rust replacement for KeccakP-1600-times4 function for
+// the eXtended Keccak Code Package https://github.com/XKCP/XKCP
+
+// Test vectors taken from:
+// https://github.com/XKCP/XKCP/blob/master/tests/TestVectors/KeccakF-1600-IntermediateValues.txt
 
 use core::arch::x86_64::*;
 
@@ -207,7 +210,7 @@ mod tests {
   }
 
   // [0,1...] expands to [0,0,0,0,1,1,1,1...]
-  fn expand(vec: [u64;25]) -> [u64; 100] {
+  fn expand(vec: [u64; PLEN]) -> [u64; 100] {
     let mut out = [0u64; 100];
     for (i,u) in vec.iter().enumerate() {
       out[i*4..][..4].copy_from_slice(&[*u; 4]);
