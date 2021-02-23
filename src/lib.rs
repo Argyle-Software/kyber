@@ -1,10 +1,6 @@
 //! # Kyber
 //! 
-//! A Rust implementation of the Kyber algorithm authored by 
-//! 
-//! 
-//! To select different security strengths from the default enable 
-//! in your `cargo.toml` the feature of `kyber512` or `kyber1024` 
+//! A Rust implementation of the Kyber algorithm
 //! 
 //! ## Usage 
 //! The Kyber struct is a higher-level construction for unilateral and mutual key exchange. 
