@@ -3,7 +3,7 @@ use core::arch::x86_64::*;
 pub fn verify(a: &[u8], b: &[u8], mut len: usize) -> u8
 {
   let (mut f, mut g);
-  let mut r: i32;
+  let mut r: u64;
   unsafe {
     let mut h =  _mm256_setzero_si256();
     for i in 0..(len/32) {
@@ -12,12 +12,12 @@ pub fn verify(a: &[u8], b: &[u8], mut len: usize) -> u8
       f = _mm256_xor_si256(f,g);
       h = _mm256_or_si256(h,f);
     }
-    r = 1 - _mm256_testz_si256(h,h);
+    r = 1 -  _mm256_testz_si256(h,h) as u64;
   }
   let idx = 32*(len/32);
   len -= idx;
   for i in 0..len {
-    r |= (a[idx+i] ^ b[idx+i]) as i32;
+    r |= (a[idx+i] ^ b[idx+i]) as u64;
   }
   r = r.wrapping_neg() >> 63;
   r as u8

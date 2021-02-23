@@ -9,4 +9,4 @@ pub mod keccak4x;
 pub mod poly;
 pub mod polyvec;
 pub mod rejsample;
-// pub mod verify;
+pub mod verify;

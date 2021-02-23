@@ -81,7 +81,6 @@ mod kex;
 mod params;
 mod rng;
 mod symmetric;
-mod verify;
 
 pub use rand_core::{RngCore, CryptoRng};
 pub use kex::*;
