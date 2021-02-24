@@ -24,9 +24,10 @@ impl Polyvec {
 // Description: Compress and serialize vector of polynomials
 //
 // Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECCOMPRESSEDBYTES)
-//              - const polyvec *a: input vector of polynomials
+//              - const Polyvec a: input vector of polynomials
 pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
 {
+  // TODO: use conditional compilation flags instead
   if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
     let mut t = [0u16; 8];
     let mut idx = 0usize;
@@ -37,14 +38,14 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
           t[k] = t[k].wrapping_add((((t[k] as i16) >> 15) & KYBER_Q as i16) as u16);
           t[k]  = (((((t[k] as u32) << 11) + KYBER_Q as u32/2)/KYBER_Q as u32) & 0x7ff ) as u16;
         }
-        r[idx+0] = (t[0] >>  0) as u8;
+        r[idx+0] =  (t[0] >>  0) as u8;
         r[idx+1] = ((t[0] >>  8) | (t[1] << 3)) as u8;
         r[idx+2] = ((t[1] >>  5) | (t[2] << 6)) as u8;
-        r[idx+3] = (t[2] >>  2) as u8;
+        r[idx+3] =  (t[2] >>  2) as u8;
         r[idx+4] = ((t[2] >> 10) | (t[3] << 1)) as u8;
         r[idx+5] = ((t[3] >>  7) | (t[4] << 4)) as u8;
         r[idx+6] = ((t[4] >>  4) | (t[5] << 7)) as u8;
-        r[idx+7] = (t[5] >>  1) as u8;
+        r[idx+7] =  (t[5] >>  1) as u8;
         r[idx+8] = ((t[5] >>  9) | (t[6] << 2)) as u8;
         r[idx+9] = ((t[6] >>  6) | (t[7] << 5)) as u8;
         r[idx+10] = (t[7] >>  3) as u8;
@@ -59,13 +60,14 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
         for k in 0..4 {
           t[k]  = a.vec[i].coeffs[4*j+k] as u16;
           t[k] = t[k].wrapping_add((((t[k] as i16) >> 15) & KYBER_Q as i16) as u16);
-          t[k]  = (((((t[k] as u32) << 10) + KYBER_Q as u32/2)/ KYBER_Q as u32) & 0x3ff) as u16;
+          t[k]  = 
+            (((((t[k] as u32) << 10) + KYBER_Q as u32/2)/ KYBER_Q as u32) & 0x3ff) as u16;
         }
-        r[idx+0] = (t[0] >> 0) as u8;
+        r[idx+0] =  (t[0] >> 0) as u8;
         r[idx+1] = ((t[0] >> 8) | (t[1] << 2)) as u8;
         r[idx+2] = ((t[1] >> 6) | (t[2] << 4)) as u8;
         r[idx+3] = ((t[2] >> 4) | (t[3] << 6)) as u8;
-        r[idx+4] = (t[3] >> 2) as u8;
+        r[idx+4] =  (t[3] >> 2) as u8;
         idx += 5;
       }
     }
@@ -79,7 +81,7 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
 // Description: De-serialize and decompress vector of polynomials;
 //              approximate inverse of polyvec_compress
 //
-// Arguments:   - polyvec *r:       output vector of polynomials
+// Arguments:   - Polyvec r:       output vector of polynomials
 //              - [u8] a: input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
 pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) 
 {
@@ -91,7 +93,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
       for j in 0..KYBER_N/8 {
         t[0] = (a[idx+0] >> 0) as u16 | (a[idx+ 1] as u16) << 8;
         t[1] = (a[idx+1] >> 3) as u16 | (a[idx+ 2] as u16) << 5;
-        t[2] = (a[idx+2] >> 6) as u16 | (a[idx+ 3] as u16 ) << 2 | (a[idx+4] as u16) << 10;
+        t[2] = (a[idx+2] >> 6) as u16 | (a[idx+ 3] as u16) << 2 | (a[idx+4] as u16) << 10;
         t[3] = (a[idx+4] >> 1) as u16 | (a[idx+ 5] as u16) << 7;
         t[4] = (a[idx+5] >> 4) as u16 | (a[idx+ 6] as u16) << 4;
         t[5] = (a[idx+6] >> 7) as u16 | (a[idx+ 7] as u16) << 1 | (a[idx+8] as u16) << 9;
@@ -100,7 +102,8 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         idx += 11;
 
         for k in 0..8 {
-          r.vec[i].coeffs[8*j+k] = (((t[k] & 0x7FF)as u32 * KYBER_Q as u32 + 1024) >> 11) as i16;
+          r.vec[i].coeffs[8*j+k] = 
+            (((t[k] & 0x7FF)as u32 * KYBER_Q as u32 + 1024) >> 11) as i16;
         }
       }
     }
@@ -116,7 +119,8 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         idx += 5;
 
         for k in 0..4 {
-          r.vec[i].coeffs[4*j+k] = ((((t[k] as u32) & 0x3FF) * KYBER_Q as u32  + 512) >> 10) as i16;
+          r.vec[i].coeffs[4*j+k] = 
+            ((((t[k] as u32) & 0x3FF) * KYBER_Q as u32  + 512) >> 10) as i16;
         }
       }
     }
@@ -130,7 +134,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
 // Description: Serialize vector of polynomials
 //
 // Arguments:   - [u8] r: output byte array (needs space for KYBER_POLYVECBYTES)
-//              - const polyvec *a: input vector of polynomials 
+//              - const Polyvec a: input vector of polynomials 
 pub fn polyvec_tobytes(r: &mut[u8], a: &Polyvec)
 {
   for i in 0..KYBER_K {
@@ -144,7 +148,7 @@ pub fn polyvec_tobytes(r: &mut[u8], a: &Polyvec)
 //              inverse of polyvec_tobytes
 //
 // Arguments:   - [u8] r: output byte array
-//              - const polyvec *a: input vector of polynomials (of length KYBER_POLYVECBYTES)
+//              - const Polyvec a: input vector of polynomials (of length KYBER_POLYVECBYTES)
 pub fn polyvec_frombytes(r: &mut Polyvec, a: &[u8])
 {
   for i in 0..KYBER_K {
@@ -156,7 +160,7 @@ pub fn polyvec_frombytes(r: &mut Polyvec, a: &[u8])
 //
 // Description: Apply forward NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: in/output vector of polynomials
+// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_ntt(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -168,7 +172,7 @@ pub fn polyvec_ntt(r: &mut Polyvec)
 //
 // Description: Apply inverse NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: in/output vector of polynomials
+// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_invntt_tomont(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -181,8 +185,8 @@ pub fn polyvec_invntt_tomont(r: &mut Polyvec)
 // Description: Pointwise multiply elements of a and b and accumulate into r
 //
 // Arguments: - poly *r:          output polynomial
-//            - const polyvec *a: first input vector of polynomials
-//            - const polyvec *b: second input vector of polynomials
+//            - const Polyvec a: first input vector of polynomials
+//            - const Polyvec b: second input vector of polynomials
 pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec)
 {
   let mut t = Poly::new();
@@ -213,9 +217,8 @@ pub fn polyvec_reduce(r: &mut Polyvec)
 //
 // Description: Add vectors of polynomials
 //
-// Arguments: - polyvec *r:       output vector of polynomials
-//            - const polyvec *a: first input vector of polynomials
-//            - const polyvec *b: second input vector of polynomials
+// Arguments: - Polyvec r:       output vector of polynomials
+//            - const Polyvec b: second input vector of polynomials
 pub fn polyvec_add(r: &mut Polyvec, b: &Polyvec)
 {
   for i in 0..KYBER_K {

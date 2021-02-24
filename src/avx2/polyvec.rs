@@ -18,7 +18,7 @@ impl Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
   }
-  // Basic variable checking for development
+  // // Basic polynomial value check for development
   // pub unsafe fn checksum(&self) -> i16 {
   //   let mut out = 0;
   //   for i in 0..KYBER_K {
@@ -44,11 +44,13 @@ pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
     ((1024u64 << 48) + (1u64 << 32) + (1024 << 16) + 1) as i64
   );
   let sllvdidx = _mm256_set1_epi64x(12);
-  let shufbidx = _mm256_set_epi8( 8, 4, 3, 2, 1, 0,-1,-1,-1,-1,-1,-1,12,11,10, 9,
-                                           -1,-1,-1,-1,-1,-1,12,11,10, 9, 8, 4, 3, 2, 1, 0);
+  let shufbidx = _mm256_set_epi8(
+                  8, 4, 3, 2, 1, 0,-1,-1,-1,-1,-1,-1,12,11,10, 9,
+                 -1,-1,-1,-1,-1,-1,12,11,10, 9, 8, 4, 3, 2, 1, 0
+                );
+
   let mut buf = [0u8; 4];
   for i in 0..(KYBER_N/16) {
-
     f0 = _mm256_load_si256(&a.vec[i]);
     f1 = _mm256_mullo_epi16(f0,v8);
     f2 = _mm256_add_epi16(f0,off);
@@ -68,7 +70,6 @@ pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
     t1 = _mm256_extracti128_si256(f0,1);
     t0 = _mm_blend_epi16(t0,t1,0xE0);
     _mm_storeu_si128(r[20*i..].as_mut_ptr() as *mut __m128i,t0);
-    // r[20*i+16..][..4].copy_from_slice()
     _mm_storeu_si128(buf.as_mut_ptr()  as *mut __m128i, t1);
      r[20*i+16..][..4].copy_from_slice(&buf);
   }
@@ -85,7 +86,6 @@ pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8])
   let sllvdidx = _mm256_set1_epi64x(4);
   let mask = _mm256_set1_epi32((32736 << 16) + 8184);
   for i in 0..KYBER_N/16 {
-
     f = _mm256_loadu_si256(a[20*i..].as_ptr() as *const __m256i);
     f = _mm256_permute4x64_epi64(f,0x94);
     f = _mm256_shuffle_epi8(f,shufbidx);
@@ -149,10 +149,12 @@ pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8])
   let mut f;
 
   let q = _mm256_load_si256(QDATA.vec[_16XQ/16..].as_ptr());
-  let shufbidx = _mm256_set_epi8(13,12,12,11,10, 9, 9, 8,
-                                  8, 7, 6, 5, 5, 4, 4, 3,
-                                  10, 9, 9, 8, 7, 6, 6, 5,
-                                  5, 4, 3, 2, 2, 1, 1, 0);
+  let shufbidx = _mm256_set_epi8(
+                    13,12,12,11,10, 9, 9, 8,
+                    8, 7, 6, 5, 5, 4, 4, 3,
+                    10, 9, 9, 8, 7, 6, 6, 5,
+                    5, 4, 3, 2, 2, 1, 1, 0
+                  );
   let srlvdidx = _mm256_set_epi32(0,0,1,0,0,0,1,0);
   let srlvqidx = _mm256_set_epi64x(2,0,2,0);
   let shift = _mm256_set_epi16(4,32,1,8,32,1,4,32,4,32,1,8,32,1,4,32);
@@ -216,7 +218,7 @@ pub unsafe fn polyvec_frombytes(r: &mut Polyvec, a: &[u8])
 //
 // Description: Apply forward NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: in/output vector of polynomials
+// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_ntt(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -228,7 +230,7 @@ pub fn polyvec_ntt(r: &mut Polyvec)
 //
 // Description: Apply inverse NTT to all elements of a vector of polynomials
 //
-// Arguments:   - polyvec *r: in/output vector of polynomials
+// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_invntt_tomont(r: &mut Polyvec)
 {
   for i in 0..KYBER_K {
@@ -241,8 +243,8 @@ pub fn polyvec_invntt_tomont(r: &mut Polyvec)
 // Description: Pointwise multiply elements of a and b and accumulate into r
 //
 // Arguments: - poly *r:          output polynomial
-//            - const polyvec *a: first input vector of polynomials
-//            - const polyvec *b: second input vector of polynomials
+//            - const Polyvec a: first input vector of polynomials
+//            - const Polyvec b: second input vector of polynomials
 pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec)
 {
   let mut t = Poly::new();
@@ -272,9 +274,9 @@ pub fn polyvec_reduce(r: &mut Polyvec)
 //
 // Description: Add vectors of polynomials
 //
-// Arguments: - polyvec *r:       output vector of polynomials
-//            - const polyvec *a: first input vector of polynomials
-//            - const polyvec *b: second input vector of polynomials
+// Arguments: - Polyvec r:       output vector of polynomials
+//            - const Polyvec a: first input vector of polynomials
+//            - const Polyvec b: second input vector of polynomials
 pub fn polyvec_add(r: &mut Polyvec, b: &Polyvec)
 {
   for i in 0..KYBER_K {

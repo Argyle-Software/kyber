@@ -54,7 +54,7 @@
 //! # Ok(()) }
 //! ```
 
-// #![no_std]
+#![no_std]
 #![allow(clippy::many_single_char_names)]
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");

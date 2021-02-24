@@ -11,7 +11,6 @@ pub(crate) struct Aes256CtrCtx {
 #[inline]
 fn aesni_encrypt4(out: &mut[u8], n :&__m128i, rkeys: &[__m128i; 16]) 
 {
-
   // Load current counter value
   let mut f = _mm_load_si128(n);
 
@@ -24,7 +23,7 @@ fn aesni_encrypt4(out: &mut[u8], n :&__m128i, rkeys: &[__m128i; 16])
   // Write counter for next iteration, increased by 4 
   _mm_store_si128(n,_mm_add_epi64(f,_mm_set_epi64x(4,0)));
 
-  /* Actual AES encryption, 4x interleaved */
+  // Actual AES encryption, 4x interleaved4
   f  = _mm_load_si128(&rkeys[0]);
   f0 = _mm_xor_si128(f0,f);
   f1 = _mm_xor_si128(f1,f);
@@ -50,9 +49,7 @@ fn aesni_encrypt4(out: &mut[u8], n :&__m128i, rkeys: &[__m128i; 16])
   _mm_storeu_si128(out[16..],f1);
   _mm_storeu_si128(out[32..],f2);
   _mm_storeu_si128(out[48..],f3);
-
 }
-
 
 pub(crate) fn aes256ctr_init(state: Aes256CtrCtx, key: &[u8], nonce: u64)
 {
