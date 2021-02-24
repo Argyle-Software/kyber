@@ -56,19 +56,6 @@ impl GenMatrixBuf {
 // }
 
 
-// TODO: Redundant
-// #[repr(C, align(8))]
-// pub union Eta1Buf {
-//   pub coeffs: [u8; KYBER_ETA1*KYBER_N/4+32],
-//   pub vec: [__m256i; (KYBER_ETA1*KYBER_N/4+32+31)/32]
-// }
-
-// impl Eta1Buf {
-//   pub fn new() -> Self {
-//     Self { coeffs: [0u8; KYBER_ETA1*KYBER_N/4+32] }
-//   }
-// }
-
 #[repr(C, align(8))]
 pub union Eta2Buf {
   pub coeffs: [u8; KYBER_ETA2*KYBER_N/4],
