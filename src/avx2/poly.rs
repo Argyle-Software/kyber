@@ -25,16 +25,17 @@ impl Poly {
       coeffs: [0i16; KYBER_N]
     }
   }
-// // Basic polynomial value checking for development
-//   pub fn checksum(&self) -> i16 {
-//     unsafe{
-//       let mut out = 0;
-//       for x in &self.coeffs {
-//         out ^= x;
-//       }
-//       out
-//     }
-//   }
+  // Basic polynomial value checking for development
+  // #[cfg(debug_assertions)]
+  // fn checksum(&self) -> i16 {
+  //   unsafe{
+  //     let mut out = 0;
+  //     for x in &self.coeffs {
+  //       out ^= x;
+  //     }
+  //     out
+  //   }
+  // }
 }
 
 extern {
@@ -53,6 +54,7 @@ extern {
   fn nttfrombytes_avx(r: *mut i16, a: *const u8, q_data: &[i16; 640]);
 }
 
+// #[target_feature(enable = "avx2")]
 #[cfg(any(feature="kyber512", not(feature="kyber1024")))]
 pub unsafe fn poly_compress(r: &mut[u8], a: Poly)
 {
@@ -89,7 +91,7 @@ pub unsafe fn poly_compress(r: &mut[u8], a: Poly)
     _mm256_storeu_si256(r[32*i..].as_mut_ptr() as *mut __m256i,f0);
   }
 }
-
+// #[target_feature(enable = "avx2")]
 #[cfg(any(feature="kyber512", not(feature="kyber1024")))]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) 
 {
@@ -113,7 +115,7 @@ pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8])
   }
 }
 
-
+// #[target_feature(enable = "avx2")]
 #[cfg(feature="kyber1024")]
 pub unsafe fn poly_compress(r: &mut[u8], a: Poly) 
 {
@@ -155,6 +157,7 @@ pub unsafe fn poly_compress(r: &mut[u8], a: Poly)
   }
 }
 
+// #[target_feature(enable = "avx2")]
 #[cfg(feature="kyber1024")]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8])
 {
@@ -201,6 +204,7 @@ pub fn poly_tobytes(r: &mut[u8], a: Poly)
   r[..KYBER_POLYBYTES].copy_from_slice(&buf[..]);
 }
 
+// #[target_feature(enable = "avx2")]
 pub unsafe fn poly_frommsg(r: &mut Poly, msg: &[u8])
 {
   let shift = _mm256_broadcastsi128_si256(_mm_set_epi32(0,1,2,3));
@@ -245,6 +249,7 @@ pub unsafe fn poly_frommsg(r: &mut Poly, msg: &[u8])
   frommsg64(3, _mm256_shuffle_epi32(f, 255));
 }
 
+// #[target_feature(enable = "avx2")]
 pub fn poly_tomsg(msg: &mut[u8], a: Poly)
 {
   unsafe {
