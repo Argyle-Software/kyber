@@ -79,7 +79,7 @@ pub unsafe fn rej_uniform_avx(r: &mut[i16], buf: &[u8]) -> usize {
     // g1 = _mm256_inserti128_si256(g1, _mm_cvtsi64_si128(idx3 as i64), 1);
     //else 
 
-    let mut l0 = _mm_loadl_epi64(IDX[good & 0xFF].as_ptr() as * const __m128i);
+    let mut l0 = _mm_loadl_epi64(IDX[(good >> 0) & 0xFF].as_ptr() as * const __m128i);
     g0 = _mm256_castsi128_si256(l0);
     let mut l1 = _mm_loadl_epi64(IDX[(good >>  8) & 0xFF].as_ptr() as *const __m128i);
     g1 = _mm256_castsi128_si256(l1);
