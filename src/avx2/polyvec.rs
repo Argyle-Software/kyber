@@ -18,18 +18,22 @@ impl Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
   }
-  // // Basic polynomial value check for development
-  // pub unsafe fn checksum(&self) -> i16 {
-  //   let mut out = 0;
-  //   for i in 0..KYBER_K {
-  //     for j in 0..KYBER_N {
-  //       out ^= &self.vec[i].coeffs[j];
+  // Basic polynomial value check for development
+  // #[cfg(debug_assertions)]
+  // pub fn checksum(&self) -> i16 {
+  //   unsafe {
+  //     let mut out = 0i16;
+  //     for i in 0..KYBER_K {
+  //       for j in 0..KYBER_N {
+  //         out ^= &self.vec[i].coeffs[j];
+  //       }
   //     }
+  //     out
   //   }
-  //   out
   // }
 }
 
+// #[target_feature(enable = "avx")]
 pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
 {
   let (mut f0, mut f1, mut f2);
@@ -49,7 +53,6 @@ pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
                  -1,-1,-1,-1,-1,-1,12,11,10, 9, 8, 4, 3, 2, 1, 0
                 );
 
-  let mut buf = [0u8; 4];
   for i in 0..(KYBER_N/16) {
     f0 = _mm256_load_si256(&a.vec[i]);
     f1 = _mm256_mullo_epi16(f0,v8);
@@ -70,11 +73,11 @@ pub unsafe fn poly_compress10(r: &mut[u8], a: &Poly)
     t1 = _mm256_extracti128_si256(f0,1);
     t0 = _mm_blend_epi16(t0,t1,0xE0);
     _mm_storeu_si128(r[20*i..].as_mut_ptr() as *mut __m128i,t0);
-    _mm_storeu_si128(buf.as_mut_ptr()  as *mut __m128i, t1);
-     r[20*i+16..][..4].copy_from_slice(&buf);
+    _mm_storeu_si128(r[20*i+16..].as_mut_ptr()  as *mut __m128i, t1);
   }
 }
 
+// #[target_feature(enable = "avx")]
 pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8])
 {
   let mut f;
@@ -95,9 +98,9 @@ pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8])
     f = _mm256_mulhrs_epi16(f,q);
     _mm256_store_si256(&mut r.vec[i],f);
   }
-
 }
 
+// #[target_feature(enable = "avx")]
 pub unsafe fn poly_compress11(r: &mut[u8], a: &Poly)
 {
   let (mut f0, mut f1, mut f2);
@@ -144,6 +147,7 @@ pub unsafe fn poly_compress11(r: &mut[u8], a: &Poly)
   }
 }
 
+// #[target_feature(enable = "avx")]
 pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8])
 {
   let mut f;
@@ -173,6 +177,7 @@ pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8])
     _mm256_store_si256(&mut r.vec[i],f);
   }
 }
+
 
 pub unsafe fn polyvec_compress(r: &mut[u8], a: &Polyvec)
 {
