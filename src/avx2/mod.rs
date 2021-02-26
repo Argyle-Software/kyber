@@ -1,4 +1,5 @@
 
+pub mod aes256ctr;
 pub mod align;
 pub mod cbd;
 pub mod consts;
