@@ -200,10 +200,12 @@ pub fn indcpa_keypair<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  match seed {
-    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?,
-    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0)
-  }
+  #[cfg(not(feature="KATs"))]
+  randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?;
+  
+  // Use rng seed for test vectors
+  #[cfg(feature="KATs")]
+  randbuf[..KYBER_SYMBYTES].copy_from_slice(&seed.expect("KAT seed").0);
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
