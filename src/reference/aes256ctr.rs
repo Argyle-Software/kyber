@@ -1,10 +1,37 @@
-const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
-pub struct Aes256xofCtx {
+// Translated from the public-domain code by Thomas Pornin as
+// found in the Kyber C reference library.
+// https://github.com/pq-crystals/kyber/blob/master/ref/aes256ctr.c
+
+/*
+ * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+pub struct Aes256CtrCtx {
   pub sk_exp: [u64; 120],
   pub ivw: [u32; 16]
 }
 
-impl Aes256xofCtx {
+impl Aes256CtrCtx {
   pub fn new() -> Self {
     Self {
       sk_exp: [0u64; 120],
@@ -324,6 +351,8 @@ fn sub_word(x: u32) -> u32 {
   q[0] as u32
 }
 
+const RCON: [u32; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
+
 fn br_aes_ct64_keysched(comp_skey: &mut[u64], key: &[u8])
 {
   let (mut j, mut k) = (0usize, 0usize);
@@ -552,7 +581,7 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &[u8], cc: u32, data: &mut[u8], mu
 //              - usize outlen:  length of requested output in bytes
 //              - const [u8] key:   32-byte key
 //              - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
-pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
+pub fn aes256ctr_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 {
   let mut sk_exp = [0u64; 120];
   let mut pad_nonce = [0u8; 12];
@@ -571,7 +600,7 @@ pub fn aes256_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 //              - const [u8] key:  32-byte key
 //              - [u8]  nonce:           additional bytes to "absorb"
 pub fn aes256ctr_init(
-  s: &mut Aes256xofCtx, 
+  s: &mut Aes256CtrCtx, 
   key: &[u8], 
   nonce: [u8; 12]
 )
@@ -590,10 +619,10 @@ pub fn aes256ctr_init(
   s.ivw[15] = br_swap32(3);   
 }
 
-pub fn aes256xof_squeezeblocks(
+pub fn aes256ctr_squeezeblocks(
   out: &mut[u8], 
   mut nblocks: usize, 
-  s: &mut Aes256xofCtx
+  s: &mut Aes256CtrCtx
 )
 {
   let mut idx = 0;
