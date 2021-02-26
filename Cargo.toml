@@ -41,7 +41,6 @@ kyber1024 =[]
 
 ### Additional features ###
 # 90s mode uses AES-CTR and SHA2 as primitives instead
-# May provide speed-ups on certain hardware
 90s = ["sha2"]
 
 # Force usage of the reference codebase on x86_64 architectures
@@ -56,3 +55,11 @@ wasm = ["wasm-bindgen"]
 # Do not use this feature for any other purpose than 
 # running the known answer tests
 KATs = []
+
+# Speed up the KATs on CI runners
+# For local development you likely want opt-level set at 0
+[profile.test]
+opt-level = 3
+
+[profile.test.package."*"]
+opt-level = 0
