@@ -3,7 +3,7 @@
 use core::arch::x86_64::*;
 use crate::params::KYBER_N;
 use crate::poly::*;
-use crate::align::Eta4xBuf;
+use crate::align::{Eta4xBuf, IndcpaBuf};
 
 fn cbd2(r: &mut Poly, buf: &[__m256i]) {
   unsafe {
@@ -103,6 +103,19 @@ fn cbd3(r: &mut Poly, buf: &[u8]) {
 }
 
 pub fn poly_cbd_eta1(r: &mut Poly, buf: &Eta4xBuf) 
+{
+  unsafe {
+    if cfg!(feature="kyber512") {
+      cbd3(r, &buf.coeffs)
+    } 
+    else {
+      cbd2(r, &buf.vec)
+    }
+  }
+}
+
+// TODO: generic function  
+pub fn poly_cbd_eta1_90s(r: &mut Poly, buf: &IndcpaBuf) 
 {
   unsafe {
     if cfg!(feature="kyber512") {
