@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use core::arch::x86_64::*;
 use crate::fips202::*;
 use crate::keccak4x::f1600_x4;
@@ -10,15 +12,8 @@ pub struct Keccakx4State {
 
 impl Keccakx4State {
   pub fn new() -> Self {
-    unsafe {
-    Keccakx4State { s: [_mm256_setzero_si256(); 25]}
-    }
+    unsafe {Keccakx4State { s: [_mm256_setzero_si256(); 25]}}
   }
-}
-
-fn epi64x_array(a: &[u8]) -> i64
-{
-  i64::from_le_bytes([a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]])
 }
 
 pub unsafe fn keccakx4_absorb_once(
@@ -126,40 +121,40 @@ pub unsafe fn keccakx4_squeezeblocks256(
   }
 }
 
-pub unsafe fn keccakx4_squeezeonce128(
-  out: &mut [[u8; 168]; 4],
-  s: &mut [__m256i; 25]
-)
-{
-  let mut t;
-  f1600_x4(s);
-  for i in 0..(SHAKE128_RATE/8) {
-    t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
-    let out0_ptr = out[0][8*i] as *mut f64;
-    _mm_storel_pd(out0_ptr, t);
-    _mm_storeh_pd(out[1][8*i] as *mut f64, t);
-    t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i],1));
-    _mm_storel_pd(out[2][8*i] as *mut f64, t);
-    _mm_storeh_pd(out[3][8*i] as *mut f64, t);
-  }
-}
+// pub unsafe fn keccakx4_squeezeonce128(
+//   out: &mut [[u8; 168]; 4],
+//   s: &mut [__m256i; 25]
+// )
+// {
+//   let mut t;
+//   f1600_x4(s);
+//   for i in 0..(SHAKE128_RATE/8) {
+//     t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
+//     let out0_ptr = out[0][8*i] as *mut f64;
+//     _mm_storel_pd(out0_ptr, t);
+//     _mm_storeh_pd(out[1][8*i] as *mut f64, t);
+//     t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i],1));
+//     _mm_storel_pd(out[2][8*i] as *mut f64, t);
+//     _mm_storeh_pd(out[3][8*i] as *mut f64, t);
+//   }
+// }
 
-pub unsafe fn keccakx4_squeezeonce256(
-  out: &mut [[u8; 136]; 4],
-  s: &mut [__m256i; 25]
-)
-{
-  let mut t;
-  f1600_x4(s);
-  for i in 0..(SHAKE256_RATE/8) {
-    t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
-    _mm_storel_pd(out[0][8*i] as *mut f64, t);
-    _mm_storeh_pd(out[1][8*i] as *mut f64, t);
-    t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i],1));
-    _mm_storel_pd(out[2][8*i] as *mut f64, t);
-    _mm_storeh_pd(out[3][8*i] as *mut f64, t);
-  }
-}
+// pub unsafe fn keccakx4_squeezeonce256(
+//   out: &mut [[u8; 136]; 4],
+//   s: &mut [__m256i; 25]
+// )
+// {
+//   let mut t;
+//   f1600_x4(s);
+//   for i in 0..(SHAKE256_RATE/8) {
+//     t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
+//     _mm_storel_pd(out[0][8*i] as *mut f64, t);
+//     _mm_storeh_pd(out[1][8*i] as *mut f64, t);
+//     t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i],1));
+//     _mm_storel_pd(out[2][8*i] as *mut f64, t);
+//     _mm_storeh_pd(out[3][8*i] as *mut f64, t);
+//   }
+// }
 
 pub unsafe fn shake128x4_absorb_once(
   state: &mut Keccakx4State,
@@ -223,64 +218,63 @@ pub unsafe fn shake256x4_squeezeblocks(
   );
 }
 
-pub unsafe fn shake128x4(
-  out: &mut [GenMatrixBuf; 4],
-  mut outlen: usize,
-  in0: &[u8],
-  in1: &[u8],
-  in2: &[u8],
-  in3: &[u8],
-  inlen: usize
-)
-{
-  let nblocks = outlen/SHAKE128_RATE;
-  let mut t = [[0u8; SHAKE128_RATE]; 4];
-  let mut state = Keccakx4State::new();
+// pub unsafe fn shake128x4(
+//   out: &mut [GenMatrixBuf; 4],
+//   mut outlen: usize,
+//   in0: &[u8],
+//   in1: &[u8],
+//   in2: &[u8],
+//   in3: &[u8],
+//   inlen: usize
+// )
+// {
+//   let nblocks = outlen/SHAKE128_RATE;
+//   let mut t = [[0u8; SHAKE128_RATE]; 4];
+//   let mut state = Keccakx4State::new();
 
-  shake128x4_absorb_once(&mut state, in0, in1, in2, in3, inlen);
-  shake128x4_squeezeblocks(out, nblocks, &mut state);
-  let idx = nblocks*SHAKE128_RATE; 
-  outlen -= idx;
+//   shake128x4_absorb_once(&mut state, in0, in1, in2, in3, inlen);
+//   shake128x4_squeezeblocks(out, nblocks, &mut state);
+//   let idx = nblocks*SHAKE128_RATE; 
+//   outlen -= idx;
 
-  if outlen > 0 {
-    keccakx4_squeezeonce128(&mut t, &mut state.s);
-    // shake128x4_squeezeblocks(&mut t[..], 1, &mut state);
-    for i in 0..outlen {
-      out[0].coeffs[idx+i] = t[0][i];
-      out[1].coeffs[idx+i] = t[1][i];
-      out[2].coeffs[idx+i] = t[2][i];
-      out[3].coeffs[idx+i] = t[3][i];
-    }
-  }
-}
+//   if outlen > 0 {
+//     keccakx4_squeezeonce128(&mut t, &mut state.s);
+//     for i in 0..outlen {
+//       out[0].coeffs[idx+i] = t[0][i];
+//       out[1].coeffs[idx+i] = t[1][i];
+//       out[2].coeffs[idx+i] = t[2][i];
+//       out[3].coeffs[idx+i] = t[3][i];
+//     }
+//   }
+// }
 
-pub unsafe fn shake256x4(
-  out: &mut [Eta4xBuf; 4],
-  mut outlen: usize,
-  in0: &[u8],
-  in1: &[u8],
-  in2: &[u8],
-  in3: &[u8],
-  inlen: usize
-)
-{
-  let nblocks = outlen/SHAKE256_RATE;
-  let mut t = [[0u8; SHAKE256_RATE] ; 4];
-  let mut state = Keccakx4State::new();
+// pub unsafe fn shake256x4(
+//   out: &mut [Eta4xBuf; 4],
+//   mut outlen: usize,
+//   in0: &[u8],
+//   in1: &[u8],
+//   in2: &[u8],
+//   in3: &[u8],
+//   inlen: usize
+// )
+// {
+//   let nblocks = outlen/SHAKE256_RATE;
+//   let mut t = [[0u8; SHAKE256_RATE] ; 4];
+//   let mut state = Keccakx4State::new();
 
-  shake256x4_absorb_once(&mut state, in0, in1, in2, in3, inlen);
-  shake256x4_squeezeblocks(out, nblocks, &mut state);
+//   shake256x4_absorb_once(&mut state, in0, in1, in2, in3, inlen);
+//   shake256x4_squeezeblocks(out, nblocks, &mut state);
 
-  let idx = nblocks*SHAKE256_RATE;
-  outlen -= nblocks*SHAKE256_RATE;
+//   let idx = nblocks*SHAKE256_RATE;
+//   outlen -= nblocks*SHAKE256_RATE;
 
-  if outlen > 0 {
-    keccakx4_squeezeonce256(&mut t, &mut state.s);
-    for i in 0..outlen {
-      out[0].coeffs[idx+i] = t[0][i];
-      out[1].coeffs[idx+i] = t[1][i];
-      out[2].coeffs[idx+i] = t[2][i];
-      out[3].coeffs[idx+i] = t[3][i];
-    }
-  }
-}
+//   if outlen > 0 {
+//     keccakx4_squeezeonce256(&mut t, &mut state.s);
+//     for i in 0..outlen {
+//       out[0].coeffs[idx+i] = t[0][i];
+//       out[1].coeffs[idx+i] = t[1][i];
+//       out[2].coeffs[idx+i] = t[2][i];
+//       out[3].coeffs[idx+i] = t[3][i];
+//     }
+//   }
+// }
