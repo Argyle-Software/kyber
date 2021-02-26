@@ -59,9 +59,6 @@
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
-#[cfg(feature = "90s")] 
-mod aes256;
-
 #[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
 mod avx2;
 #[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
@@ -108,6 +105,7 @@ pub type AkeSendB = [u8; KEX_AKE_SENDBBYTES];
 type TempKey = [u8; KEX_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
+// TODO: implement zeroise feature
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Kyber {
   /// A public/private keypair for key exchanges
@@ -354,10 +352,10 @@ impl Kyber {
 pub fn keypair<R>(rng: &mut R) -> Result<Keypair, KyberError> 
   where R: RngCore + CryptoRng
 {
-  let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
-  let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-  api::crypto_kem_keypair(&mut pk, &mut sk, rng, None)?;
-  Ok( Keypair { public: pk, secret: sk })
+  let mut public = [0u8; KYBER_PUBLICKEYBYTES];
+  let mut secret = [0u8; KYBER_SECRETKEYBYTES];
+  api::crypto_kem_keypair(&mut public, &mut secret, rng, None)?;
+  Ok( Keypair { public, secret })
 }
 
 /// Encapsulates a public key
