@@ -1,6 +1,6 @@
 #![allow(clippy::precedence)]
 use crate::{
-  poly::*,
+  poly::Poly,
   params::*
 };
 
@@ -16,6 +16,17 @@ impl Polyvec {
     Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
+  }
+
+  #[cfg(debug_assertions)]
+  pub fn checksum(&self) -> i16 {
+    let mut out = 0i16;
+    for i in 0..KYBER_K {
+      for j in 0..KYBER_N {
+        out ^= &self.vec[i].coeffs[j]
+      }
+    }
+    out 
   }
 }
 
