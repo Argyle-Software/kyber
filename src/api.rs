@@ -67,11 +67,11 @@ pub fn crypto_kem_enc<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   // TODO: Make this a compile-time operation
-  let res = match seed {
+  match seed {
     // Retrieve OS randombytes
-    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng),
+    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?,
     // Deterministic randbuf for KAT's
-    Some(s) => {randbuf[..KYBER_SYMBYTES].copy_from_slice(&s); Ok(())}
+    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s)
   };
 
   // Don't release system RNG output 
@@ -89,7 +89,7 @@ pub fn crypto_kem_enc<R>(
 
   // hash concatenation of pre-k and H(c) to k
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
-  res
+  Ok(())
 }
 
 
