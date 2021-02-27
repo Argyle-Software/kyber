@@ -1,17 +1,17 @@
 use core::arch::x86_64::*;
+#[cfg(not(feature = "90s"))] use crate::{  fips202::*, fips202x4::*};
 use crate::{
+  aes256ctr::*,
   cbd::*,
   poly::*,
   polyvec::*,
   rng::*,
   symmetric::*,
-  fips202::*,
-  fips202x4::*,
   params::*,
   RngCore,
   CryptoRng,
   align::*,
-  avx2::rejsample::*,
+  rejsample::*,
   KyberError
 };
 
@@ -148,33 +148,32 @@ pub fn gen_at(a: &mut[Polyvec], b: &[u8])
 #[cfg(feature="90s")]
 unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 {
-  let (mut ctr, mut buflen, mut off);
-  let mut nonce = 0u64;
-  let mut state : AES256CTR_CTX;
+  let (mut ctr, mut off, mut buflen);
+  let mut nonce: u64;
+  let mut state = Aes256CtrCtx::new();
   let mut buf = GenMatrixBuf90s::new();
-  aes256ctr_init(&state, seed, 0);
+  aes256ctr_init(&mut state, seed, [0u8; 12]);
   for i in 0..KYBER_K {
     for j in  0..KYBER_K {
       if transposed {
-        nonce = (j << 8) | i;
+        nonce = ((j << 8) | i) as u64;
       } else {
-        nonce = (i << 8) | j;
+        nonce = ((i << 8) | j) as u64;
       }
-      state.n = _mm_loadl_epi64(nonce as *const __m128i);
-      aes256ctr_squeezeblocks(buf.coeffs, REJ_UNIFORM_AVX_NBLOCKS, &state);
-      buflen = REJ_UNIFORM_AVX_NBLOCKS*AES256CTR_BLOCKBYTES;
-      ctr = rej_uniform_avx(a[i].vec[j].coeffs, buf.coeffs);
-      
+      state.n = _mm_loadl_epi64([nonce].as_ptr() as *const __m128i);
+      aes256ctr_squeezeblocks(&mut buf.coeffs, REJ_UNIFORM_AVX_NBLOCKS, &mut state);
+      buflen = REJ_UNIFORM_AVX_NBLOCKS*XOF_BLOCKBYTES;
+      ctr = rej_uniform_avx(&mut a[i].vec[j].coeffs, &buf.coeffs);
       while ctr < KYBER_N {
         off = buflen % 3;
         for k in 0..off {
           buf.coeffs[k] = buf.coeffs[buflen - off + k];
         }
-        aes256ctr_squeezeblocks(buf.coeffs + off, 1, &state);
-        buflen = off + AES256CTR_BLOCKBYTES;
-        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N-ctr, buf.coeffs, buflen);
+        aes256ctr_squeezeblocks(&mut buf.coeffs[off..], 1, &mut state);
+        buflen = off + XOF_BLOCKBYTES;
+        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N-ctr, &buf.coeffs, buflen);
       }
-      poly_nttunpack(&mut a[i].vec[j]); 
+      poly_nttunpack(&mut a[i].vec[j]);
     }
   }
 }
@@ -485,24 +484,26 @@ pub fn indcpa_keypair<R>(
 
   if cfg!(feature="90s") {
     // Assumes divisibility
-    // const NOISE_NBLOCKS: usize = (KYBER_ETA1*KYBER_N/4)/AES256CTR_BLOCKBYTES;
-    // let mut nonce = 0u64;
-    // let mut state;
-    // let mut coins = IndcpaBuf::new();
-    // aes256ctr_init(&state, noiseseed, nonce);
-    // nonce += 1;
-    // for i in 0..KYBER_K {
-    //   aes256ctr_squeezeblocks(coins.coeffs, NOISE_NBLOCKS, &state);
-    //   state.n = _mm_loadl_epi64(nonce as *const __m128i);
-    //   nonce += 1;
-    //   poly_cbd_eta1(&mut skpv.vec[i], coins.vec);
-    // }
-    // for i in 0..KYBER_K {
-    //   aes256ctr_squeezeblocks(coins.coeffs, NOISE_NBLOCKS, &state);
-    //   state.n = _mm_loadl_epi64(nonce as *const __m128i);
-    //   nonce += 1;
-    //   poly_cbd_eta1(&mut e.vec[i], coins.vec);
-    // }
+    const NOISE_NBLOCKS: usize = (KYBER_ETA1*KYBER_N/4)/XOF_BLOCKBYTES;
+    let mut nonce = 0u64;
+    let mut state = Aes256CtrCtx::new();
+    let mut coins = IndcpaBuf::new();
+    aes256ctr_init(&mut state, noiseseed, [0u8; 12]);
+    nonce += 1;
+    unsafe {
+      for i in 0..KYBER_K {
+        aes256ctr_squeezeblocks(&mut coins.coeffs, NOISE_NBLOCKS, &mut state);
+        state.n = _mm_loadl_epi64([nonce].as_ptr() as *const __m128i);
+        nonce += 1;
+        poly_cbd_eta1_90s(&mut skpv.vec[i], &coins);
+      }
+      for i in 0..KYBER_K {
+        aes256ctr_squeezeblocks(&mut coins.coeffs, NOISE_NBLOCKS, &mut state);
+        state.n = _mm_loadl_epi64([nonce].as_ptr() as *const __m128i);
+        nonce += 1;
+        poly_cbd_eta1_90s(&mut e.vec[i], &coins);
+      }
+    }
   } 
   else if cfg!(feature="kyber512") 
   {
@@ -565,33 +566,37 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
     let (mut sp, mut pkpv, mut ep, mut b) = (Polyvec::new(),Polyvec::new(), Polyvec::new(), Polyvec::new());
     let (mut v, mut k, mut epp) = (Poly::new(), Poly::new(), Poly::new());
     let mut seed = [0u8; KYBER_SYMBYTES];
-    // let mut nonce = 0u8;
-    // let mut buf = IndcpaBuf::new();
 
     unpack_pk(&mut pkpv, &mut seed, pk);
     poly_frommsg(&mut k, m);
     gen_at(&mut at, &seed);
 
-    if cfg!(features="90s") {
-      // Assumes divisibility
-      // const NOISE_NBLOCKS: usize  = ((KYBER_ETA1*KYBER_N/4)/AES256CTR_BLOCKBYTES);
-      // const CIPHERTEXTNOISE_NBLOCKS: usize  = ((KYBER_ETA2*KYBER_N/4)/AES256CTR_BLOCKBYTES);
-      // let mut nonce = 0u64;
-      // let mut state: aes256ctr_ctx;
-
-      // aes256ctr_init(&state, coins, nonce);
-      // nonce += 1;
-      // for i in 0..KYBER_K {
-      //   aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
-      //   state.n = _mm_loadl_epi64(nonce as *const __m128i);
-      //   nonce += 1;
-      //   poly_cbd_eta2(&mut ep.vec[i], buf.vec);
-      // }
-      // aes256ctr_squeezeblocks(buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &state);
-      // state.n = _mm_loadl_epi64(nonce as *const __m128i);
-      // nonce += 1;
-      // poly_cbd_eta2(&mut epp, buf.vec);
-    } else if cfg!(feature="kyber512") {
+    if cfg!(feature="90s") {
+      const NOISE_NBLOCKS: usize  = (KYBER_ETA1*KYBER_N/4)/XOF_BLOCKBYTES;
+      const CIPHERTEXTNOISE_NBLOCKS: usize  = (KYBER_ETA2*KYBER_N/4)/XOF_BLOCKBYTES;
+       let mut buf = IndcpaBuf::new();
+      let mut state = Aes256CtrCtx::new();
+      let mut nonce = 0u64;
+      aes256ctr_init(&mut state, coins, [0u8; 12]);
+      nonce += 1;
+      for i in 0..KYBER_K {
+        aes256ctr_squeezeblocks(&mut buf.coeffs, NOISE_NBLOCKS, &mut state);
+        state.n = _mm_loadl_epi64([nonce, 0].as_ptr() as *const __m128i);
+        nonce += 1;
+        poly_cbd_eta1_90s(&mut sp.vec[i], &buf);
+      }
+      for i in 0..KYBER_K {
+        aes256ctr_squeezeblocks(&mut buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &mut state);
+        state.n = _mm_loadl_epi64([nonce, 0].as_ptr() as *const __m128i);
+        nonce += 1;
+        poly_cbd_eta2(&mut ep.vec[i], &buf.vec);
+      }
+      aes256ctr_squeezeblocks(&mut buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &mut state);
+      state.n = _mm_loadl_epi64([nonce, 0].as_ptr() as *const __m128i);
+      poly_cbd_eta2(&mut epp, &buf.vec);
+    } 
+    else if cfg!(feature="kyber512") 
+    {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (ep0, ep1) = ep.vec.split_at_mut(1);
       poly_getnoise_eta1122_4x(
@@ -599,7 +604,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
       );
       poly_getnoise_eta2(&mut epp, coins, 4); 
     } 
-    else if cfg!(not(any(feature="kyber512", feature="kyber1024"))) {
+    else if cfg!(not(any(feature="kyber512", feature="kyber1024")))
+    {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (sp1, sp2) = sp1.split_at_mut(1);
       poly_getnoise_eta1_4x(
@@ -610,7 +616,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
         &mut ep1[1], &mut ep2[0], &mut epp, &mut b.vec[0], coins,  4, 5, 6, 7
       );
     } 
-    else if cfg!(feature="kyber1024") {
+    else if cfg!(feature="kyber1024") 
+    {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (sp1, sp2) = sp1.split_at_mut(1);
       let (sp2, sp3) = sp2.split_at_mut(1);
@@ -627,19 +634,22 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
     }
   
     polyvec_ntt(&mut sp);
-
+    
     for i in 0..KYBER_K {
       polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
     }
-
     polyvec_basemul_acc_montgomery(&mut v, &pkpv, &sp);
+
     polyvec_invntt_tomont(&mut b);
     poly_invntt_tomont(&mut v);
+
     polyvec_add(&mut b, &ep);
     poly_add(&mut v, &epp);
     poly_add(&mut v, &k);
+
     polyvec_reduce(&mut b);
     poly_reduce(&mut v);
+    
     pack_ciphertext(c, &b, v);
   }
 }
