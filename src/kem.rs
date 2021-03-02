@@ -33,17 +33,14 @@ pub fn crypto_kem_keypair<R>(
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
   
-  // TODO: Compile time operation
-  match seed {
-    None => randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng),
-    Some(s) => {
-      sk[SK_START..].copy_from_slice(&s.1);
-      Ok(())
-    }
+  if cfg!(feature="KATs") {
+    sk[SK_START..].copy_from_slice(&seed.expect("KATs feature only for testing").1);
+    Ok(())
+  } 
+  else {
+    randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng)
   }
 }
-
-
 
 // Name:        crypto_kem_enc
 //
@@ -58,7 +55,7 @@ pub fn crypto_kem_enc<R>(
   ss: &mut[u8], 
   pk: &[u8],
   rng: &mut R,
-  seed: Option<&[u8]>
+  _seed: Option<&[u8]>
 ) -> Result<(), KyberError>
   where R: RngCore + CryptoRng
 {
@@ -66,13 +63,13 @@ pub fn crypto_kem_enc<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  // TODO: Make this a compile-time operation
-  match seed {
-    // Retrieve OS randombytes
-    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?,
-    // Deterministic randbuf for KAT's
-    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s)
-  };
+  #[cfg(not(feature="KATs"))]
+  randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?;
+  
+  // Deterministic randbuf for KAT's
+  #[cfg(feature="KATs")]
+  randbuf[..KYBER_SYMBYTES]
+    .copy_from_slice(&_seed.expect("KATs feature only works with `cargo test`"));
 
   // Don't release system RNG output 
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);
@@ -91,7 +88,6 @@ pub fn crypto_kem_enc<R>(
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
   Ok(())
 }
-
 
 // Name:        crypto_kem_dec
 //

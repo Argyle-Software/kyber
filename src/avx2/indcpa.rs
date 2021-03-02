@@ -459,7 +459,7 @@ unsafe fn gen_matrix(a: &mut[Polyvec], seed: &[u8], transposed: bool)
 pub fn indcpa_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
-  seed: Option<(&[u8], &[u8])>, 
+  _seed: Option<(&[u8], &[u8])>, 
   rng: &mut R
 ) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
@@ -467,15 +467,15 @@ pub fn indcpa_keypair<R>(
 
   let mut a = [Polyvec::new(); KYBER_K];
   let (mut e, mut pkpv, mut skpv) = (Polyvec::new(), Polyvec::new(), Polyvec::new());
-  // let mut nonce = 0u8;
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  // TODO: Compile time KAT bytes
-  match seed {
-    None => randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?,
-    Some(s) => randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0)
-  }
+  #[cfg(not(feature="KATs"))]
+  randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?;
+
+  #[cfg(feature="KATs")]
+  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
+
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
