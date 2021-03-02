@@ -1,5 +1,5 @@
 fn main() {
-  // TODO: conditional compilation
+  #[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
   cc::Build::new()
     .include("src/avx2/")
     .file("src/avx2/basemul.S")
