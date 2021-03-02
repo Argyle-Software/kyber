@@ -189,7 +189,7 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
 pub fn indcpa_keypair<R>(
   pk : &mut[u8], 
   sk: &mut[u8], 
-  seed: Option<(&[u8], &[u8])>, 
+  _seed: Option<(&[u8], &[u8])>, 
   rng: &mut R
 )-> Result<(), KyberError>
   where R: CryptoRng + RngCore
@@ -205,7 +205,7 @@ pub fn indcpa_keypair<R>(
   
   // Use rng seed for test vectors
   #[cfg(feature="KATs")]
-  randbuf[..KYBER_SYMBYTES].copy_from_slice(&seed.expect("KAT seed").0);
+  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
