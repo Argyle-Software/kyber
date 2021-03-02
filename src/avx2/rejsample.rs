@@ -7,8 +7,7 @@ use crate::{
 
 pub(crate) const REJ_UNIFORM_AVX_NBLOCKS: usize =
   (12*KYBER_N/8*(1 << 12)/KYBER_Q + XOF_BLOCKBYTES)/XOF_BLOCKBYTES;
-const REJ_UNIFORM_AVX_BUFLEN: usize = 
-  REJ_UNIFORM_AVX_NBLOCKS*XOF_BLOCKBYTES;
+const REJ_UNIFORM_AVX_BUFLEN: usize = REJ_UNIFORM_AVX_NBLOCKS*XOF_BLOCKBYTES;
 
 pub unsafe fn _mm256_cmpge_epu16(a: __m256i, b: __m256i) -> __m256i {
   _mm256_cmpeq_epi16(_mm256_max_epu16(a, b), a)
@@ -23,7 +22,6 @@ pub unsafe fn rej_uniform_avx(r: &mut[i16], buf: &[u8]) -> usize {
   let mut pos = 0;
   let mut good: usize;
   let (mut val0, mut val1);
-  // let (mut idx0, mut idx1, mut idx2, mut idx3);
   let (mut f0, mut f1, mut g0, mut g1, mut g2, mut g3);
   let (mut f, mut t, mut pilo, mut pihi);
   let qdata_ptr = QDATA.coeffs[_16XQ..].as_ptr();
@@ -56,28 +54,6 @@ pub unsafe fn rej_uniform_avx(r: &mut[i16], buf: &[u8]) -> usize {
 
     g0 = _mm256_packs_epi16(g0, g1);
     good = _mm256_movemask_epi8(g0) as usize;
-
-    // TODO handle ifdefs
-    // ifdef BMI
-    // let goodu64 = good as u64;
-    // idx0 = _pdep_u64(goodu64 >>  0, 0x0101010101010101);
-    // idx1 = _pdep_u64(goodu64 >>  8, 0x0101010101010101);
-    // idx2 = _pdep_u64(goodu64 >> 16, 0x0101010101010101);
-    // idx3 = _pdep_u64(goodu64 >> 24, 0x0101010101010101);
-    // idx0 = (idx0 << 8) - idx0;
-    // idx0  = _pext_u64(0x0E0C0A0806040200, idx0);
-    // idx1 = (idx1 << 8) - idx1;
-    // idx1  = _pext_u64(0x0E0C0A0806040200, idx1);
-    // idx2 = (idx2 << 8) - idx2;
-    // idx2  = _pext_u64(0x0E0C0A0806040200, idx2);
-    // idx3 = (idx3 << 8) - idx3;
-    // idx3  = _pext_u64(0x0E0C0A0806040200, idx3);
-
-    // g0 = _mm256_castsi128_si256(_mm_cvtsi64_si128(idx0 as i64));
-    // g1 = _mm256_castsi128_si256(_mm_cvtsi64_si128(idx1 as i64));
-    // g0 = _mm256_inserti128_si256(g0, _mm_cvtsi64_si128(idx2 as i64), 1);
-    // g1 = _mm256_inserti128_si256(g1, _mm_cvtsi64_si128(idx3 as i64), 1);
-    //else 
 
     let mut l0 = _mm_loadl_epi64(IDX[(good >> 0) & 0xFF].as_ptr() as * const __m128i);
     g0 = _mm256_castsi128_si256(l0);
@@ -117,18 +93,9 @@ pub unsafe fn rej_uniform_avx(r: &mut[i16], buf: &[u8]) -> usize {
 
     t = _mm_cmpgt_epi16(_mm256_castsi256_si128(bound), f);
     good = _mm_movemask_epi8(t) as usize;
-    
-    //#ifdef BMI
-    // good &= 0x5555;
-    // idx0 = _pdep_u64(good as u64, 0x1111111111111111);
-    // idx0 = (idx0 << 8) - idx0;
-    // idx0 = _pext_u64(0x0E0C0A0806040200, idx0);
-    // pilo = _mm_cvtsi64_si128(idx0 as i64);
-    //else
+     
     let good = _pext_u32(good as u32, 0x5555) as usize;
     pilo = _mm_loadl_epi64(IDX[good][..].as_ptr() as *const __m128i);
-    //endif
-
     pihi = _mm_add_epi8(pilo, _mm256_castsi256_si128(ones));
     pilo = _mm_unpacklo_epi8(pilo, pihi);
     f = _mm_shuffle_epi8(f, pilo);
@@ -150,8 +117,7 @@ pub unsafe fn rej_uniform_avx(r: &mut[i16], buf: &[u8]) -> usize {
       ctr += 1;
     }
   }
-
-  return ctr;
+  ctr
 }
 
 const IDX: [[i8; 8]; 256] = [
