@@ -26,6 +26,8 @@
  * SOFTWARE.
  */
 
+#![allow(dead_code)]
+
 pub struct Aes256CtrCtx {
   pub sk_exp: [u64; 120],
   pub ivw: [u32; 16]
