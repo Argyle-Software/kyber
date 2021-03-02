@@ -1,6 +1,6 @@
 #![allow(clippy::precedence)]
 use crate::{
-  poly::Poly,
+  poly::*,
   params::*
 };
 
@@ -38,8 +38,8 @@ impl Polyvec {
 //              - const Polyvec a: input vector of polynomials
 pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
 {
-  // TODO: use conditional compilation flags instead
-  if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
+  #[cfg(feature="kyber1024")]
+  {
     let mut t = [0u16; 8];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
@@ -63,7 +63,10 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
         idx += 11
       }
     }
-  } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
+  }
+
+  #[cfg(not(feature="kyber1024"))]
+  {
     let mut t = [0u16; 4];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
@@ -82,9 +85,7 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
         idx += 5;
       }
     }
-  } else {
-    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in (320*KYBER_K, 352*KYBER_K)");
-  }
+  } 
 }
 
 // Name:        polyvec_decompress
@@ -96,8 +97,9 @@ pub fn polyvec_compress(r: &mut[u8], a: Polyvec)
 //              - [u8] a: input byte array (of length KYBER_POLYVECCOMPRESSEDBYTES)
 pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8]) 
 {
-  // TODO: use conditional compilation flags instead
-  if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 352 {
+
+  #[cfg(feature="kyber1024")]
+  {
     let mut t = [0u16; 8];
     let mut idx = 0usize;
     for i in 0..KYBER_K {
@@ -118,7 +120,10 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         }
       }
     }
-  } else if KYBER_POLYVECCOMPRESSEDBYTES == KYBER_K * 320 {
+  } 
+
+  #[cfg(not(feature="kyber1024"))]
+  {
     let mut idx = 0usize;
     let mut t = [0u16; 4];
     for i in 0..KYBER_K {
@@ -135,9 +140,7 @@ pub fn polyvec_decompress(r: &mut Polyvec, a: &[u8])
         }
       }
     }
-  } else {
-    panic!("KYBER_POLYVECCOMPRESSEDBYTES needs to be in (320*KYBER_K, 352*KYBER_K)");
-  } 
+  }
 }
 
 // Name:        polyvec_tobytes
