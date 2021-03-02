@@ -68,8 +68,8 @@ mod reference;
 #[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
 use reference::*;
 
-mod api;
 mod error;
+mod kem;
 mod kex;
 mod params;
 mod rng;
@@ -82,7 +82,7 @@ pub use params::*;
 
 // Feature workaround to expose private functions for Known Answer Tests
 #[cfg(feature="KATs")]
-pub use api::*;
+pub use kem::*;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated =  Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError>;
@@ -354,7 +354,7 @@ pub fn keypair<R>(rng: &mut R) -> Result<Keypair, KyberError>
 {
   let mut public = [0u8; KYBER_PUBLICKEYBYTES];
   let mut secret = [0u8; KYBER_SECRETKEYBYTES];
-  api::crypto_kem_keypair(&mut public, &mut secret, rng, None)?;
+  kem::crypto_kem_keypair(&mut public, &mut secret, rng, None)?;
   Ok( Keypair { public, secret })
 }
 
@@ -377,7 +377,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
   }
   let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut ss = [0u8; KYBER_SSBYTES];
-  api::crypto_kem_enc(&mut ct, &mut ss, pk, rng, None)?;
+  kem::crypto_kem_enc(&mut ct, &mut ss, pk, rng, None)?;
   Ok((ct, ss))
 }
 
@@ -401,7 +401,7 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated
     return Err(KyberError::Decapsulation)
   }
   let mut ss = [0u8; KYBER_SSBYTES];
-  match api::crypto_kem_dec(&mut ss, ct, sk) {
+  match kem::crypto_kem_dec(&mut ss, ct, sk) {
     Ok(_) => Ok(ss),
     Err(e) => Err(e)
   }

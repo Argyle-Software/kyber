@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 pub fn keypair() -> Keys {
   let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
   let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-  api::crypto_kem_keypair(&mut pk, &mut sk, None);
+  kem::crypto_kem_keypair(&mut pk, &mut sk, None);
   Keys{
     pubkey: Box::new(pk),
     secret: Box::new(sk),
@@ -20,7 +20,7 @@ pub fn encapsulate(pk: Box<[u8]>) -> Result<Keys, JsValue> {
   }
   let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut ss = [0u8; KYBER_SSBYTES];
-  api::crypto_kem_enc(&mut ct, &mut ss, &pk, None);
+  kem::crypto_kem_enc(&mut ct, &mut ss, &pk, None);
   Ok(Keys{
     ciphertext: Box::new(ct),
     shared_secret: Box::new(ss),
@@ -31,7 +31,7 @@ pub fn encapsulate(pk: Box<[u8]>) -> Result<Keys, JsValue> {
 #[wasm_bindgen]
 pub fn decapsulate(ct: Box<[u8]>, sk: Box<[u8]>) -> Result<Keys, JsValue> {
   let mut ss = [0u8; KYBER_SSBYTES];
-  match api::crypto_kem_dec(&mut ss, &ct, &sk) {
+  match kem::crypto_kem_dec(&mut ss, &ct, &sk) {
     Ok(_) => Ok(Keys {shared_secret: Box::new(ss), ..Default::default()}),
     Err(_) => Err(JsValue::null())
   }

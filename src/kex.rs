@@ -1,9 +1,9 @@
 use rand_core::{RngCore, CryptoRng};
 use crate::{
-  KyberError,
-  api::*,
+  kem::*,
   symmetric::kdf,
-  params::*
+  params::*,
+  KyberError
 };
 
 /// Unilateral key exchange send A size
