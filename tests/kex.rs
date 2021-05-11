@@ -42,7 +42,7 @@ fn low_level_uake() {
   let mut ka = [0u8; KEX_SSBYTES];
   let mut kb = [0u8; KEX_SSBYTES];
 
-  let bob_keys = keypair(&mut rng).unwrap();
+  let bob_keys = keypair(&mut rng);
 
   // Alice
   uake_init_a(
