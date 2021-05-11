@@ -73,8 +73,8 @@ fn low_level_ake() {
   let mut ka = [0u8; KEX_SSBYTES];
   let mut kb = [0u8; KEX_SSBYTES];
 
-  let alice_keys = keypair(&mut rng).unwrap();
-  let bob_keys = keypair(&mut rng).unwrap();
+  let alice_keys = keypair(&mut rng);
+  let bob_keys = keypair(&mut rng);
 
     // Alice
     ake_init_a(&mut ake_senda, &mut tk, &mut eska, &bob_keys.public, &mut rng).unwrap();

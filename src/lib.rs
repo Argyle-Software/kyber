@@ -161,7 +161,7 @@ impl Kyber {
   /// ```
   pub fn initialize<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Kyber, KyberError> 
   {
-    Ok(Kyber{ keypair(rng), initialized: true, ..Default::default() })
+    Ok(Kyber{ keys: keypair(rng), initialized: true, ..Default::default() })
   }
 
   /// Replaces the current keypair with a provided Keypair struct  
