@@ -1,18 +1,25 @@
 
 #[derive(Debug, PartialEq)]
-/// Error type for the various failure modes
+/// Error types for the various failure modes
 pub enum KyberError {
-  Encapsulation,
+  /// Decapsulation errors occur with a malformed ciphertext or incorrect keypair,
+  /// key exchange should be re-attempted
   Decapsulation,
-  Rng
+  /// Encapsulation has been given an incorrectly sized public key
+  PublicKeyLength,
+  /// Decapsulation has been given an incorrectly sized secret key
+  SecretKeyLength,
+  /// Decapsulation has been given an incorrectly sized ciphertext
+  CipherTextLength
 }
 
 impl core::fmt::Display for KyberError {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     match *self {
-      KyberError::Encapsulation => write!(f, "Encapsulation Failure"),
-      KyberError::Decapsulation => write!(f, "Decapsulation Failure"),
-      KyberError::Rng => write!(f, "RNG Failure"),
+      KyberError::Decapsulation => write!(f, "Decapsulation of Ciphertext Failed"),
+      KyberError::PublicKeyLength => write!(f, "Incorrect Public Key Byte Length"),
+      KyberError::SecretKeyLength => write!(f, "Incorrect Secret Key Byte Length"),
+      KyberError::CipherTextLength => write!(f, "Incorrect Ciphertext Byte Length"),
     }
   }
 }

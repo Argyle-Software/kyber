@@ -191,7 +191,7 @@ pub fn indcpa_keypair<R>(
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
   rng: &mut R
-)-> Result<(), KyberError>
+)
   where R: CryptoRng + RngCore
 {
   let mut a = [Polyvec::new(); KYBER_K];
@@ -201,7 +201,7 @@ pub fn indcpa_keypair<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?;
+  randombytes(&mut randbuf, KYBER_SYMBYTES, rng);
   
   // Use rng seed for test vectors
   #[cfg(feature="KATs")]
@@ -234,7 +234,6 @@ pub fn indcpa_keypair<R>(
 
   pack_sk(sk, &mut skpv);
   pack_pk(pk, &mut pkpv, publicseed);
-  Ok(())
 }
 
 // Name:        indcpa_enc

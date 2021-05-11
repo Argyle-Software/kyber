@@ -461,7 +461,7 @@ pub fn indcpa_keypair<R>(
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
   rng: &mut R
-) -> Result<(), KyberError>
+)
   where R: CryptoRng + RngCore
 {
 
@@ -471,7 +471,7 @@ pub fn indcpa_keypair<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, rng)?;
+  randombytes(&mut randbuf, KYBER_SYMBYTES, rng);
 
   #[cfg(feature="KATs")]
   randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
@@ -556,7 +556,6 @@ pub fn indcpa_keypair<R>(
 
   pack_sk(sk, &skpv);
   pack_pk(pk, &pkpv, publicseed);
-  Ok(())
 }
 
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8]) 

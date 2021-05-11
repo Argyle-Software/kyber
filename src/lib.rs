@@ -42,7 +42,7 @@
 //! # fn main() -> Result<(),KyberError> {
 //! # let mut rng = rand::thread_rng();
 //! // Generate Keypair
-//! let keys_bob = keypair(&mut rng)?;
+//! let keys_bob = keypair(&mut rng);
 //! 
 //! // Encapsulate
 //! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
@@ -161,8 +161,7 @@ impl Kyber {
   /// ```
   pub fn initialize<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Kyber, KyberError> 
   {
-    let keys = keypair(rng)?;
-    Ok(Kyber{ keys, initialized: true, ..Default::default() })
+    Ok(Kyber{ keypair(rng), initialized: true, ..Default::default() })
   }
 
   /// Replaces the current keypair with a provided Keypair struct  
@@ -201,7 +200,7 @@ impl Kyber {
   pub fn new_keys<R>(&mut self, rng: &mut R) -> Result<(), KyberError> 
     where R: CryptoRng + RngCore
   {
-    self.keys = Keypair::generate(rng)?;
+    self.keys = Keypair::generate(rng);
     self.initialized = true;
     Ok(())
   }
@@ -342,20 +341,20 @@ impl Kyber {
 /// # use pqc_kyber::*;
 /// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
-/// let keys = pqc_kyber::keypair(&mut rng)?;
+/// let keys = keypair(&mut rng);
 /// let publickey = keys.public;
 /// let secretkey = keys.secret;
 /// assert_eq!(publickey.len(), KYBER_PUBLICKEYBYTES);
 /// assert_eq!(secretkey.len(), KYBER_SECRETKEYBYTES);
 /// # Ok(())}
 /// ```
-pub fn keypair<R>(rng: &mut R) -> Result<Keypair, KyberError> 
+pub fn keypair<R>(rng: &mut R) -> Keypair 
   where R: RngCore + CryptoRng
 {
   let mut public = [0u8; KYBER_PUBLICKEYBYTES];
   let mut secret = [0u8; KYBER_SECRETKEYBYTES];
-  kem::crypto_kem_keypair(&mut public, &mut secret, rng, None)?;
-  Ok( Keypair { public, secret })
+  kem::crypto_kem_keypair(&mut public, &mut secret, rng, None);
+  Keypair { public, secret }
 }
 
 /// Encapsulates a public key
@@ -365,7 +364,7 @@ pub fn keypair<R>(rng: &mut R) -> Result<Keypair, KyberError>
 /// # use pqc_kyber::*; 
 /// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
-/// let keys = keypair(&mut rng)?;
+/// let keys = keypair(&mut rng);
 /// let (ct, ss) = encapsulate(&keys.public, &mut rng)?;
 /// # Ok(())}
 /// ```
@@ -373,7 +372,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
   where R: CryptoRng + RngCore
 {
   if pk.len() != KYBER_PUBLICKEYBYTES {
-    return Err(KyberError::Encapsulation)
+    return Err(KyberError::PublicKeyLength)
   }
   let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut ss = [0u8; KYBER_SSBYTES];
@@ -397,8 +396,11 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
 /// ```
 pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated 
 {
-  if ct.len() != KYBER_CIPHERTEXTBYTES || sk.len() != KYBER_SECRETKEYBYTES {
-    return Err(KyberError::Decapsulation)
+  if ct.len() != KYBER_CIPHERTEXTBYTES {
+    return Err(KyberError::CipherTextLength)
+  }
+  if sk.len() != KYBER_SECRETKEYBYTES {
+    return Err(KyberError::SecretKeyLength)
   }
   let mut ss = [0u8; KYBER_SSBYTES];
   match kem::crypto_kem_dec(&mut ss, ct, sk) {
@@ -408,7 +410,7 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated
 }
 
 /// Contains a public/private keypair
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Keypair {
     pub public: PublicKey,
     pub secret: SecretKey
@@ -429,12 +431,12 @@ impl Keypair {
   /// # use pqc_kyber::*;
   /// # fn main() -> Result<(), KyberError> {
   /// let mut rng = rand::thread_rng();
-  /// let keys = Keypair::generate(&mut rng)?;
+  /// let keys = Keypair::generate(&mut rng);
   /// # let empty_keys = Keypair::default();
   /// # assert!(empty_keys != keys); 
   /// # Ok(()) }
   /// ```
-  pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Keypair, KyberError> {
+  pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Keypair {
     keypair(rng)
   }
 }

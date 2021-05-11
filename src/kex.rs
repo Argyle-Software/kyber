@@ -31,7 +31,7 @@ pub fn uake_init_a<R>(
 ) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
-  crypto_kem_keypair(send, sk, rng, None)?;
+  crypto_kem_keypair(send, sk, rng, None);
   crypto_kem_enc(&mut send[KYBER_PUBLICKEYBYTES..], tk, pkb, rng, None)?;
   Ok(())
 }
@@ -78,7 +78,7 @@ pub fn ake_init_a<R>(
 ) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
-  crypto_kem_keypair(send, sk, rng, None)?;
+  crypto_kem_keypair(send, sk, rng, None);
   crypto_kem_enc(&mut send[KYBER_PUBLICKEYBYTES..], tk, pkb, rng, None)?;
   Ok(())
 }
