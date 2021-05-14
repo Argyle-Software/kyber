@@ -8,4 +8,12 @@ fn main() {
     .file("src/avx2/ntt.S")
     .file("src/avx2/shuffle.S")
     .compile("pqc_kyber");
+  #[cfg(
+    all(
+      any(target_arch = "arm", target_arch="aarch64"),
+      not(feature = "reference")
+    )
+  )] 
+  cc::Build::new()
+    .include("src/neon/");
 }
