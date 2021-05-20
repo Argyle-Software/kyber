@@ -84,15 +84,6 @@ pub struct Keypair {
     pub secret: SecretKey
 }
 
-impl Default for Keypair {
-  fn default() -> Self {
-    Keypair {
-      public: [0u8; KYBER_PUBLICKEYBYTES],
-      secret: [0u8; KYBER_SECRETKEYBYTES]
-    }
-  }
-}
-
 impl Keypair {
   /// Securely generates a new keypair`
   /// ```
