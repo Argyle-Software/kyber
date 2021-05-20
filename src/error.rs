@@ -2,8 +2,12 @@
 #[derive(Debug, PartialEq)]
 /// Error types for the various failure modes
 pub enum KyberError {
+  /// One or more byte inputs to a function are incorrectly sized. A likely cause of this is two parties using different security 
+  /// levels while trying to negotiate a key exchange.
   InvalidInput,
   Encapsulation,
+  /// The ciphertext was unable to be authenticated. 
+  /// The shared secret was not decapsulated. 
   Decapsulation,
 }
 
