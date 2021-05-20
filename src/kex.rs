@@ -83,7 +83,7 @@ impl Uake {
   /// # fn main() -> Result<(),KyberError> {
   /// let mut rng = rand::thread_rng();
   /// let mut alice = Uake::new();
-  /// let bob_keys = Keypair::generate(&mut rng)?;
+  /// let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// # Ok(()) }
   /// ```
@@ -105,7 +105,7 @@ impl Uake {
   /// # let mut rng = rand::thread_rng();
   /// let mut alice = Uake::new();
   /// let mut bob = Uake::new();
-  /// let mut bob_keys = Keypair::generate(&mut rng)?;
+  /// let mut bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
@@ -130,7 +130,7 @@ impl Uake {
   /// # let mut rng = rand::thread_rng();
   /// # let mut alice = Uake::new();
   /// # let mut bob = Uake::new();
-  /// # let bob_keys = Keypair::generate(&mut rng)?;
+  /// # let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send);
@@ -188,7 +188,7 @@ impl Ake {
   /// # fn main() -> Result<(),KyberError> {
   /// let mut rng = rand::thread_rng();
   /// let mut alice = Ake::new();
-  /// let bob_keys = Keypair::generate(&mut rng)?;
+  /// let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// # Ok(()) }
   /// ```
@@ -210,8 +210,8 @@ impl Ake {
   /// # let mut rng = rand::thread_rng();
   /// let mut alice = Ake::new();
   /// let mut bob = Ake::new();
-  /// let alice_keys = Keypair::generate(&mut rng)?;
-  /// let bob_keys = Keypair::generate(&mut rng)?;
+  /// let alice_keys = keypair(&mut rng);
+  /// let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
@@ -237,8 +237,8 @@ impl Ake {
   /// # let mut rng = rand::thread_rng();
   /// let mut alice = Ake::new();
   /// let mut bob = Ake::new();
-  /// let alice_keys = Keypair::generate(&mut rng)?;
-  /// let bob_keys = Keypair::generate(&mut rng)?;
+  /// let alice_keys = keypair(&mut rng);
+  /// let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);

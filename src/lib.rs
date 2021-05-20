@@ -19,8 +19,8 @@
 //! let mut bob = Ake::new();
 //! 
 //! // Generate Keypairs
-//! let alice_keys = Keypair::generate(&mut rng)?;
-//! let bob_keys = Keypair::generate(&mut rng)?;
+//! let alice_keys = keypair(&mut rng);
+//! let bob_keys = keypair(&mut rng);
 //! 
 //! // Alice initiates key exchange
 //! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
@@ -93,7 +93,7 @@ pub use kem::*;
 /// # use pqc_kyber::*;
 /// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
-/// let keys = pqc_kyber::keypair(&mut rng)?;
+/// let keys = keypair(&mut rng);
 /// # Ok(())}
 /// ```
 pub fn keypair<R>(rng: &mut R) -> Keypair 
