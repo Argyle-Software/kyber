@@ -17,10 +17,7 @@ use crate::{
 // Arguments:   - [u8] pk: output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 //              - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair<R>(
-  pk: &mut[u8], 
-  sk: &mut[u8], 
-  _rng: &mut R,
-  _seed: Option<(&[u8], &[u8])> 
+  pk: &mut[u8], sk: &mut[u8], _rng: &mut R, _seed: Option<(&[u8], &[u8])> 
 )
   where R: RngCore + CryptoRng
 { 
@@ -51,12 +48,8 @@ pub fn crypto_kem_keypair<R>(
 //              - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
 //              - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc<R>(
-  ct: &mut[u8], 
-  ss: &mut[u8], 
-  pk: &[u8],
-  _rng: &mut R,
-  _seed: Option<&[u8]>
-) -> Result<(), KyberError>
+  ct: &mut[u8], ss: &mut[u8], pk: &[u8], _rng: &mut R,_seed: Option<&[u8]>
+)
   where R: RngCore + CryptoRng
 {
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
@@ -86,7 +79,6 @@ pub fn crypto_kem_enc<R>(
 
   // hash concatenation of pre-k and H(c) to k
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
-  Ok(())
 }
 
 // Name:        crypto_kem_dec
@@ -100,10 +92,9 @@ pub fn crypto_kem_enc<R>(
 //
 // On failure, ss will contain a pseudo-random value.
 pub fn crypto_kem_dec(
-  ss: &mut[u8], 
-  ct: &[u8], 
-  sk: &[u8]
-) -> Result<(), KyberError> 
+  ss: &mut[u8], ct: &[u8], sk: &[u8]
+) 
+-> Result<(), KyberError> 
 {
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];

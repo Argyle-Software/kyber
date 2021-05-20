@@ -45,7 +45,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
   }
   let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
   let mut ss = [0u8; KYBER_SSBYTES];
-  crypto_kem_enc(&mut ct, &mut ss, pk, rng, None)?;
+  crypto_kem_enc(&mut ct, &mut ss, pk, rng, None);
   Ok((ct, ss))
 }
 
