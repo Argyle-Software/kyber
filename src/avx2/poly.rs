@@ -1,11 +1,14 @@
+#![allow(unused_imports)]
 use core::arch::x86_64::*;
-use crate::params::*;
-use crate::consts::*;
-use crate::cbd::*;
-use crate::symmetric::*;
-use crate::align::*;
-use crate::fips202::*;
-use crate::fips202x4::*;
+use crate::{
+  align::*,
+  cbd::*,
+  consts::*,
+  fips202::*,
+  fips202x4::*,
+  params::*,
+  symmetric::*,
+};
 
 pub(crate) const NOISE_NBLOCKS: usize = 
   (KYBER_ETA1*KYBER_N/4+SHAKE256_RATE-1)/SHAKE256_RATE;
@@ -276,6 +279,7 @@ pub fn poly_tomsg(msg: &mut[u8], a: Poly)
   }
 }
 
+#[cfg(all(any(feature="kyber1024", feature="kyber512"), not(feature="90s")))]
 pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
 {
   let mut buf = Eta2Buf::new();
@@ -285,6 +289,7 @@ pub fn poly_getnoise_eta2(r: &mut Poly, seed: &[u8], nonce: u8)
   }
 }
 
+#[cfg(not(feature="90s"))]
 pub fn poly_getnoise_eta1_4x(
   r0: &mut Poly, r1: &mut Poly, r2: &mut Poly, r3: &mut Poly, seed: &[u8],
   nonce0: u8, nonce1: u8, nonce2: u8, nonce3: u8
@@ -319,6 +324,7 @@ pub fn poly_getnoise_eta1_4x(
   }
 }
 
+#[cfg(all(feature="kyber512", not(feature="90s")))]
 pub fn poly_getnoise_eta1122_4x(
   r0: &mut Poly, r1: &mut Poly, r2: &mut Poly, r3: &mut Poly, seed: &[u8],
   nonce0: u8, nonce1: u8, nonce2: u8, nonce3: u8,
