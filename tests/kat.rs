@@ -37,8 +37,7 @@ fn encaps() {
     let encap_buf = Some(&buf1[..]);
     let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
     let mut ss = [0u8; KYBER_SSBYTES];
-    let res = crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf);
-    assert!(res.is_ok(), "KEM encapsulation failure");
+    crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf);
     assert_eq!(&ss[..], &known_ss[..], "Shared secret KAT mismatch");
   }
 }
