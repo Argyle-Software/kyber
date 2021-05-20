@@ -75,7 +75,9 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated
   }
 }
 
-/// Contains a public/private keypair
+/// A public/secret keypair for use with Kyber. 
+/// 
+/// Byte lengths of the keys are determined by the security level chosen.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Keypair {
     pub public: PublicKey,
