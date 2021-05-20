@@ -1,22 +1,43 @@
 //! # Kyber
 //! 
-//! A Rust implementation of the Kyber algorithm
+//! A rust implementation of the Kyber algorithm
+//! 
+//! This library:
+//! * Is no_std compatible and uses no allocations, suitable for embedded devices. 
+//! * The reference files contain no unsafe code.
+//! * On x86_64 platforms uses an optimized avx2 version by default.
+//! * Compiles to WASM using wasm-bindgen.
+//! 
+//! ## Features
+//! If no security level is set then Kyber764 is used, this is roughly equivalent to AES-196. See below for setting other levels. 
+//! A compile-time error is raised if more than one level is specified. Besides that all other features can be mixed as needed:
+//!
+//! | Feature   | Description                                                                                                                                                                |
+//! |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+//! | kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.                                                                                                |
+//! | kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.                   |
+//! | 90s       | 90's mode uses SHA2 and AES-CTR as a replacement for SHAKE. This may provide hardware speedups on certain architectures.                                                           |
+//! | reference | On x86_64 platforms the optimized version is used by default. Enabling this feature will force usage of the reference codebase. This is unnecessary on other architectures |
+//! | wasm      | For compiling to WASM targets. |
 //! 
 //! ## Usage 
-//! The Kyber struct is a higher-level construction for unilateral and mutual key exchange. 
-//! 
-//!
-//! #### Mutually Authenticated Key Exchange
 //! 
 //! ```
 //! use pqc_kyber::*;
+//! ```
 //! 
+//! The higher level structs will be appropriate for most use-cases. 
+//! Both [unilateral](struct.Uake.html) or [mutually](struct.Ake.html) authenticated key exchanges are possible.
+//! 
+//! #### Unilaterally Authenticated Key Exchange
+//! ```
+//! # use pqc_kyber::*;
 //! # fn main() -> Result<(),KyberError> {
 //! let mut rng = rand::thread_rng();
 //! 
 //! // Initialize the key exchange structs
-//! let mut alice = Ake::new();
-//! let mut bob = Ake::new();
+//! let mut alice = Uake::new();
+//! let mut bob = Uake::new();
 //! 
 //! // Generate Keypairs
 //! let alice_keys = keypair(&mut rng);
@@ -26,17 +47,45 @@
 //! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 //! 
 //! // Bob authenticates and responds
-//! let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
+//! let server_send = bob.server_receive(
+//!   client_init, &bob_keys.secret, &mut rng
+//! )?;
 //! 
-//! // Alice authenticates the response and decapsulates the shared secret
-//! alice.client_confirm(server_send, &alice_keys.secret)?;
+//! // Alice decapsulates the shared secret
+//! alice.client_confirm(server_send)?;
 //! 
 //! // Both key exchange structs now have the shared secret
 //! assert_eq!(alice.shared_secret, bob.shared_secret);
 //! # Ok(()) }
 //! ```
+//! 
+//! #### Mutually Authenticated Key Exchange
+//! Mutual authentication follows the same workflow but with additional keys passed to the functions:
+//! 
+//! ```
+//! # use pqc_kyber::*;
+//! # fn main() -> Result<(),KyberError> {
+//! # let mut rng = rand::thread_rng();
+//! let mut alice = Ake::new();
+//! let mut bob = Ake::new();
+//! 
+//! let alice_keys = keypair(&mut rng);
+//! let bob_keys = keypair(&mut rng);
+//! 
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+//! 
+//! let server_send = bob.server_receive(
+//!   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
+//! )?;
+//! 
+//! alice.client_confirm(server_send, &alice_keys.secret)?;
+//! 
+//! assert_eq!(alice.shared_secret, bob.shared_secret);
+//! # Ok(()) }
+//! ```
+//! 
 //! ##### Key Encapsulation
-//! Lower level functions using the Kyber algorithm directly.
+//! Lower level functions for using the Kyber algorithm directly.
 //! ```
 //! # use pqc_kyber::*;
 //! # fn main() -> Result<(),KyberError> {
@@ -53,6 +102,9 @@
 //! assert_eq!(shared_secret_alice, shared_secret_bob);
 //! # Ok(()) }
 //! ```
+//! 
+//! ## Errors
+//! 
 
 #![no_std]
 #![allow(clippy::many_single_char_names)]
@@ -65,11 +117,13 @@ compile_error!("Only one security level can be specified");
 mod avx2;
 #[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
 use avx2::*;
+
 #[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
 mod reference;
 #[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
 use reference::*;
 
+mod api;
 mod error;
 mod kem;
 mod kex;
@@ -77,113 +131,13 @@ mod params;
 mod rng;
 mod symmetric;
 
-pub use rand_core::{RngCore, CryptoRng};
+pub use api::*;
 pub use kex::*;
-pub use error::KyberError;
 pub use params::*;
+pub use error::KyberError;
+pub use rand_core::{RngCore, CryptoRng};
 
-// Feature workaround to expose private functions for Known Answer Tests
+// Feature hack to expose private functions for the Known Answer Tests
+// Will fail to compile if used outside `cargo test`
 #[cfg(feature="KATs")]
 pub use kem::*;
-
-/// Keypair generation with a provided RNG.
-/// 
-/// ### Example
-/// ```
-/// # use pqc_kyber::*;
-/// # fn main() -> Result<(), KyberError> {
-/// let mut rng = rand::thread_rng();
-/// let keys = keypair(&mut rng);
-/// # Ok(())}
-/// ```
-pub fn keypair<R>(rng: &mut R) -> Keypair 
-  where R: RngCore + CryptoRng
-{
-  let mut public = [0u8; KYBER_PUBLICKEYBYTES];
-  let mut secret = [0u8; KYBER_SECRETKEYBYTES];
-  kem::crypto_kem_keypair(&mut public, &mut secret, rng, None);
-  Keypair { public, secret }
-}
-
-/// Encapsulates a public key returning the ciphertext to send
-/// and the shared secret
-///
-/// ### Example
-/// ```
-/// # use pqc_kyber::*; 
-/// # fn main() -> Result<(), KyberError> {
-/// let mut rng = rand::thread_rng();
-/// let keys = keypair(&mut rng);
-/// let (ct, ss) = encapsulate(&keys.public, &mut rng)?;
-/// # Ok(())}
-/// ```
-pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated 
-  where R: CryptoRng + RngCore
-{
-  if pk.len() != KYBER_PUBLICKEYBYTES {
-    return Err(KyberError::InvalidInput)
-  }
-  let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
-  let mut ss = [0u8; KYBER_SSBYTES];
-  kem::crypto_kem_enc(&mut ct, &mut ss, pk, rng, None)?;
-  Ok((ct, ss))
-}
-
-/// Decapsulates ciphertext with a secret key, the result will contain
-/// a KyberError if decapsulation fails
-///
-/// ### Example
-/// ```
-/// # use pqc_kyber::*;
-/// # fn main() -> Result<(), KyberError> {
-/// let mut rng = rand::thread_rng();
-/// let keys = keypair(&mut rng);
-/// let (ct, ss1) = encapsulate(&keys.public, &mut rng)?;
-/// let ss2 = decapsulate(&ct, &keys.secret)?;
-/// assert_eq!(ss1, ss2);
-/// #  Ok(())}
-/// ```
-pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated 
-{
-  if ct.len() != KYBER_CIPHERTEXTBYTES || sk.len() != KYBER_SECRETKEYBYTES {
-    return Err(KyberError::InvalidInput)
-  }
-  let mut ss = [0u8; KYBER_SSBYTES];
-  match kem::crypto_kem_dec(&mut ss, ct, sk) {
-    Ok(_) => Ok(ss),
-    Err(e) => Err(e)
-  }
-}
-
-/// Contains a public/private keypair
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub struct Keypair {
-    pub public: PublicKey,
-    pub secret: SecretKey
-}
-
-impl Default for Keypair {
-  fn default() -> Self {
-    Keypair {
-      public: [0u8; KYBER_PUBLICKEYBYTES],
-      secret: [0u8; KYBER_SECRETKEYBYTES]
-    }
-  }
-}
-
-impl Keypair {
-  /// Securely generates a new keypair`
-  /// ```
-  /// # use pqc_kyber::*;
-  /// # fn main() -> Result<(), KyberError> {
-  /// let mut rng = rand::thread_rng();
-  /// let keys = Keypair::generate(&mut rng);
-  /// # let empty_keys = Keypair::default();
-  /// # assert!(empty_keys != keys); 
-  /// # Ok(()) }
-  /// ```
-  pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Keypair {
-    keypair(rng)
-  }
-}
-
