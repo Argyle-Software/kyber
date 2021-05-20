@@ -56,6 +56,8 @@
 
 #![no_std]
 #![allow(clippy::many_single_char_names)]
+
+// Prevent usage of mutually exclusive features
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
@@ -174,7 +176,7 @@ impl Kyber {
   /// assert!(alice.initialized == false);
   /// // Generate a new keypair
   /// let mut rng = rand::thread_rng();
-  /// let keypair = Keypair::generate(&mut rng)?;
+  /// let keypair = Keypair::generate(&mut rng);
   /// alice.set_keys(keypair);
   /// assert!(alice.initialized);
   /// assert_eq!(alice.keys, keypair);
@@ -388,7 +390,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
 /// # use pqc_kyber::*;
 /// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
-/// let keys = keypair(&mut rng)?;
+/// let keys = keypair(&mut rng);
 /// let (ct, ss1) = encapsulate(&keys.public, &mut rng)?;
 /// let ss2 = decapsulate(&ct, &keys.secret)?;
 /// assert_eq!(ss1, ss2);
