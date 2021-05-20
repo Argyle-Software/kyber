@@ -55,11 +55,3 @@ wasm = ["wasm-bindgen"]
 # Do not use this feature for any other purpose than 
 # running the known answer tests
 KATs = []
-
-# Speed up the KATs on CI runners
-# For local development you likely want opt-level set at 0
-[profile.test]
-opt-level = 3
-
-[profile.test.package."*"]
-opt-level = 0
