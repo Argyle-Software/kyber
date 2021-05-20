@@ -2,6 +2,7 @@
 // Different handling of nonce+counter than original version using
 // separated 64-bit nonce and internal 64-bit counter, starting from zero
 // Public Domain 
+#![cfg(feature="90s")]
 
 use core::arch::x86_64::*;
 
