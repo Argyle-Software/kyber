@@ -20,7 +20,7 @@ pub const KYBER_K: usize = 4;
 /// If true AES-CTR and SHA2 will be used as cryptographic primitives instead, 
 /// which may have hardware speed-ups on certain platforms.
 /// 
-/// Defaults to false, set`features = ["90s"]` in cargo to enable. 
+/// Defaults to false, set`features = ["90s"]` in Cargo.toml to enable. 
 #[cfg(not(feature = "90s"))]
 pub const KYBER_90S: bool = false;
 #[cfg(feature = "90s")]
