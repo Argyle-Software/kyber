@@ -62,12 +62,12 @@ cargo test --features "reference kyber1024 90s" --target x86_64-unknown-linux-gn
 ##############################################################
 
 # Omit santiser for test vectors
-export RUSTFLAGS="-C opt-level=3 -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
-cargo build --tests --features "KATs kyber512" 
+cargo build --test kat --features "KATs kyber512" 
 
 announce "Kyber512 KATs"
-cargo test -O 3 --test kat --features "KATs kyber512" 
+cargo test --test kat --features "KATs kyber512" 
 
 announce "Kyber764 KATs"
 cargo test --test kat --features "KATs" 
