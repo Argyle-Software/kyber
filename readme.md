@@ -8,149 +8,144 @@
 
 # Kyber
 
-[![Build Status](https://travis-ci.com/Argyle-Cybersystems/kyber.svg?branch=master)](https://travis-ci.com/Argyle-Cybersystems/kyber)
-[![Coverage Status](https://coveralls.io/repos/github/Argyle-Cybersystems/kyber/badge.svg?branch=develop)](https://coveralls.io/github/Argyle-Cybersystems/kyber?branch=develop)
-[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
-[![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
+[![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
+[![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
+[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
 
 A no_std rust implementation of Kyber that compiles to WASM, it is based on the reference repo written in C which is still being tweaked, there is likely to be some further modifications to the API. Please read the [security considerations](#Security_Considerations) section before using. 
 
 ---
 
-### About
+## Installation
 
-Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. Kyber is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography). The submission lists three different parameter sets aiming at different security levels. Specifically, Kyber-512 aims at security roughly equivalent to AES-128, Kyber-768 aims at security roughly equivalent to AES-192, and Kyber-1024 aims at security roughly equivalent to AES-256. 
-
----
-
-### Installation
-
-In `cargo.toml`:
+In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc-kyber = 0.1.0
+pqc-kyber = 0.2.0
 ```
 
-### Usage
+## Usage 
 
-Kyber re-exports `rand:thread_rng()`. For embedded devices and testing purposes this can be disabled with the feature flag `byo-rng`. 
+Using `rand::thread_rng()` is advised. For platforms where that is not available the
+entropy source used must satisfy the `RngCore` and `CryptoRng` traits. 
 
-```rust
+```
 use pqc_kyber::*;
+use rand::thread_rng;
+```
 
+The higher level structs will be appropriate for most use-cases. 
+Both [unilateral](struct.Uake.html) or [mutually](struct.Ake.html) authenticated key exchanges are possible.
+
+---
+
+### Unilaterally Authenticated Key Exchange
+```
 let mut rng = thread_rng();
-```
 
-#### KEM
+// Initialize the key exchange structs
+let mut alice = Uake::new();
+let mut bob = Uake::new();
 
-```rust
-// Generate Keypair
-let keys = keypair(&mut rng);
-
-// Encapsulate
-let (ct, ss1) = encapsulate(&mut rng, &keys.public).unwrap();
-
-// Decapsulate
-let ss2 = decapsulate(&mut rng, &ct, &keys.secret).unwrap();
-```
-
-
-/////////////// FIX THIS
-
-#### Key Exchange
-```rust
-// Initialise
-let mut eska = [0u8; KYBER_SECRETKEYBYTES];
-
-let mut uake_senda = [0u8; KEX_UAKE_SENDABYTES];
-let mut uake_sendb = [0u8; KEX_UAKE_SENDBBYTES];
-
-let mut tk = [0u8; KEX_SSBYTES];
-let mut ka = [0u8; KEX_SSBYTES];
-let mut kb = [0u8; KEX_SSBYTES];
-
+// Generate Keypairs
 let alice_keys = keypair(&mut rng);
 let bob_keys = keypair(&mut rng);
-```
 
-##### Unilaterally Authenticated Key Exchange
-```rust
-// Alice
-uake_init_a(
- &mut uake_senda, 
- &mut tk, 
- &mut eska, 
- &bob_keys.pubkey
-);
-// Bob
-uake_shared_b(
- &mut uake_sendb, 
- &mut kb, 
- &uake_senda, 
- &bob_keys.secret
-).unwrap();
-// Alice
-uake_shared_a(
- &mut ka, 
- &uake_sendb, 
- &tk, 
- &eska
-).unwrap();
+// Alice initiates key exchange
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 
-assert_eq!(ka, kb);
-```
+// Bob authenticates and responds
+let server_send = bob.server_receive(
+  client_init, &bob_keys.secret, &mut rng
+)?;
 
-##### Mutually Authenticated Key Exchange
-```rust
- // Alice
- ake_init_a(
-   &mut ake_senda, 
-   &mut tk, 
-   &mut eska, 
-   &bob_keys.pubkey
- );
- // Bob
- ake_shared_b(
-   &mut ake_sendb, 
-   &mut kb, 
-   &ake_senda, 
-   &bob_keys.secret,
-   &alice_keys.pubkey
- ).unwrap();
- // Alice
- ake_shared_a(
-   &mut ka, 
-   &ake_sendb, 
-   &tk, 
-   &eska,
-   &alice_keys.secret
- ).unwrap();
+// Alice decapsulates the shared secret
+alice.client_confirm(server_send)?;
 
- assert_eq!(ka, kb);
+// Both key exchange structs now have the shared secret
+assert_eq!(alice.shared_secret, bob.shared_secret);
 ```
 
 ---
 
-### Features
+### Mutually Authenticated Key Exchange
+Mutual authentication follows the same workflow but with additional keys passed to the functions:
 
-TODO: Markdown Table of features
+```
+let mut alice = Ake::new();
+let mut bob = Ake::new();
 
+let alice_keys = keypair(&mut rng);
+let bob_keys = keypair(&mut rng);
+
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+
+let server_send = bob.server_receive(
+  client_init, &alice_keys.public, &bob_keys.secret, &mut rng
+)?;
+
+alice.client_confirm(server_send, &alice_keys.secret)?;
+
+assert_eq!(alice.shared_secret, bob.shared_secret);
+```
+
+---
+
+### Key Encapsulation
+Lower level functions for using the Kyber algorithm directly.
+```
+// Generate Keypair
+let keys_bob = keypair(&mut rng);
+
+// Alice encapsulates a shared secret using Bob's public key
+let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
+
+// Bob decapsulates a shared secret using the ciphertext sent by Alice 
+let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+
+assert_eq!(shared_secret_alice, shared_secret_bob);
+```
+
+---
+
+## Errors
+The [KyberError](enum.KyberError.html) enum handles errors. It has two variants:
+
+* **InvalidInput** - One or more byte inputs to a function are incorrectly sized. A likely cause of 
+this is two parties using different security levels while trying to negotiate a key exchange.
+
+* **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated  
+
+
+---
+
+## Features
+
+| Feature   | Description                                                                                                                                                                |
+|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.                                                                                                |
+| kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.  A compile-time error is raised if more than one security level is specified.                 |
+| 90s       | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
+| reference | On x86_64 platforms the optimized version is used by default. Enabling this feature will force usage of the reference codebase. This flag is redundant on other architectures. |
+| wasm      | For compiling to WASM targets.                                                                                                                                     |
+
+---
 
 ### Testing
 
-The [run_all_tests](tests/run_all_tests.sh) script will traverse all codepaths by running a matrix of all security levels and variants.
+The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels and variants.
 
-Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them. Do not use this feature outside of testing, as it exposes private API functions.
+Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them and specify the module. Using this feature outside of `cargo test` will result in a compile-time error.
 
 ```shell
-# Runs all KATs for kyber764
-cargo test --features "KATs"
+# This example runs all KAT's for kyber512-90s, note `--test kat` is needed here.
+cargo test --test kat --features "KATs kyber512 90s"
 ```
 
-Please view the [testing readme](./tests/readme.md) for more comphrensive info.
+The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KATs/build_kats.sh). See the [testing readme](./tests/readme.md) for more comprehensive info.
 
 ---
 
@@ -158,21 +153,17 @@ Please view the [testing readme](./tests/readme.md) for more comphrensive info.
 
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `target/criterion/`.
 
-See the [benchmarking readme](./benches/readme.md)
-
-```
-cargo bench
-```
+See the [benchmarking readme](./benches/readme.md) for information on correct usage.
 
 ---
 
 ### WebAssembly
 
-This library has been compiled into a WASM binary package. Usage instructions are published on npm:
+This library has been compiled and published as a WASM binary package. Usage instructions are published on npm:
 
 https://www.npmjs.com/package/pqc-kyber
 
-Which is also located in the [wasm pkg folder readme](./pkg/README.md)
+Which is also located here in the [wasm readme](./pkg/README.md)
 
 To install:
 
@@ -182,7 +173,7 @@ npm i pqc-kyber
 
 See also the basic html demo in the examples that can be run and inspected.
 
-To use this lib for web assembly purposes you'll need the `wasm` feature enabled.
+To use this library for web assembly purposes you'll need the `wasm` feature enabled.
 
 ```toml
 [dependencies]
@@ -197,18 +188,40 @@ To build:
 wasm-pack build -- --features wasm
 ```
 
+---
 
+### Security Considerations
+The NIST post quantum standardisation project is still ongoing and changes may still be made to the underlying reference code at any time. 
+
+While much care has been taken porting from the C reference codebase, this library has not undergone any third-party security auditing nor can any guarantees be made about the potential for underlying vulnerabilities in LWE cryptography or potential side-channel attacks arising from this implementation.
+
+Please use at your own risk.
+
+---
+
+### About
+
+Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
+
+
+
+Authors of the Kyber Algorithm: 
+
+* Roberto Avanzi, ARM Limited (DE)
+* Joppe Bos, NXP Semiconductors (BE)
+* Léo Ducas, CWI Amsterdam (NL)
+* Eike Kiltz, Ruhr University Bochum (DE)
+* Tancrède Lepoint, SRI International (US)
+* Vadim Lyubashevsky, IBM Research Zurich (CH)
+* John M. Schanck, University of Waterloo (CA)
+* Peter Schwabe, Radboud University (NL)
+* Gregor Seiler, IBM Research Zurich (CH)
+* Damien Stehle, ENS Lyon (FR)
 
 ---
 
 ### Contributing 
 
-Contributions welcome. For PR's create a feature fork and submit it to the development branch.
+Contributions welcome. For pull requests create a feature fork and submit it to the development branch. More information is available on the [contributing page](./contributing.md)
 
-### Security Considerations
 
-The NIST post quantum standardisation project is still ongoing 
-
-While care has been taken porting from the C reference codebase, this library has not undergone any security auditing nor can any guarantees be made about the potential for underlying vulnerabilities or potential side-channel attacks.
-
-Please use at your own risk.
