@@ -50,7 +50,7 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 /// let mut bob = Uake::new();
 /// let bob_keys = keypair(&mut rng);
 /// 
-/// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+/// let client_init = alice.client_init(&bob_keys.public, &mut rng);
 /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
 /// let client_confirm = alice.client_confirm(server_send);
 /// 
@@ -98,18 +98,18 @@ impl Uake {
   /// let mut rng = rand::thread_rng();
   /// let mut alice = Uake::new();
   /// let bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// # Ok(()) }
   /// ```
   pub fn client_init<R>(&mut self, pubkey: &PublicKey, rng: &mut R) 
-  -> Result<UakeSendInit, KyberError> 
+  -> UakeSendInit
     where R: CryptoRng + RngCore
   {
     uake_init_a(
       &mut self.send_a, &mut self.temp_key, 
       &mut self.eska, pubkey, rng
-    )?;
-    Ok(self.send_a)
+    );
+    self.send_a
   }
 
   /// Handles the output of a `client_init()` request
@@ -120,7 +120,7 @@ impl Uake {
   /// let mut alice = Uake::new();
   /// let mut bob = Uake::new();
   /// let mut bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
@@ -145,7 +145,7 @@ impl Uake {
   /// # let mut alice = Uake::new();
   /// # let mut bob = Uake::new();
   /// # let bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send);
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
@@ -175,7 +175,7 @@ impl Uake {
 /// let alice_keys = keypair(&mut rng);
 /// let bob_keys = keypair(&mut rng);
 /// 
-/// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+/// let client_init = alice.client_init(&bob_keys.public, &mut rng);
 /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
 /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
 /// 
@@ -224,18 +224,18 @@ impl Ake {
   /// let mut rng = rand::thread_rng();
   /// let mut alice = Ake::new();
   /// let bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// # Ok(()) }
   /// ```
   pub fn client_init<R>(&mut self, pubkey: &PublicKey, rng: &mut R) 
-  -> Result<AkeSendInit, KyberError>
+  -> AkeSendInit
     where R: CryptoRng + RngCore
   {
     ake_init_a(
       &mut self.send_a, &mut self.temp_key, 
       &mut self.eska, pubkey, rng
-    )?;
-    Ok(self.send_a)
+    );
+    self.send_a
   }
 
   /// Handles and authenticates the output of a `client_init()` request
@@ -247,7 +247,7 @@ impl Ake {
   /// let mut bob = Ake::new();
   /// let alice_keys = keypair(&mut rng);
   /// let bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
@@ -274,7 +274,7 @@ impl Ake {
   /// # let mut bob = Ake::new();
   /// # let alice_keys = keypair(&mut rng);
   /// # let bob_keys = keypair(&mut rng);
-  /// # let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// # let client_init = alice.client_init(&bob_keys.public, &mut rng);
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
@@ -298,12 +298,11 @@ fn uake_init_a<R>(
   sk: &mut[u8], 
   pkb: &[u8],
   rng: &mut R
-) -> Result<(), KyberError>
+)
   where R: CryptoRng + RngCore
 {
   crypto_kem_keypair(send, sk, rng, None);
   crypto_kem_enc(&mut send[KYBER_PUBLICKEYBYTES..], tk, pkb, rng, None);
-  Ok(())
 }
 
 // Unilaterally authenticated key exchange computation by Bob 
@@ -345,12 +344,11 @@ fn ake_init_a<R>(
   sk: &mut[u8], 
   pkb: &[u8],
   rng: &mut R
-) -> Result<(), KyberError>
+)
   where R: CryptoRng + RngCore
 {
   crypto_kem_keypair(send, sk, rng, None);
   crypto_kem_enc(&mut send[KYBER_PUBLICKEYBYTES..], tk, pkb, rng, None);
-  Ok(())
 }
 
 // Mutually authenticated key exchange computation by Bob

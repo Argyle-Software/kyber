@@ -55,7 +55,7 @@ let alice_keys = keypair(&mut rng);
 let bob_keys = keypair(&mut rng);
 
 // Alice initiates key exchange
-let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
 // Bob authenticates and responds
 let server_send = bob.server_receive(
@@ -81,7 +81,7 @@ let mut bob = Ake::new();
 let alice_keys = keypair(&mut rng);
 let bob_keys = keypair(&mut rng);
 
-let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
 let server_send = bob.server_receive(
   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
