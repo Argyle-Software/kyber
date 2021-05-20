@@ -1,9 +1,10 @@
+#[cfg(not(feature="KATs"))]
+use crate::rng::randombytes;
 use rand_core::{RngCore, CryptoRng};
 use crate::{
   params::*,
   indcpa::*,
   symmetric::*,
-  rng::randombytes,
   error::KyberError,
   verify::*
 };
