@@ -1,3 +1,4 @@
+#![cfg(not(feature="KATs"))]
 use pqc_kyber::*;
 
 #[test]
