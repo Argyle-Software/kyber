@@ -1,12 +1,12 @@
+#![cfg(not(feature="KATs"))]
+use crate::rng::randombytes;
 use crate::{
   poly::*,
   polyvec::*,
-  rng::*,
   symmetric::*,
   params::*,
   RngCore,
   CryptoRng,
-  KyberError
 };
 
 // Name:        pack_pk
@@ -190,7 +190,7 @@ pub fn indcpa_keypair<R>(
   pk : &mut[u8], 
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
-  rng: &mut R
+  _rng: &mut R
 )
   where R: CryptoRng + RngCore
 {
@@ -201,11 +201,11 @@ pub fn indcpa_keypair<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, rng);
+  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
   
   // Use rng seed for test vectors
   #[cfg(feature="KATs")]
-  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
+  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT feature only for testing").0);
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 
