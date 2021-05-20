@@ -1,4 +1,4 @@
-#![cfg(not(feature="KATs"))]
+#[cfg(not(feature="KATs"))]
 use crate::rng::randombytes;
 use crate::{
   poly::*,
