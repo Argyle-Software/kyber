@@ -1,9 +1,11 @@
 
-#![allow(non_snake_case)]
+#![allow(non_snake_case, dead_code)]
 use core::arch::x86_64::*;
 use crate::params::KYBER_N;
 use crate::poly::*;
-use crate::align::{Eta4xBuf, IndcpaBuf};
+use crate::align::Eta4xBuf;
+#[cfg(feature="90s")]
+use crate::align::IndcpaBuf;
 
 fn cbd2(r: &mut Poly, buf: &[__m256i]) {
   unsafe {
@@ -114,7 +116,7 @@ pub fn poly_cbd_eta1(r: &mut Poly, buf: &Eta4xBuf)
   }
 }
 
-// TODO: generic function  
+#[cfg(feature="90s")]
 pub fn poly_cbd_eta1_90s(r: &mut Poly, buf: &IndcpaBuf) 
 {
   unsafe {
@@ -127,6 +129,7 @@ pub fn poly_cbd_eta1_90s(r: &mut Poly, buf: &IndcpaBuf)
   }
 }
 
+ 
 pub fn poly_cbd_eta2(r: &mut Poly, buf: &[__m256i]) 
 {
   cbd2(r, &buf)
