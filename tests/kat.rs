@@ -18,8 +18,7 @@ fn keypairs() {
     let bufs = Some((&buf1[..], &buf2[..]));
     let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
     let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-    let res = crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs);
-    assert!(res.is_ok(), "Keypair generation failure");
+    crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs);
     assert_eq!(&pk[..], &known_pk[..], "Public key KAT mismatch");
     assert_eq!(&sk[..], &known_sk[..], "Secret key KAT mismatch");
   }
