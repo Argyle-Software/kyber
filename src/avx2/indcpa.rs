@@ -1,18 +1,19 @@
 use core::arch::x86_64::*;
-#[cfg(not(feature = "90s"))] use crate::{  fips202::*, fips202x4::*};
+#[cfg(not(feature = "90s"))] 
+use crate::{fips202::*, fips202x4::*};
+#[cfg(feature = "90s")] 
+use crate::{aes256ctr::*, cbd::*};
+#[cfg(not(feature="KATs"))]
+use crate::rng::randombytes;
 use crate::{
-  aes256ctr::*,
-  cbd::*,
+  align::*,
+  CryptoRng,
+  params::*,
   poly::*,
   polyvec::*,
-  rng::*,
-  symmetric::*,
-  params::*,
-  RngCore,
-  CryptoRng,
-  align::*,
   rejsample::*,
-  KyberError
+  RngCore,
+  symmetric::*,
 };
 
 // Name:        pack_pk
@@ -460,7 +461,7 @@ pub fn indcpa_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
-  rng: &mut R
+  _rng: &mut R
 )
   where R: CryptoRng + RngCore
 {
@@ -471,7 +472,7 @@ pub fn indcpa_keypair<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, rng);
+  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
 
   #[cfg(feature="KATs")]
   randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
@@ -482,7 +483,8 @@ pub fn indcpa_keypair<R>(
   let (publicseed, noiseseed) = buf.split_at(KYBER_SYMBYTES);
   gen_a(&mut a, publicseed);
 
-  if cfg!(feature="90s") {
+  #[cfg(feature="90s")]
+  {
     // Assumes divisibility
     const NOISE_NBLOCKS: usize = (KYBER_ETA1*KYBER_N/4)/XOF_BLOCKBYTES;
     let mut nonce = 0u64;
@@ -505,7 +507,8 @@ pub fn indcpa_keypair<R>(
       }
     }
   } 
-  else if cfg!(feature="kyber512") 
+  
+  #[cfg(all(feature="kyber512", not(feature="90s")))]
   {
     let (skpv0, skpv1) =skpv.vec.split_at_mut(1);
     let (e0, e1) = e.vec.split_at_mut(1);
@@ -513,7 +516,8 @@ pub fn indcpa_keypair<R>(
       &mut skpv0[0], &mut skpv1[0], &mut e0[0], &mut e1[0], noiseseed, 0, 1, 2, 3
     );
   } 
-  else if cfg!(feature="kyber1024") 
+
+  #[cfg(all(feature="kyber1024", not(feature="90s")))]
   {
     let (skpv0, skpv1) = skpv.vec.split_at_mut(1);
     let (skpv1, skpv2) = skpv1.split_at_mut(1);
@@ -528,7 +532,8 @@ pub fn indcpa_keypair<R>(
       &mut e0[0], &mut e1[0], &mut e2[0], &mut e3[0], noiseseed, 4, 5, 6, 7
     );
   }
-  else // kyber764 
+  
+  #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber764 
   {
     let (skpv0, skpv1) = skpv.vec.split_at_mut(1);
     let (skpv1, skpv2) = skpv1.split_at_mut(1);
@@ -570,7 +575,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
     poly_frommsg(&mut k, m);
     gen_at(&mut at, &seed);
 
-    if cfg!(feature="90s") {
+    #[cfg(feature="90s")] 
+    {
       const NOISE_NBLOCKS: usize  = (KYBER_ETA1*KYBER_N/4)/XOF_BLOCKBYTES;
       const CIPHERTEXTNOISE_NBLOCKS: usize  = (KYBER_ETA2*KYBER_N/4)/XOF_BLOCKBYTES;
        let mut buf = IndcpaBuf::new();
@@ -593,8 +599,9 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
       aes256ctr_squeezeblocks(&mut buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &mut state);
       state.n = _mm_loadl_epi64([nonce, 0].as_ptr() as *const __m128i);
       poly_cbd_eta2(&mut epp, &buf.vec);
-    } 
-    else if cfg!(feature="kyber512") 
+    }
+
+    #[cfg(all(feature="kyber512", not(feature="90s")))] 
     {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (ep0, ep1) = ep.vec.split_at_mut(1);
@@ -603,7 +610,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
       );
       poly_getnoise_eta2(&mut epp, coins, 4); 
     } 
-    else if cfg!(not(any(feature="kyber512", feature="kyber1024")))
+
+    #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber764)
     {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (sp1, sp2) = sp1.split_at_mut(1);
@@ -614,8 +622,9 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
       poly_getnoise_eta1_4x(
         &mut ep1[1], &mut ep2[0], &mut epp, &mut b.vec[0], coins,  4, 5, 6, 7
       );
-    } 
-    else if cfg!(feature="kyber1024") 
+    }
+
+    #[cfg(all(feature="kyber1024", not(feature="90s")))]
     {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (sp1, sp2) = sp1.split_at_mut(1);
