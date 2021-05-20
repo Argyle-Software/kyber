@@ -18,8 +18,8 @@ use crate::{
 pub fn crypto_kem_keypair<R>(
   pk: &mut[u8], 
   sk: &mut[u8], 
-  rng: &mut R,
-  seed: Option<(&[u8], &[u8])> 
+  _rng: &mut R,
+  _seed: Option<(&[u8], &[u8])> 
 )
   where R: RngCore + CryptoRng
 { 
@@ -27,17 +27,17 @@ pub fn crypto_kem_keypair<R>(
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   
-  indcpa_keypair(pk, sk, seed, rng);
+  indcpa_keypair(pk, sk, _seed, _rng);
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
   
   #[cfg(feature="KATs")]
-  sk[SK_START..].copy_from_slice(&seed.expect("KATs feature only for testing").1);
+  sk[SK_START..].copy_from_slice(&_seed.expect("KATs feature only for testing").1);
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, rng);
+  randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng);
 
 }
 
@@ -53,7 +53,7 @@ pub fn crypto_kem_enc<R>(
   ct: &mut[u8], 
   ss: &mut[u8], 
   pk: &[u8],
-  rng: &mut R,
+  _rng: &mut R,
   _seed: Option<&[u8]>
 ) -> Result<(), KyberError>
   where R: RngCore + CryptoRng
@@ -63,7 +63,7 @@ pub fn crypto_kem_enc<R>(
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
   #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, rng);
+  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
   
   // Deterministic randbuf for KAT's
   #[cfg(feature="KATs")]
