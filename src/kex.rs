@@ -56,7 +56,7 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 /// 
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Uake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
@@ -182,7 +182,7 @@ impl Uake {
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct Ake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
