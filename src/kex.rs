@@ -6,16 +6,14 @@ use crate::{
   KyberError
 };
 
-/// Unilateral key exchange send A size
-pub const KEX_UAKE_SENDABYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
-/// Unilateral key exchange send B size
-pub const KEX_UAKE_SENDBBYTES: usize = KYBER_CIPHERTEXTBYTES;
-/// Key exchange send A size
-pub const KEX_AKE_SENDABYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
-/// Key exchange send B size
-pub const KEX_AKE_SENDBBYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
-/// Key exchange shared key size
-pub const KEX_SSBYTES: usize = KYBER_SSBYTES;
+/// Unilateral Key Exchange Initiation Byte Length 
+pub const UAKE_INIT_BYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
+/// Unilateral Key Exchange Response Byte Length
+pub const UAKE_RESPONSE_BYTES: usize = KYBER_CIPHERTEXTBYTES;
+/// Mutual Key Exchange Initiation Byte Length 
+pub const AKE_INIT_BYTES: usize = KYBER_PUBLICKEYBYTES + KYBER_CIPHERTEXTBYTES;
+/// Mutual Key Exchange Response Byte Length
+pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated =  Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError>;
@@ -28,28 +26,44 @@ pub type SecretKey = [u8; KYBER_SECRETKEYBYTES];
 /// Kyber Shared Secret
 pub type SharedSecret = [u8; KYBER_SSBYTES]; 
 /// Bytes to send when initiating a unilateral key exchange
-pub type UakeSendA = [u8; KEX_UAKE_SENDABYTES]; 
+pub type UakeSendInit = [u8; UAKE_INIT_BYTES]; 
 /// Bytes to send when responding to a unilateral key exchange
-pub type UakeSendB = [u8; KEX_UAKE_SENDBBYTES]; 
+pub type UakeSendResponse = [u8; UAKE_RESPONSE_BYTES]; 
 /// Bytes to send when initiating a mutual key exchange
-pub type AkeSendA = [u8; KEX_AKE_SENDABYTES]; 
+pub type AkeSendInit = [u8; AKE_INIT_BYTES]; 
 /// Bytes to send when responding to a mutual key exchange
-pub type AkeSendB = [u8; KEX_AKE_SENDBBYTES]; 
+pub type AkeSendResponse = [u8; AKE_RESPONSE_BYTES]; 
 
 // Ephemeral keys
-type TempKey = [u8; KEX_SSBYTES];
+type TempKey = [u8; KYBER_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
 // TODO: implement zeroise feature
+/// Used for unilaterally authenticated key exchange between two parties.
+/// 
+/// ```
+/// # use pqc_kyber::*;
+/// # fn main() -> Result<(),KyberError> {
+/// let mut rng = rand::thread_rng();
+/// 
+/// let mut alice = Uake::new();
+/// let mut bob = Uake::new();
+/// let bob_keys = keypair(&mut rng);
+/// 
+/// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+/// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
+/// let client_confirm = alice.client_confirm(server_send);
+/// 
+/// assert_eq!(alice.shared_secret, bob.shared_secret);
+/// # Ok(()) }
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Uake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
   /// Sent when initiating a key exchange
-  pub send_a: UakeSendA,
+  send_a: UakeSendInit,
   /// Response to a key exchange initiation
-  pub send_b: UakeSendB,
-
+  send_b: UakeSendResponse,
   // Epheremal keys
   temp_key: TempKey,
   eska: Eska
@@ -59,25 +73,25 @@ impl Default for Uake {
   fn default() -> Self {
     Uake {
       shared_secret: [0u8; KYBER_SSBYTES],
-      send_a: [0u8; KEX_UAKE_SENDABYTES],
-      send_b: [0u8; KEX_UAKE_SENDBBYTES],
-      temp_key: [0u8; KEX_SSBYTES],
+      send_a: [0u8; UAKE_INIT_BYTES],
+      send_b: [0u8; UAKE_RESPONSE_BYTES],
+      temp_key: [0u8; KYBER_SSBYTES],
       eska: [0u8; KYBER_SECRETKEYBYTES],
     }
   }
 }
 
 impl Uake {
-  /// A new unilaterally authenticated key exchange
+  /// Builds new UAKE struct
   /// ```
   /// # use pqc_kyber::Uake;
-  /// let kex = Uake::new();
+  /// let mut kex = Uake::new();
   /// ```
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Initiates a Unilateral Authenticated Key Exchange.
+  /// Initiates a Unilaterally Authenticated Key Exchange.
   /// ``` 
   /// # use pqc_kyber::*;
   /// # fn main() -> Result<(),KyberError> {
@@ -88,7 +102,7 @@ impl Uake {
   /// # Ok(()) }
   /// ```
   pub fn client_init<R>(&mut self, pubkey: &PublicKey, rng: &mut R) 
-  -> Result<UakeSendA, KyberError> 
+  -> Result<UakeSendInit, KyberError> 
     where R: CryptoRng + RngCore
   {
     uake_init_a(
@@ -110,9 +124,9 @@ impl Uake {
   /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
-    &mut self, send_a: UakeSendA, secretkey: &SecretKey, rng: &mut R
+    &mut self, send_a: UakeSendInit, secretkey: &SecretKey, rng: &mut R
   ) 
-  -> Result<UakeSendB, KyberError> 
+  -> Result<UakeSendResponse, KyberError> 
     where R: CryptoRng + RngCore
   {
     uake_shared_b(
@@ -136,7 +150,7 @@ impl Uake {
   /// let client_confirm = alice.client_confirm(server_send);
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
   /// # Ok(()) }
-  pub fn client_confirm(&mut self, send_b: UakeSendB) 
+  pub fn client_confirm(&mut self, send_b: UakeSendResponse) 
   -> Result<(), KyberError> 
   {
     uake_shared_a(
@@ -147,14 +161,35 @@ impl Uake {
   }
 }
 
+/// Used for mutually authenticated key exchange between two parties.
+/// 
+/// # Example:
+/// ``` 
+/// # use pqc_kyber::*;
+/// # fn main() -> Result<(),KyberError> {
+/// let mut rng = rand::thread_rng();
+/// 
+/// let mut alice = Ake::new();
+/// let mut bob = Ake::new();
+/// 
+/// let alice_keys = keypair(&mut rng);
+/// let bob_keys = keypair(&mut rng);
+/// 
+/// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+/// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
+/// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
+/// 
+/// assert_eq!(alice.shared_secret, bob.shared_secret);
+/// # Ok(()) }
+/// ```
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Ake {
-  /// The resulting symmetrical shared secret from a key exchange
+  /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
   /// Sent when initiating a key exchange
-  pub send_a: AkeSendA,
+  send_a: AkeSendInit,
   /// Sent back responding to a key exchange initiation
-  pub send_b: AkeSendB,
+  send_b: AkeSendResponse,
   // Epheremal keys
   temp_key: TempKey,
   eska: Eska
@@ -164,19 +199,19 @@ impl Default for Ake {
   fn default() -> Self {
     Ake {
       shared_secret: [0u8; KYBER_SSBYTES],
-      send_a: [0u8; KEX_AKE_SENDABYTES],
-      send_b: [0u8; KEX_AKE_SENDBBYTES],
-      temp_key: [0u8; KEX_SSBYTES],
+      send_a: [0u8; AKE_INIT_BYTES],
+      send_b: [0u8; AKE_RESPONSE_BYTES],
+      temp_key: [0u8; KYBER_SSBYTES],
       eska: [0u8; KYBER_SECRETKEYBYTES],
     }
   }
 }
 
 impl Ake {
-  /// A new mutually authenticated key exchange
+  /// Builds a new AKE struct
   /// ```
   /// # use pqc_kyber::Ake;
-  /// let kex = Ake::new();
+  /// let mut kex = Ake::new();
   /// ```
   pub fn new() -> Self {
     Self::default()
@@ -193,7 +228,7 @@ impl Ake {
   /// # Ok(()) }
   /// ```
   pub fn client_init<R>(&mut self, pubkey: &PublicKey, rng: &mut R) 
-  -> Result<AkeSendA, KyberError>
+  -> Result<AkeSendInit, KyberError>
     where R: CryptoRng + RngCore
   {
     ake_init_a(
@@ -216,10 +251,10 @@ impl Ake {
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
-    &mut self, ake_send_a: AkeSendA, pubkey: &PublicKey, 
+    &mut self, ake_send_a: AkeSendInit, pubkey: &PublicKey, 
     secretkey: &SecretKey, rng: &mut R
   ) 
-  -> Result<AkeSendB, KyberError>
+  -> Result<AkeSendResponse, KyberError>
     where R: CryptoRng + RngCore 
   {
     ake_shared_b(
@@ -235,16 +270,16 @@ impl Ake {
   /// # use pqc_kyber::*;
   /// # fn main() -> Result<(),KyberError> {
   /// # let mut rng = rand::thread_rng();
-  /// let mut alice = Ake::new();
-  /// let mut bob = Ake::new();
-  /// let alice_keys = keypair(&mut rng);
-  /// let bob_keys = keypair(&mut rng);
-  /// let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
+  /// # let mut alice = Ake::new();
+  /// # let mut bob = Ake::new();
+  /// # let alice_keys = keypair(&mut rng);
+  /// # let bob_keys = keypair(&mut rng);
+  /// # let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
   /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
   /// # Ok(()) }
-  pub fn client_confirm(&mut self, send_b: AkeSendB, secretkey: &SecretKey) 
+  pub fn client_confirm(&mut self, send_b: AkeSendResponse, secretkey: &SecretKey) 
   -> Result<(), KyberError> 
   {
     ake_shared_a(
@@ -256,7 +291,7 @@ impl Ake {
 }
 
 
-/// Unilaterally Authenticated Key Exchange initiation
+// Unilaterally Authenticated Key Exchange initiation
 fn uake_init_a<R>(
   send: &mut[u8], 
   tk: &mut[u8], 
@@ -271,8 +306,8 @@ fn uake_init_a<R>(
   Ok(())
 }
 
-/// Unilaterally authenticated key exchange computation by Bob 
-pub fn uake_shared_b<R>(
+// Unilaterally authenticated key exchange computation by Bob 
+fn uake_shared_b<R>(
   send: &mut[u8], 
   k: &mut[u8], 
   recv: &[u8], 
@@ -288,7 +323,7 @@ pub fn uake_shared_b<R>(
   Ok(())
 }
 
-/// Unilaterally authenticated key exchange computation by Alice
+// Unilaterally authenticated key exchange computation by Alice
 fn uake_shared_a(
   k: &mut[u8], 
   recv: &[u8], 
@@ -303,7 +338,7 @@ fn uake_shared_a(
   Ok(())
 }
 
-/// Authenticated key exchange initiation by Alice
+// Authenticated key exchange initiation by Alice
 fn ake_init_a<R>(
   send: &mut[u8], 
   tk: &mut[u8], 
@@ -318,7 +353,7 @@ fn ake_init_a<R>(
   Ok(())
 }
 
-/// Mutually authenticated key exchange computation by Bob
+// Mutually authenticated key exchange computation by Bob
 fn ake_shared_b<R>(
   send: &mut[u8], 
   k: &mut[u8], 
@@ -337,7 +372,7 @@ fn ake_shared_b<R>(
   Ok(())
 }
 
-/// Mutually authenticated key exchange computation by Alice
+// Mutually authenticated key exchange computation by Alice
 fn ake_shared_a(
   k: &mut[u8], 
   recv: &[u8], 
