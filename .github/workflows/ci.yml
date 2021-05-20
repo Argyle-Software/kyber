@@ -8,7 +8,7 @@ on:
 
 jobs:
   all-tests:
-    name: Known Answer Tests
+    name: Test Matrix
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
