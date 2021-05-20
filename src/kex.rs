@@ -21,8 +21,9 @@ pub const KEX_AKE_SENDBBYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
 /// Key exchange shared key size
 pub const KEX_SSBYTES: usize = KYBER_SSBYTES;
 
+
 /// Unilaterally Authenticated Key Exchange initiation
-pub fn uake_init_a<R>(
+pub(crate) fn uake_init_a<R>(
   send: &mut[u8], 
   tk: &mut[u8], 
   sk: &mut[u8], 
@@ -54,7 +55,7 @@ pub fn uake_shared_b<R>(
 }
 
 /// Unilaterally authenticated key exchange computation by Alice
-pub fn uake_shared_a(
+pub(crate) fn uake_shared_a(
   k: &mut[u8], 
   recv: &[u8], 
   tk: &[u8], 
@@ -69,7 +70,7 @@ pub fn uake_shared_a(
 }
 
 /// Authenticated key exchange initiation by Alice
-pub fn ake_init_a<R>(
+pub(crate) fn ake_init_a<R>(
   send: &mut[u8], 
   tk: &mut[u8], 
   sk: &mut[u8], 
@@ -84,7 +85,7 @@ pub fn ake_init_a<R>(
 }
 
 /// Mutually authenticated key exchange computation by Bob
-pub fn ake_shared_b<R>(
+pub(crate) fn ake_shared_b<R>(
   send: &mut[u8], 
   k: &mut[u8], 
   recv: &[u8], 
@@ -103,7 +104,7 @@ pub fn ake_shared_b<R>(
 }
 
 /// Mutually authenticated key exchange computation by Alice
-pub fn ake_shared_a(
+pub(crate) fn ake_shared_a(
   k: &mut[u8], 
   recv: &[u8], 
   tk: &[u8], 
