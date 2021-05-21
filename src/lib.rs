@@ -143,6 +143,7 @@ pub use error::KyberError;
 pub use rand_core::{RngCore, CryptoRng};
 
 // Feature hack to expose private functions for the Known Answer Tests
-// Will fail to compile if used outside `cargo test`
-#[cfg(feature="KATs")]
+// and fuzzing. Will fail to compile if used outside `cargo test` or 
+// the fuzz binaries.
+#[cfg(any(feature="KATs", fuzzing))]
 pub use kem::*;
