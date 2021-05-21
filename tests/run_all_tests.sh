@@ -8,6 +8,7 @@ set -e
 # Enable avx2 target features
 # Enable LLVM address sanitser checks
 export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+export RUSTDOCFLAGS="-Z sanitizer=address"
 
 rustup default nightly
 
