@@ -6,9 +6,8 @@ set -e
 # Known Answer Tests are run seperately
 
 # Enable avx2 target features
-# Enable LLVM address and leak sanitser checks
-export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
-export RUSTDOCFLAGS="-Z sanitizer=leak"
+# Enable LLVM address sanitser checks
+export ="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 rustup default nightly
 
@@ -63,7 +62,7 @@ cargo test --features "reference kyber1024 90s" --target x86_64-unknown-linux-gn
 
 ##############################################################
 
-# Omit santiser for test vectors
+# Omit santiser for faster test vectors
 export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 cargo build --test kat --features "KATs kyber512" 
