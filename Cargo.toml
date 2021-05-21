@@ -58,7 +58,7 @@ KATs = []
 [profile.test]
 opt-level = 2
 
-[profile.test.package.*]
+[profile.test.package."*"]
 opt-level = 0
 
 [profile.test.build-override]
