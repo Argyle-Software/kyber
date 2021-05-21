@@ -91,7 +91,9 @@ impl Keypair {
   /// # fn main() -> Result<(), KyberError> {
   /// let mut rng = rand::thread_rng();
   /// let keys = Keypair::generate(&mut rng);
-  /// # let empty_keys = Keypair::default();
+  /// # let empty_keys = Keypair{
+  ///   public: [0u8; KYBER_PUBLICKEYBYTES], secret: [0u8; KYBER_SECRETKEYBYTES]
+  /// };
   /// # assert!(empty_keys != keys); 
   /// # Ok(()) }
   /// ```
