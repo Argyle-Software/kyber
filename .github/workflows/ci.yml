@@ -21,7 +21,7 @@ jobs:
 
       - name: Generate KATs
         working-directory: ./tests/KATs
-        run: ./build_kats.sh
+        run: sudo ./build_kats.sh
 
       - name: Run tests on all features
         run: ./tests/run_all_tests.sh
