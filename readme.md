@@ -6,19 +6,19 @@
 
 
 # Kyber
-
 [![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
+[![dependency status](https://deps.rs/repo/github/Argyle-Cybersystems/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Cybersystems/kyber)
 [![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
 
-A rust implementation of the Kyber algorithm
+A rust implementation of the Kyber algorithm, a post-quantum KEM that is a finalist in NIST's Post-Quantum Standardization Project.
 
 This library:
-* Uses no_std and needs no allocator, suitable for embedded devices. 
-* Has no unsafe code in the reference files.
-* On x86_64 platforms uses an optimized avx2 version by default.
+* Is no_std compatible and needs no allocator, suitable for embedded devices. 
+* Reference files contain no unsafe code and are written in pure rust.
+* On x86_64 platforms uses an avx2 optimized version by default, which includes some assembly code taken from the C repo. 
 * Compiles to WASM using wasm-bindgen and has a ready-to-use binary published on NPM.
 
 
@@ -39,13 +39,13 @@ pqc-kyber = 0.2.0
 
 ## Usage 
 
-
 ```rust
 use pqc_kyber::*;
 use rand::thread_rng;
 ```
-Using `rand::thread_rng()` is highly advised. For other platforms where it is not available the
+Using `rand::thread_rng()` is advised, where it is not available the
 entropy source must satisfy the `RngCore` and `CryptoRng` traits which are re-exported by this crate. 
+Check the version number of rand_core if getting trait bound errors.
 
 
 The higher level structs will be appropriate for most use-cases. 
@@ -125,11 +125,10 @@ assert_eq!(shared_secret_alice, shared_secret_bob);
 ## Errors
 The KyberError enum handles errors. It has two variants:
 
-* **InvalidInput** - One or more byte inputs to a function are incorrectly sized. A likely cause of 
+* **InvalidInput** - One or more byte inputs to a function are incorrectly sized. A possible cause of 
 this is two parties using different security levels while trying to negotiate a key exchange.
 
-* **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated  
-
+* **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
 
 ---
 
@@ -169,6 +168,12 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `target/criterion/`.
 
 See the [benchmarking readme](./benches/readme.md) for information on correct usage.
+
+---
+
+## Fuzzing
+
+The fuzzing suite uses honggfuzz, installation and instructions are on the [fuzzing](./fuzz/readme.md) page. 
 
 ---
 
@@ -217,7 +222,6 @@ Please use at your own risk.
 Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
 
 The official website: https://pq-crystals.org/kyber/
-
 
 Authors of the Kyber Algorithm: 
 
