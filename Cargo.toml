@@ -1,19 +1,18 @@
 [package]
-name = "pqc-kyber"
+name = "pqc_kyber"
 version = "0.2.0"
 authors = ["Mitchell Berry <foss@mitchellberry.com>"]
 edition = "2018"
 license = "Apache-2.0"
-repository = "https://github.com/mberry/kyber"
-documentation = "https://docs.rs/crate/pqc-kyber/"
+repository = "https://github.com/Argyle-Cybersystems/kyber"
+documentation = "https://docs.rs/crate/pqc_kyber/"
 categories = ["algorithms", "cryptography"]
 description = "A rust implementation of the Kyber algorithm"
-keywords = ["cryptography", "kyber", "kem", "key exchange", "post-quantum"]
+keywords = ["cryptography", "kyber", "kem", "key exchange", "kex", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
-rand_core = "0.5.1"
-rand = { version = "0.7.3", features = ["wasm-bindgen"] }
+rand_core = {version = "0.6.2",  default-features = false }
 wasm-bindgen = { version = "0.2.67", optional = true }
 sha2 = { version = "0.9.2", optional = true }
 # TODO: Add rustcrypto AES-CTR feature for 90's mode
@@ -21,6 +20,7 @@ sha2 = { version = "0.9.2", optional = true }
 
 [dev-dependencies]
 criterion = "0.3"
+rand = "0.8.3"
 
 [build-dependencies]
 cc = "1.0.66"
@@ -49,9 +49,7 @@ reference = []
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen"]
 
-
 # Known Answer Tests
-# Allows private internal api access to seed the RNG output 
-# Do not use this feature for any other purpose than 
-# running the known answer tests
+# Allows private internal api access to seed the RNG output.
+# Do not use this feature for any purpose other than testing.
 KATs = []
