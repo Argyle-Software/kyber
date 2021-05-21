@@ -1,7 +1,7 @@
 #!/bin/env bash
 set -e
 
-# Tests intended to be run on x86_64 platforms
+# Tests intended to be run on x86_64 platforms and nightly rust
 # This script runs a matrix of every valid feature combination
 # Known Answer Tests are run seperately
 
@@ -9,6 +9,8 @@ set -e
 # Enable LLVM address and leak sanitser checks
 export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 export RUSTDOCFLAGS="-Z sanitizer=address"
+
+rustup default nightly
 
 # Print Headers
 announce(){
