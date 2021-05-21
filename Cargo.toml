@@ -53,3 +53,13 @@ wasm = ["wasm-bindgen"]
 # Allows private internal api access to seed the RNG output.
 # Do not use this feature for any purpose other than testing.
 KATs = []
+
+# Prevents leak sanitiser failing in tests
+[profile.test]
+opt-level = 2
+
+[profile.test.package.*]
+opt-level = 0
+
+[profile.test.build-override]
+opt-level = 0
