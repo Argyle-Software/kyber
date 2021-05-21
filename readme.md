@@ -6,7 +6,7 @@
 
 
 # Kyber
-[![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml)
+[![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
