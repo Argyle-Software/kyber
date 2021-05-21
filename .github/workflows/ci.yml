@@ -14,6 +14,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Rust Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
@@ -29,9 +34,6 @@ jobs:
       - name: Run test suite
         shell: bash
         working-directory: ./tests
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
         run: |
           chmod +x run_all_tests.sh
           bash run_all_tests.sh
