@@ -20,8 +20,11 @@ jobs:
           command: build
 
       - name: Generate KATs
+        shell: bash
         working-directory: ./tests/KATs
-        run: sudo ./build_kats.sh
+        run: |
+          chmod +x build_kats.sh
+          bash build_kats.sh
 
       - name: Run tests on all features
         run: ./tests/run_all_tests.sh
