@@ -27,4 +27,8 @@ jobs:
           bash build_kats.sh
 
       - name: Run tests on all features
-        run: ./tests/run_all_tests.sh
+        shell: bash
+        working-directory: ./tests
+        run: |
+          chmod +x run_all_tests.sh
+          bash run_all_tests.sh
