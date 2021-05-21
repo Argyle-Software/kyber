@@ -22,9 +22,9 @@ This library:
 * Compiles to WASM using wasm-bindgen and has a ready-to-use binary published on NPM.
 
 
-See the [**features**](#features) section for different options regarding security levels and modes of operation.
+See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber764.
 
-Please read the [**security considerations**](#security-considerations) before use.
+Please also read the [**security considerations**](#security-considerations) before use.
 
 ---
 
@@ -34,7 +34,7 @@ In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc-kyber = 0.2.0
+pqc-kyber = "0.2.0"
 ```
 
 ## Usage 
