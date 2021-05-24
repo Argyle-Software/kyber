@@ -120,8 +120,7 @@ assert_eq!(shared_secret_alice, shared_secret_bob);
 ## Errors
 The KyberError enum handles errors. It has two variants:
 
-* **InvalidInput** - One or more byte inputs to a function are incorrectly sized. A possible cause of 
-this is two parties using different security levels while trying to negotiate a key exchange.
+* **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
 
 * **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
 
