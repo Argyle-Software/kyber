@@ -8,7 +8,7 @@ repository = "https://github.com/Argyle-Cybersystems/kyber"
 documentation = "https://docs.rs/crate/pqc_kyber/"
 categories = ["algorithms", "cryptography"]
 description = "A rust implementation of the post-quantum Kyber KEM algorithm"
-keywords = ["kyber", "kem", "key exchange", "kex", "post-quantum"]
+keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
