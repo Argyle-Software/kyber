@@ -34,7 +34,7 @@ In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc-kyber = "0.2.0"
+pqc_kyber = "0.2.0"
 ```
 
 ## Usage 
@@ -56,20 +56,19 @@ let mut rng = rand::thread_rng();
 let mut alice = Uake::new();
 let mut bob = Uake::new();
 
-// Generate Keypairs
-let alice_keys = keypair(&mut rng);
+// Generate Bob's Keypair
 let bob_keys = keypair(&mut rng);
 
 // Alice initiates key exchange
 let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
 // Bob authenticates and responds
-let server_send = bob.server_receive(
+let server_response = bob.server_receive(
   client_init, &bob_keys.secret, &mut rng
 )?;
 
 // Alice decapsulates the shared secret
-alice.client_confirm(server_send)?;
+alice.client_confirm(server_response)?;
 
 // Both key exchange structs now have the same shared secret
 assert_eq!(alice.shared_secret, bob.shared_secret);
@@ -89,11 +88,11 @@ let bob_keys = keypair(&mut rng);
 
 let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
-let server_send = bob.server_receive(
+let server_response = bob.server_receive(
   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
 )?;
 
-alice.client_confirm(server_send, &alice_keys.secret)?;
+alice.client_confirm(server_response, &alice_keys.secret)?;
 
 assert_eq!(alice.shared_secret, bob.shared_secret);
 ```
@@ -128,7 +127,13 @@ The KyberError enum handles errors. It has two variants:
 
 ## Features
 
-If no security level is specified then kyber764 is used by default as recommended by the authors. It is roughly equivalent to AES-196 in terms of protection.  
+If no security level is specified then kyber764 is used by default as recommended by the authors. It is roughly equivalent to AES-196.  Apart from the two security levels, all other features can be combined as needed. For example:
+
+```toml
+[dependencies]
+pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "reference"]}
+```
+
 
 | Feature   | Description                                                                                                                                                                |
 |-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
