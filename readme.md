@@ -41,12 +41,7 @@ pqc-kyber = "0.2.0"
 
 ```rust
 use pqc_kyber::*;
-use rand::thread_rng;
 ```
-Using `rand::thread_rng()` is advised, where it is not available the
-entropy source must satisfy the `RngCore` and `CryptoRng` traits which are re-exported by this crate. 
-Check the version number of rand_core if getting trait bound errors.
-
 
 The higher level structs will be appropriate for most use-cases. 
 Both unilateral or mutually authenticated key exchanges are possible.
@@ -55,7 +50,7 @@ Both unilateral or mutually authenticated key exchanges are possible.
 
 ### Unilaterally Authenticated Key Exchange
 ```rust
-let mut rng = thread_rng();
+let mut rng = rand::thread_rng();
 
 // Initialize the key exchange structs
 let mut alice = Uake::new();
