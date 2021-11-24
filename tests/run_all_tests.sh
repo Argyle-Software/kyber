@@ -9,7 +9,7 @@ set -e
 export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 export RUSTDOCFLAGS="-Z sanitizer=address"
 
-rustup default stable
+rustup default nightly
 
 # Print Headers
 announce(){
