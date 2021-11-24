@@ -31,7 +31,7 @@ echo 'Calculating SHA256 digests...'
 # SHA256SUMS
 for tvec in tvecs{5,7,1}*;
 do
-  sha256sum $tvec >> SHA256SUMS;
+  shasum -a 256 $tvec >> SHA256SUMS;
 done;
 
 # Confirm SHA256SUMS match rust repo KAT's
