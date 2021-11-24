@@ -8,7 +8,6 @@
 # Kyber
 [![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
-[![Docs](https://docs.rs/pqc-kyber/badge.svg)](https://docs.rs/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
 [![dependency status](https://deps.rs/repo/github/Argyle-Cybersystems/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Cybersystems/kyber)
 [![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
