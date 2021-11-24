@@ -8,6 +8,7 @@ set -e
 # Enable LLVM address sanitser checks
 export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 export RUSTDOCFLAGS="-Z sanitizer=address"
+
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
 
 # Required for address sanitiser checks
@@ -67,7 +68,7 @@ cargo test --features "reference kyber1024 90s" --target $TARGET
 # Omit santiser for faster test vectors
 export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
-cargo build --test kat --features "KATs kyber512" --target 
+cargo build --test kat --features "KATs kyber512"
 
 announce "Kyber512 KATs"
 cargo test --test kat --features "KATs kyber512" 
