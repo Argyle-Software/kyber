@@ -12,10 +12,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Mac rust config
+        run: echo '[target.x86_64-apple-darwin]\nrustflags = ["-C", "link-arg=-undefined","-C", "link-arg=dynamic_lookup",]' > ~/.cargo/config
 
       - name: Rust Nightly
         uses: actions-rs/toolchain@v1
