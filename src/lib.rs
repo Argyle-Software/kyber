@@ -9,7 +9,7 @@
 //! * Compiles to WASM using wasm-bindgen.
 //! 
 //! ## Features
-//! If no security level is set then Kyber764 is used, this is roughly equivalent to AES-196. See below for setting other levels. 
+//! If no security level is set then kyber768 is used, this is roughly equivalent to AES-196. See below for setting other levels.
 //! A compile-time error is raised if more than one level is specified. Besides that all other features can be mixed as needed:
 //!
 //! | Feature   | Description                                                                                                                                                                |

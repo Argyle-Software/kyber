@@ -29,7 +29,7 @@ cargo build --tests --features "kyber512" --target $TARGET
 announce "Kyber512"
 cargo test --features "kyber512" --target $TARGET
 
-announce "Kyber764"
+announce "kyber768"
 cargo test --target $TARGET
 
 announce "Kyber1024"
@@ -38,7 +38,7 @@ cargo test --features "kyber1024" --target $TARGET
 announce "Kyber512-90s"
 cargo test --features "kyber512 90s" --target $TARGET
 
-announce "Kyber764-90s"
+announce "kyber768-90s"
 cargo test --features "90s" --target $TARGET
 
 announce "Kyber1024-90s"
@@ -47,13 +47,13 @@ cargo test --features "kyber1024 90s" --target $TARGET
 announce "Reference Kyber512"
 cargo test --features "reference kyber512" --target $TARGET
 
-announce "Reference Kyber764"
+announce "Reference kyber768"
 cargo test --features "reference" --target $TARGET
 
 announce "Reference Kyber1024"
 cargo test --features "reference kyber1024" --target $TARGET
 
-announce "Reference Kyber764-90s"
+announce "Reference kyber768-90s"
 cargo test --features "reference 90s" --target $TARGET
 
 announce "Reference Kyber512-90s"
@@ -73,7 +73,7 @@ cargo build --test kat --features "KATs kyber512"
 announce "Kyber512 KATs"
 cargo test --test kat --features "KATs kyber512" 
 
-announce "Kyber764 KATs"
+announce "kyber768 KATs"
 cargo test --test kat --features "KATs" 
 
 announce "Kyber1024 KATs"
@@ -82,7 +82,7 @@ cargo test --test kat --features "KATs kyber1024"
 announce "Kyber512-90s KATs"
 cargo test --test kat --features "KATs kyber512 90s" 
 
-announce "Kyber764-90s KATs"
+announce "kyber768-90s KATs"
 cargo test --test kat --features "KATs 90s" 
 
 announce "Kyber1024-90s KATs"
@@ -91,13 +91,13 @@ cargo test --test kat --features "KATs kyber1024 90s"
 announce "Reference Kyber512 KATs"
 cargo test --test kat --features "reference KATs kyber512" 
 
-announce "Reference Kyber764 KATs"
+announce "Reference kyber768 KATs"
 cargo test --test kat --features "reference KATs" 
 
 announce "Reference Kyber1024 KATs"
 cargo test --test kat --features "reference KATs kyber1024" 
 
-announce "Reference Kyber764-90s KATs"
+announce "Reference kyber768-90s KATs"
 cargo test --test kat --features "reference KATs 90s" 
 
 announce "Reference Kyber512-90s KATs"

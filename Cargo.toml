@@ -34,7 +34,7 @@ harness = false
 
 [features]
 ### Security Levels ###
-# Defaults to "kyber764" if none selected
+# Defaults to "kyber768" if none selected
 # Will throw a compile-time error if more than one level is chosen
 kyber512 = []
 kyber1024 =[]

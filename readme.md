@@ -21,7 +21,7 @@ This library:
 * Compiles to WASM using wasm-bindgen and has a ready-to-use binary published on NPM.
 
 
-See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber764.
+See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber768.
 
 Please also read the [**security considerations**](#security-considerations) before use.
 
@@ -126,7 +126,7 @@ The KyberError enum handles errors. It has two variants:
 
 ## Features
 
-If no security level is specified then kyber764 is used by default as recommended by the authors. It is roughly equivalent to AES-196.  Apart from the two security levels, all other features can be combined as needed. For example:
+If no security level is specified then kyber768 is used by default as recommended by the authors. It is roughly equivalent to AES-196.  Apart from the two security levels, all other features can be combined as needed. For example:
 
 ```toml
 [dependencies]

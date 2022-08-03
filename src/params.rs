@@ -1,6 +1,6 @@
 /// The security level of Kyber
 /// 
-/// Defaults to 3 (kyber768), will be 2 or 4 repsectively when 
+/// Defaults to 3 (kyber768), will be 2 or 4 repsectively when
 /// kyber512 or kyber1024 are selected with feature flags.
 /// 
 /// * Kyber-512 aims at security roughly equivalent to AES-128
