@@ -12,10 +12,10 @@ keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
-rand_core = { version = "0.6", default-features = false }
-wasm-bindgen = { version = "0.2", optional = true }
-zeroize = { version = "1", features = ["derive"] }
-sha2 = { version = "0.10", optional = true }
+rand_core = { version = "0.6.2", default-features = false }
+wasm-bindgen = { version = "0.2.74", optional = true }
+zeroize = { version = "1.5.3", features = ["derive"] }
+sha2 = { version = "0.10.1", optional = true }
 # TODO: Add rustcrypto AES-CTR feature for 90's mode
 # aes-ctr = {version = "0.6.0", optional = true}
 
