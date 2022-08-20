@@ -6,13 +6,13 @@
 
 
 # Kyber
-[![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions)
+[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
-[![dependency status](https://deps.rs/repo/github/Argyle-Cybersystems/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Cybersystems/kyber)
-[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
+[![dependency status](https://deps.rs/repo/github/Argyle-Software/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Software/kyber)
+[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE)
 
-A rust implementation of the Kyber algorithm, a post-quantum KEM that is a finalist in NIST's Post-Quantum Standardization Project.
+A rust implementation of the Kyber algorithm, a KEM selected by the long-running NIST Post-Quantum Standardization Project.
 
 This library:
 * Is no_std compatible and needs no allocator, suitable for embedded devices. 
@@ -43,7 +43,6 @@ use pqc_kyber::*;
 ```
 
 The higher level structs will be appropriate for most use-cases. 
-Both unilateral or mutually authenticated key exchanges are possible.
 
 ---
 
@@ -116,7 +115,7 @@ assert_eq!(shared_secret_alice, shared_secret_bob);
 ---
 
 ## Errors
-The KyberError enum handles errors. It has two variants:
+The KyberError enum has two variants:
 
 * **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
 
@@ -206,8 +205,7 @@ wasm-pack build -- --features wasm
 
 ---
 
-## Security Considerations
-The NIST post quantum standardisation project is still ongoing and changes may still be made to the underlying reference code at any time. 
+## Security Considerations 
 
 While much care has been taken porting from the C reference codebase, this library has not undergone any third-party security auditing nor can any guarantees be made about the potential for underlying vulnerabilities in LWE cryptography or potential side-channel attacks arising from this implementation.
 
