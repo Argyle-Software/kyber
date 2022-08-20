@@ -533,7 +533,7 @@ pub fn indcpa_keypair<R>(
     );
   }
   
-  #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber764 
+  #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber768
   {
     let (skpv0, skpv1) = skpv.vec.split_at_mut(1);
     let (skpv1, skpv2) = skpv1.split_at_mut(1);
@@ -611,7 +611,7 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
       poly_getnoise_eta2(&mut epp, coins, 4); 
     } 
 
-    #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber764)
+    #[cfg(not(any(feature="kyber1024", feature="kyber512", feature="90s")))] // kyber768)
     {
       let (sp0, sp1) = sp.vec.split_at_mut(1);
       let (sp1, sp2) = sp1.split_at_mut(1);
