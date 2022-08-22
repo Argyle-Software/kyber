@@ -23,6 +23,8 @@ This library:
 
 See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber768.
 
+It is recommended to use Kyber in a hybrid system alongside a traditional key exchange algorithm such as X25519. 
+
 Please also read the [**security considerations**](#security-considerations) before use.
 
 ---
@@ -42,7 +44,13 @@ pqc_kyber = "0.2.0"
 use pqc_kyber::*;
 ```
 
-The higher level structs will be appropriate for most use-cases. 
+For optimisations enable the following RUSTFLAGS on x86_64 systems when building:
+
+```shell
+export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+```
+
+The higher level key exchange structs will be appropriate for most use-cases. 
 
 ---
 
@@ -209,13 +217,21 @@ wasm-pack build -- --features wasm
 
 While much care has been taken porting from the C reference codebase, this library has not undergone any third-party security auditing nor can any guarantees be made about the potential for underlying vulnerabilities in LWE cryptography or potential side-channel attacks arising from this implementation.
 
+Kyber is relatively new, it is advised to use it in a hybrid key exchange system alongside a traditional algorithm like X25519 rather than by itself. 
+
+For further reading the IETF have a draft construction for hybrid key exchange in TLS 1.3:
+
+https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
+
+You can also see how such an system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
+
 Please use at your own risk.
 
 ---
 
 ## About
 
-Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
+Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is the final standardised algorithm resulting from the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
 
 The official website: https://pq-crystals.org/kyber/
 
