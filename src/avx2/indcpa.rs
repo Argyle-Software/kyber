@@ -597,7 +597,6 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
         poly_cbd_eta2(&mut ep.vec[i], &buf.vec);
       }
       aes256ctr_squeezeblocks(&mut buf.coeffs, CIPHERTEXTNOISE_NBLOCKS, &mut state);
-      state.n = _mm_loadl_epi64([nonce, 0].as_ptr() as *const __m128i);
       poly_cbd_eta2(&mut epp, &buf.vec);
     }
 
