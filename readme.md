@@ -200,7 +200,7 @@ To use this library for web assembly purposes you'll need the `wasm` feature ena
 
 ```toml
 [dependencies]
-pqc-kyber = {version = "0.2.0", features = ["wasm"]
+pqc-kyber = {version = "0.2.1", features = ["wasm"] }
 ```
 
 You will also need `wasm-pack` and `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` toolchains installed
