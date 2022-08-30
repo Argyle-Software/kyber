@@ -25,12 +25,12 @@ git clone https://github.com/pq-crystals/kyber.git;
 cd kyber/ref;
 make all;
 
-# Write binary output to file for each security level and mode
+# Write output to file for each security level and mode
 # Rename to match C repo sums
 for tvec in test_vectors*[^.c];
   do
-  sub_str=${tvec/est_/};
-  ./$tvec > ${sub_str/tor/};
+    sub_str=${tvec/est_/};
+    ./$tvec > ${sub_str/tor/};
 done;
 
 # Move test vectors and sha256sums into the PQC-Kyber KATs folder
@@ -38,8 +38,8 @@ mv tvecs* <Project Root>/tests/KATs
 
 # SHA256SUMS
 for tvec in tvecs{5,7,1}*;
-do
-  sha256sum $tvec >> SHA256SUMS;
+  do
+    sha256sum $tvec >> SHA256SUMS;
 done;
 
 # Confirm SHA256SUMS match rust repo KAT's
