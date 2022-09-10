@@ -12,7 +12,7 @@
 [![dependency status](https://deps.rs/repo/github/Argyle-Software/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Software/kyber)
 [![License](https://img.shields.io/crates/l/pqc_kyber)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE-MIT)
 
-A rust implementation of the Kyber algorithm, a KEM selected by the long-running NIST Post-Quantum Standardization Project.
+A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Post-Quantum Standardization Project.
 
 This library:
 * Is no_std compatible and needs no allocator, suitable for embedded devices. 
@@ -133,7 +133,7 @@ The KyberError enum has two variants:
 
 ## Features
 
-If no security level is specified then kyber768 is used by default as recommended by the authors. It is roughly equivalent to AES-196.  Apart from the two security levels, all other features can be combined as needed. For example:
+If no security level is specified then kyber768 is used by default as recommended by the authors. It is roughly equivalent to AES-192.  Apart from the two security levels, all other features can be combined as needed. For example:
 
 ```toml
 [dependencies]
