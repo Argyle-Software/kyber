@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Kyber Web Assembly Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="./bootstrap.js"></script>
+  </head>
+  <body>
+    <div class="centre">
+      This is a demo page for the usage of wasm package pqc_kyber
+      <h1>Alice</h1> 
+      <p>
+        <button id="generatekey">Generate Keys</button> 
+        <button id="movebelow">Copy Output Below</button>
+        <button id="clear">Clear All</button>
+        <br><br>
+        Public  Key (Output): <input style="width: 300px;" type="text" id="pubkeybox" > 
+        <br><br>
+        Private Key (Output): <input style="width: 300px;" type="text" id="privkeybox">
+      </p>
+      <h1>Bob</h1>
+      <p>
+        <button id="encapsulate">Encapsulate with Public Key</button> 
+        <button id="movebelow2">Copy Output Below</button>
+        <br><br>
+        Public  Key (Input): <input style="width: 300px;" type="text" id="pubkeybox2" >
+        <br><br>
+        Ciphertext (Output): <input style="width: 300px;" type="text" id="ciphertext" >
+        <br><br>
+        Shared Key (Output): <input style="width: 300px;" type="text" id="sharedkey">
+      </p>
+      <h1>Alice</h1>
+      <p>
+        <button id="decapsulate">Decapsulate with Ciphertext and Private Key</button>
+        <button id="check">Check Shared Keys</button>
+        <br><br>
+        Private Key (Input): <input style="width: 300px;" type="text" id="privkeybox2">
+        <br><br> 
+        Ciphertext (Input): <input style="width: 300px;" type="text" id="ciphertext2" >
+        <br><br>
+        Shared Key (Output): <input style="width: 300px;" type="text" id="sharedkey2">
+      </p>
+    </div>
+  </body>
+</html>
