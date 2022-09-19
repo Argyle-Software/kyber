@@ -170,7 +170,7 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 
 ## Benchmarking
 
-Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `target/criterion/`.
+Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `./target/criterion/`.
 
 See the [benchmarking readme](./benches/readme.md) for information on correct usage.
 
@@ -184,7 +184,7 @@ The fuzzing suite uses honggfuzz, installation and instructions are on the [fuzz
 
 ## WebAssembly
 
-This library has been compiled and published as a WASM binary package. Usage instructions are published on npm:
+This library has been compiled into web assembly and published as a npm package. Usage instructions are here:
 
 https://www.npmjs.com/package/pqc-kyber
 
@@ -192,23 +192,27 @@ Which is also located here in the [wasm readme](./pkg/README.md)
 
 To install:
 
-```
+```shell
 npm i pqc-kyber
 ```
 
-To use this library for web assembly purposes you'll need the `wasm` feature enabled.
+To compile the wasm files yourself you need to enable the `wasm` feature.
 
-```toml
-[dependencies]
-pqc-kyber = {version = "0.2.0", features = ["wasm"]
-```
 
-You will also need `wasm-pack` and `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` toolchains installed
-
-To build include the feature flag:
+For example, using [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/):
 
 ```shell
 wasm-pack build -- --features wasm
+```
+
+Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/README.md). 
+
+There is also a basic html demo and usage examples in the [www](./www/readme.md) folder.
+
+To view, from the www folder run: 
+
+```shell
+npm run start
 ```
 
 ---
