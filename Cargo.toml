@@ -13,10 +13,19 @@ readme = "readme.md"
 
 [dependencies]
 rand_core = {version = "0.6.2",  default-features = false }
-wasm-bindgen = { version = "0.2.74", optional = true }
+wasm-bindgen = { version = "0.2.83", optional = true }
 sha2 = { version = "0.10.2", optional = true }
+getrandom = {version = "0.2.7", features = ["js"], optional = true}
+wee_alloc = { version = "0.4.5", optional = true}
+
 # TODO: Add rustcrypto AES-CTR feature for 90's mode
 # aes-ctr = {version = "0.6.0", optional = true}
+
+[dependencies.rand]
+version = "0.8.5"
+default-features = false
+features = ["getrandom"]
+optional = true
 
 [dev-dependencies]
 criterion = { version = "0.3.6", features = ["html_reports"] }
@@ -47,7 +56,7 @@ kyber1024 =[]
 reference = []
 
 # For compiling to wasm targets 
-wasm = ["wasm-bindgen"]
+wasm = ["wasm-bindgen", "getrandom", "rand", "wee_alloc"]
 
 # Known Answer Tests
 # Allows private internal api access to seed the RNG output.
