@@ -66,12 +66,11 @@ Will be raised if:
 
 Valid input sizes are all contained in the `kyber.Params` class.
 
+### Security Considerations
 
- ### Security Considerations
+Kyber is relatively new, it is highly advised to use it in a hybrid key exchange system, alongside a traditional algorithm like X25519 rather than by itself.
 
- Kyber is relatively new, it is highly advised to use it in a hybrid key exchange system, alongside a traditional algorithm like X25519 rather than by itself.
-
- For further reading the IETF have a draft construction for hybrid key exchange in TLS 1.3:
+For further reading the IETF have a draft construction for hybrid key exchange in TLS 1.3:
 
 https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
 
