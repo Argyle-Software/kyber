@@ -9,3 +9,7 @@ package-lock.json
 /fuzz/hfuzz_target
 /fuzz/hfuzz_workspace
 /fuzz/target
+www/node_modules/
+www/dist/
+www/.bin/
+pkg/package.json.bak
