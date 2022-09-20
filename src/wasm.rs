@@ -6,9 +6,6 @@ use crate::params::*;
 use alloc::boxed::Box;
 use wasm_bindgen::prelude::*;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 #[wasm_bindgen]
 pub fn keypair() -> Keys {
   let mut rng = rand::rngs::OsRng{};
