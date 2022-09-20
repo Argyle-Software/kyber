@@ -1,4 +1,4 @@
-import * as wasm from "pqc_kyber";
+import * as kyber from "pqc_kyber";
 
 const generateKeyButton = document.getElementById("generatekey");
 const encapButton = document.getElementById("encapsulate");
@@ -14,8 +14,13 @@ const privKeyBox = document.getElementById("privkeybox");
 const privKeyBox2 = document.getElementById("privkeybox2");
 const cipherTextBox = document.getElementById("ciphertext");
 const cipherTextBox2 = document.getElementById("ciphertext2");
-const sharedTextBox = document.getElementById("sharedkey");
-const sharedTextBox2 = document.getElementById("sharedkey2");
+const sharedKeyBox = document.getElementById("sharedkey");
+const sharedKeyBox2 = document.getElementById("sharedkey2");
+
+document.getElementById('pkbytes').innerHTML = kyber.Params.publicKeyBytes;
+document.getElementById('skbytes').innerHTML = kyber.Params.secretKeyBytes;
+document.getElementById('ctbytes').innerHTML = kyber.Params.ciphertextBytes;
+document.getElementById('ssbytes').innerHTML = kyber.Params.sharedSecretBytes;
 
 clearButton.addEventListener("click", event => {
     var elements = document.getElementsByTagName("input");
@@ -25,21 +30,25 @@ clearButton.addEventListener("click", event => {
 });
 
 generateKeyButton.addEventListener("click", event => {
-    let keys = wasm.keypair();
+    let keys = kyber.keypair();
     const pubKey = keys.pubkey;
     const privKey = keys.secret;
 
     pubKeyBox.value = toHexString(pubKey);
     privKeyBox.value = toHexString(privKey);
+
+    pubKeyBox2.value = pubKeyBox.value;
+    privKeyBox2.value = privKeyBox.value;
     // TODO: Add a base64 option
     // pubKeyBox.value = Buffer.from(pubKey).toString('base64');    
 });
     
 encapButton.addEventListener("click", event => {
     try {
-        let encapsulated = wasm.encapsulate(hexToBytes(pubKeyBox2.value));
+        let encapsulated = kyber.encapsulate(hexToBytes(pubKeyBox2.value));
         cipherTextBox.value = toHexString(encapsulated.ciphertext);
-        sharedTextBox.value = toHexString(encapsulated.shared_secret);
+        sharedKeyBox.value = toHexString(encapsulated.sharedSecret);
+        cipherTextBox2.value = cipherTextBox.value;
     }
     catch(err) {
         alert("Error Encapsulating");
@@ -48,32 +57,32 @@ encapButton.addEventListener("click", event => {
     
 decapButton.addEventListener("click", event => {
     try {
-        let decapsulated = wasm.decapsulate(
+        let decapsulated = kyber.decapsulate(
             hexToBytes(cipherTextBox2.value), 
             hexToBytes(privKeyBox2.value)
         );
-        sharedTextBox2.value = toHexString(decapsulated);
+        sharedKeyBox2.value = toHexString(decapsulated);
     }
     catch(err) {
         alert("Error Decapsulating");
     }
 });
 
-movebutton.addEventListener("click", event => {
-    pubKeyBox2.value = pubKeyBox.value;
-    privKeyBox2.value = privKeyBox.value;
-});
+// movebutton.addEventListener("click", event => {
+//     pubKeyBox2.value = pubKeyBox.value;
+//     privKeyBox2.value = privKeyBox.value;
+// });
 
-movebutton2.addEventListener("click", event => {
-    cipherTextBox2.value = cipherTextBox.value;
-});
+// movebutton2.addEventListener("click", event => {
+//     cipherTextBox2.value = cipherTextBox.value;
+// });
 
 checkButton.addEventListener("click", event => {
-   if (cipherTextBox2.value == cipherTextBox.value){ 
-       alert("Shared Keys Match") 
+   if (sharedKeyBox.value === sharedKeyBox2.value){ 
+       alert("Shared Keys Match");
     }
     else {
-        alert("Failed - Shared Keys Don't Match")
+        alert("Failed - Shared Keys Don't Match");
     };
 });
 

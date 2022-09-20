@@ -1,5 +1,28 @@
-.centre {
+body {
   margin: auto;
-  width: 80%;
-  padding: 10px;
+  width: 500px;
+  padding: 20px;
+  background-color: lightblue;
+  
+}
+
+h1 {
+  text-align: center;
+}
+
+input {
+  width: 70%;
+  margin-left: auto
+}
+
+.box {
+  font-family: 'Times New Roman', serif;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+code {
+  font-family: 'Courier New', monospace;
+  font-size: small;
 }

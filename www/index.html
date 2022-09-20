@@ -7,40 +7,47 @@
     <script src="./bootstrap.js"></script>
   </head>
   <body>
-    <div class="centre">
-      This is a demo page for the usage of wasm package pqc_kyber
-      <h1>Alice</h1> 
-      <p>
-        <button id="generatekey">Generate Keys</button> 
-        <button id="movebelow">Copy Output Below</button>
-        <button id="clear">Clear All</button>
-        <br><br>
-        Public  Key (Output): <input style="width: 300px;" type="text" id="pubkeybox" > 
-        <br><br>
-        Private Key (Output): <input style="width: 300px;" type="text" id="privkeybox">
-      </p>
-      <h1>Bob</h1>
-      <p>
-        <button id="encapsulate">Encapsulate with Public Key</button> 
-        <button id="movebelow2">Copy Output Below</button>
-        <br><br>
-        Public  Key (Input): <input style="width: 300px;" type="text" id="pubkeybox2" >
-        <br><br>
-        Ciphertext (Output): <input style="width: 300px;" type="text" id="ciphertext" >
-        <br><br>
-        Shared Key (Output): <input style="width: 300px;" type="text" id="sharedkey">
-      </p>
-      <h1>Alice</h1>
-      <p>
-        <button id="decapsulate">Decapsulate with Ciphertext and Private Key</button>
-        <button id="check">Check Shared Keys</button>
-        <br><br>
-        Private Key (Input): <input style="width: 300px;" type="text" id="privkeybox2">
-        <br><br> 
-        Ciphertext (Input): <input style="width: 300px;" type="text" id="ciphertext2" >
-        <br><br>
-        Shared Key (Output): <input style="width: 300px;" type="text" id="sharedkey2">
-      </p>
-    </div>
+    <h1><i>pqc_kyber</i> wasm demo</h1>
+    <code>import * as kyber from pqc_kyber</code>
+    <p>
+      <code>kyber.Params.publicKeyBytes</code>: <b id="pkbytes"></b><br>
+      <code>kyber.Params.secretKeyBytes</code>: <b id="skbytes"></b><br>
+      <code>kyber.Params.ciphertextBytes</code>: <b id="ctbytes"></b><br>
+      <code>kyber.Params.sharedSecretBytes</code>: <b id="ssbytes"></b>
+    </p>
+    <code>
+      var keys = kyber.keypair(); <br>
+      const publicKeyAlice = keys.pubkey; <br>
+      const privateKeyAlice = keys.secret; <br>
+    </code>
+    <p>
+      <button id="generatekey">Generate Keypair</button> <br>
+      <div class="box">Public  Key (Output): <input type="text" id="pubkeybox" > </div><br>
+      <div class="box">Private Key (Output): <input type="text" id="privkeybox"></div>
+    </p>
+    <code>
+      var enc = kyber.encapsulate(publicKeyAlice); <br>
+      var ciphertextBob = enc.ciphertext; <br>
+      var sharedSecretBob = enc.sharedSecret; <br>
+    </code>
+    <p>
+      <button id="encapsulate">Encapsulate</button> <br>
+      <div class="box">Public  Key (Input): <input type="text" id="pubkeybox2" ></div><br>
+      <div class="box"> Ciphertext (Output): <input type="text" id="ciphertext" ></div><br>
+      <div class="box">Shared Key (Output): <input type="text" id="sharedkey"></div>
+    </p>
+    <code>
+      var dec = kyber.decapsulate(ciphertextBob, privateKeyAlice); <br>
+      var sharedSecretAlice = dec.sharedSecret; <br> 
+      assert.equal(sharedSecretAlice, sharedSecretBob); <br>
+    </code>
+    <p>
+      <button id="decapsulate">Decapsulate</button>
+      <button id="check">Check Shared Keys</button>
+      <button id="clear">Clear All</button><br>
+      <div class="box">Private Key (Input): <input type="text" id="privkeybox2"></div><br> 
+      <div class="box">Ciphertext (Input): <input type="text" id="ciphertext2" ></div><br>
+      <div class="box">Shared Key (Output): <input type="text" id="sharedkey2"></div>
+    </p>
   </body>
 </html>
