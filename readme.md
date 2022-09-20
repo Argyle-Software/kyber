@@ -198,7 +198,6 @@ npm i pqc-kyber
 
 To compile the wasm files yourself you need to enable the `wasm` feature.
 
-
 For example, using [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/):
 
 ```shell
@@ -207,9 +206,14 @@ wasm-pack build -- --features wasm
 
 Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/README.md). 
 
-There is also a basic html demo and usage examples in the [www](./www/readme.md) folder.
+To compile a different variant into a separate folder: 
+```shell
+wasm-pack build --out-dir pkg_kyber512/ -- --features "wasm kyber512" 
+```
 
-To view, from the www folder run: 
+There is also a basic html demo in the [www](./www/readme.md) folder.
+
+From the www folder run: 
 
 ```shell
 npm run start
