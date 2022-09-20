@@ -76,7 +76,7 @@ Valid input sizes are all contained in the `kyber.Params` class.
 https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
 
 
-## About
+### About
 
 Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is the final standardised algorithm resulting from the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
 
