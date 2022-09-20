@@ -1,9 +1,9 @@
 {
-  "name": "pqc_kyber",
+  "name": "pqc-kyber",
   "collaborators": [
     "Mitchell Berry <foss@mitchellberry.com>"
   ],
-  "description": "A rust implementation of the post-quantum Kyber KEM algorithm, packaged as a Wasm binary",
+  "description": "The post-quantum Kyber kex exchange algorithm, packaged as a Wasm binary",
   "version": "0.3.0",
   "license": "MIT/Apache-2.0",
   "repository": {
