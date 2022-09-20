@@ -11,13 +11,13 @@ This version currently uses kyber764, equivalent to a 192 bit security level. To
 ### Installation
 
 ```shell
-npm -i pqc_kyber
+npm -i pqc-kyber
 ```
 
 ### Usage
 
 ```js
-import * as kyber from "pqc_kyber";
+import * as kyber from "pqc-kyber";
 
 // Generate Keypair
 let keys = kyber.keypair();
