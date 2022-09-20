@@ -6,6 +6,13 @@ This program generates the deterministic rng output used in the intermediate sta
 
 These values are then used in place of regular rng output when running the KATs.
 
+To view a diff of `PQCgenKAT_kem.c` and `generate_bufs.c`: 
+
+```shell
+diff --color <(curl https://raw.githubusercontent.com/pq-crystals/kyber/master/ref/PQCgenKAT_kem.c) <(curl https://raw.githubusercontent.com/Argyle-Software/kyber/master/tests/rand_bufs/generate_bufs.c)  
+```
+
+
 ### Usage
 
 To build and use: 
