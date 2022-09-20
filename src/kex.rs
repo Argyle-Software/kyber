@@ -38,7 +38,6 @@ pub type AkeSendResponse = [u8; AKE_RESPONSE_BYTES];
 type TempKey = [u8; KYBER_SSBYTES];
 type Eska = [u8; KYBER_SECRETKEYBYTES];
 
-// TODO: implement zeroise feature
 /// Used for unilaterally authenticated key exchange between two parties.
 /// 
 /// ```
@@ -56,7 +55,7 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 /// 
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, zeroize::Zeroize, zeroize::ZeroizeOnDrop)]
 pub struct Uake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
@@ -182,7 +181,7 @@ impl Uake {
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, zeroize::Zeroize, zeroize::ZeroizeOnDrop)]
 pub struct Ake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
