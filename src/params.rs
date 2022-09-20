@@ -1,19 +1,18 @@
 /// The security level of Kyber
 /// 
-/// Defaults to 3 (kyber768), will be 2 or 4 repsectively when 
+/// Defaults to 3 (kyber768), will be 2 or 4 respectively when
 /// kyber512 or kyber1024 are selected with feature flags.
 /// 
 /// * Kyber-512 aims at security roughly equivalent to AES-128
 /// * Kyber-768 aims at security roughly equivalent to AES-192
 /// * Kyber-1024 aims at security roughly equivalent to AES-256
-#[cfg(not(any(feature = "kyber512", feature = "kyber1024")))]
-pub const KYBER_K: usize = 3; 
-
-#[cfg(feature = "kyber512")]
-pub const KYBER_K: usize = 2;
-
-#[cfg(feature = "kyber1024")]
-pub const KYBER_K: usize = 4;
+pub const KYBER_K: usize = if cfg!(feature = "kyber512") {
+    2
+} else if cfg!(feature = "kyber1024") {
+    4
+} else {
+    3
+};
 
 /// A boolean flag for whether 90's mode is activated.
 /// 
@@ -21,19 +20,12 @@ pub const KYBER_K: usize = 4;
 /// which may have hardware speed-ups on certain platforms.
 /// 
 /// Defaults to false, set`features = ["90s"]` in Cargo.toml to enable. 
-#[cfg(not(feature = "90s"))]
-pub const KYBER_90S: bool = false;
-#[cfg(feature = "90s")]
-pub const KYBER_90S: bool = true;
+pub const KYBER_90S: bool = cfg!(feature = "90s");
 
 pub(crate) const KYBER_N: usize = 256;
 pub(crate) const KYBER_Q: usize = 3329;
 
-#[cfg(feature = "kyber512")]
-pub(crate) const KYBER_ETA1: usize = 3;
-#[cfg(not(feature = "kyber512"))]
-pub(crate) const KYBER_ETA1: usize = 2;
-
+pub(crate) const KYBER_ETA1: usize = if cfg!(feature = "kyber512") { 3 } else { 2 };
 pub(crate) const KYBER_ETA2: usize = 2;
 
 // Size of the hashes and seeds

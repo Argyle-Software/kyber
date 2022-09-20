@@ -6,13 +6,13 @@
 
 
 # Kyber
-[![Build Status](https://github.com/Argyle-Cybersystems/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Cybersystems/kyber/actions)
+[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
-[![dependency status](https://deps.rs/repo/github/Argyle-Cybersystems/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Cybersystems/kyber)
-[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/Argyle-Cybersystems/kyber/blob/master/LICENSE)
+[![dependency status](https://deps.rs/repo/github/Argyle-Software/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Software/kyber)
+[![License](https://img.shields.io/crates/l/pqc_kyber)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE-MIT)
 
-A rust implementation of the Kyber algorithm, a post-quantum KEM that is a finalist in NIST's Post-Quantum Standardization Project.
+A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Post-Quantum Standardization Project.
 
 This library:
 * Is no_std compatible and needs no allocator, suitable for embedded devices. 
@@ -21,7 +21,9 @@ This library:
 * Compiles to WASM using wasm-bindgen and has a ready-to-use binary published on NPM.
 
 
-See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber764.
+See the [**features**](#features) section for different options regarding security levels and modes of operation. The default security setting is kyber768.
+
+It is recommended to use Kyber in a hybrid system alongside a traditional key exchange algorithm such as X25519. 
 
 Please also read the [**security considerations**](#security-considerations) before use.
 
@@ -33,7 +35,7 @@ In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc_kyber = "0.2.0"
+pqc_kyber = "0.2.1"
 ```
 
 ## Usage 
@@ -42,8 +44,13 @@ pqc_kyber = "0.2.0"
 use pqc_kyber::*;
 ```
 
-The higher level structs will be appropriate for most use-cases. 
-Both unilateral or mutually authenticated key exchanges are possible.
+For optimisations enable the following RUSTFLAGS on x86_64 systems when building:
+
+```shell
+export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+```
+
+The higher level key exchange structs will be appropriate for most use-cases. 
 
 ---
 
@@ -116,7 +123,7 @@ assert_eq!(shared_secret_alice, shared_secret_bob);
 ---
 
 ## Errors
-The KyberError enum handles errors. It has two variants:
+The KyberError enum has two variants:
 
 * **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
 
@@ -126,7 +133,7 @@ The KyberError enum handles errors. It has two variants:
 
 ## Features
 
-If no security level is specified then kyber764 is used by default as recommended by the authors. It is roughly equivalent to AES-196.  Apart from the two security levels, all other features can be combined as needed. For example:
+If no security level is specified then kyber768 is used by default as recommended by the authors. It is roughly equivalent to AES-192.  Apart from the two security levels, all other features can be combined as needed. For example:
 
 ```toml
 [dependencies]
@@ -193,7 +200,7 @@ To use this library for web assembly purposes you'll need the `wasm` feature ena
 
 ```toml
 [dependencies]
-pqc-kyber = {version = "0.2.0", features = ["wasm"]
+pqc-kyber = {version = "0.2.1", features = ["wasm"] }
 ```
 
 You will also need `wasm-pack` and `wasm32-unknown-unknown` or `wasm32-unknown-emscripten` toolchains installed
@@ -206,10 +213,17 @@ wasm-pack build -- --features wasm
 
 ---
 
-## Security Considerations
-The NIST post quantum standardisation project is still ongoing and changes may still be made to the underlying reference code at any time. 
+## Security Considerations 
 
 While much care has been taken porting from the C reference codebase, this library has not undergone any third-party security auditing nor can any guarantees be made about the potential for underlying vulnerabilities in LWE cryptography or potential side-channel attacks arising from this implementation.
+
+Kyber is relatively new, it is advised to use it in a hybrid key exchange system alongside a traditional algorithm like X25519 rather than by itself. 
+
+For further reading the IETF have a draft construction for hybrid key exchange in TLS 1.3:
+
+https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
+
+You can also see how such an system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
 
 Please use at your own risk.
 
@@ -217,7 +231,7 @@ Please use at your own risk.
 
 ## About
 
-Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is one of the round 3 finalist algorithms submitted to the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
+Kyber is an IND-CCA2-secure key encapsulation mechanism (KEM), whose security is based on the hardness of solving the learning-with-errors (LWE) problem over module lattices. It is the final standardised algorithm resulting from the [NIST post-quantum cryptography project](https://csrc.nist.gov/Projects/Post-Quantum-Cryptography).
 
 The official website: https://pq-crystals.org/kyber/
 
