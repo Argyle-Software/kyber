@@ -128,6 +128,9 @@ mod reference;
 #[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
 use reference::*;
 
+#[cfg(feature = "wasm")]
+mod wasm;
+
 mod api;
 mod error;
 mod kem;

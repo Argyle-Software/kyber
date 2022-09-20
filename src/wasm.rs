@@ -1,56 +1,69 @@
+#![allow(non_snake_case)]
+extern crate alloc;
+
 use super::*;
+use crate::params::*;
+use alloc::boxed::Box;
 use wasm_bindgen::prelude::*;
+
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 pub fn keypair() -> Keys {
-  let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
-  let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-  kem::crypto_kem_keypair(&mut pk, &mut sk, None);
+  let mut rng = rand::rngs::OsRng{};
+  let keys = api::keypair(&mut rng);
   Keys{
-    pubkey: Box::new(pk),
-    secret: Box::new(sk),
-    ..Default::default()
+    pubkey: Box::new(keys.public),
+    secret: Box::new(keys.secret)
   }
 }
 
 #[wasm_bindgen]
-pub fn encapsulate(pk: Box<[u8]>) -> Result<Keys, JsValue> {
+pub fn encapsulate(pk: Box<[u8]>) -> Result<Kex, JsValue> {
   if pk.len() != KYBER_PUBLICKEYBYTES {
     return Err(JsValue::null())
   }
-  let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
-  let mut ss = [0u8; KYBER_SSBYTES];
-  kem::crypto_kem_enc(&mut ct, &mut ss, &pk, None);
-  Ok(Keys{
-    ciphertext: Box::new(ct),
-    shared_secret: Box::new(ss),
-    ..Default::default()
-  })
-}
 
-#[wasm_bindgen]
-pub fn decapsulate(ct: Box<[u8]>, sk: Box<[u8]>) -> Result<Keys, JsValue> {
-  let mut ss = [0u8; KYBER_SSBYTES];
-  match kem::crypto_kem_dec(&mut ss, &ct, &sk) {
-    Ok(_) => Ok(Keys {shared_secret: Box::new(ss), ..Default::default()}),
+  let mut rng = rand::rngs::OsRng{};
+  match api::encapsulate(&pk, &mut rng) {
+    Ok(kex) => Ok(Kex {
+      ciphertext: Box::new(kex.0),
+      sharedSecret: Box::new(kex.1)
+    }),
     Err(_) => Err(JsValue::null())
   }
 }
 
 #[wasm_bindgen]
-#[derive(Default, Clone, Debug)]
+pub fn decapsulate(ct: Box<[u8]>, sk: Box<[u8]>) -> Result<Box<[u8]>, JsValue> {
+  if ct.len() != KYBER_CIPHERTEXTBYTES || sk.len() != KYBER_SECRETKEYBYTES {
+    return Err(JsValue::null())
+  }
+
+  match api::decapsulate(&ct, &sk) {
+    Ok(ss) => Ok(Box::new(ss)),
+    Err(_) => Err(JsValue::null())
+  }
+}
+
+#[wasm_bindgen]
 pub struct Keys{
-    pubkey: Box<[u8]>,
-    secret: Box<[u8]>,
-    ciphertext: Box<[u8]>,
-    shared_secret: Box<[u8]>,
+  pubkey: Box<[u8]>,
+  secret: Box<[u8]>,
+}
+
+#[wasm_bindgen]
+pub struct Kex{
+  ciphertext: Box<[u8]>,
+  sharedSecret: Box<[u8]>,
 }
 
 #[wasm_bindgen]
 impl Keys {
   #[wasm_bindgen(constructor)]
   pub fn new() -> Self {
-    Keys::default()
+    keypair()
   }
 
   #[wasm_bindgen(getter)]
@@ -62,6 +75,14 @@ impl Keys {
   pub fn secret(&self) -> Box<[u8]> {
     self.secret.clone()
   }
+}
+
+#[wasm_bindgen]
+impl Kex {
+  #[wasm_bindgen(constructor)]
+  pub fn new(public_key: Box<[u8]>) -> Self {
+    encapsulate(public_key).expect("Invalid Public Key Size")
+  }
 
   #[wasm_bindgen(getter)]
   pub fn ciphertext(&self) -> Box<[u8]> {
@@ -69,18 +90,8 @@ impl Keys {
   }
 
   #[wasm_bindgen(getter)]
-  pub fn shared_secret(&self) -> Box<[u8]> {
-    self.shared_secret.clone()
-  }
-
-  #[wasm_bindgen(setter)]
-  pub fn set_pubkey(&mut self, pubkey: Box<[u8]>) {
-    self.pubkey = pubkey;
-  }
-
-  #[wasm_bindgen(setter)]
-  pub fn set_secret(&mut self, secret: Box<[u8]>) {
-    self.secret = secret;
+  pub fn sharedSecret(&self) -> Box<[u8]> {
+    self.sharedSecret.clone()
   }
 
   #[wasm_bindgen(setter)]
@@ -89,7 +100,42 @@ impl Keys {
   }
 
   #[wasm_bindgen(setter)]
-  pub fn set_shared_secret(&mut self, shared_secret: Box<[u8]>) {
-    self.shared_secret = shared_secret;
+  pub fn set_sharedSecret(&mut self, sharedSecret: Box<[u8]>) {
+    self.sharedSecret = sharedSecret;
+  }
+}
+
+#[wasm_bindgen]
+pub struct Params {
+  #[wasm_bindgen(readonly)]
+  pub publicKeyBytes: usize,
+  #[wasm_bindgen(readonly)]
+  pub secretKeyBytes: usize,
+  #[wasm_bindgen(readonly)]
+  pub ciphertextBytes: usize,
+  #[wasm_bindgen(readonly)]
+  pub sharedSecretBytes: usize,
+}
+
+#[wasm_bindgen]
+impl Params {
+  #[wasm_bindgen(getter)]
+  pub fn publicKeyBytes() -> usize {
+    KYBER_PUBLICKEYBYTES
+  }
+
+  #[wasm_bindgen(getter)]
+  pub fn secretKeyBytes() -> usize {
+    KYBER_SECRETKEYBYTES
+  }
+  
+  #[wasm_bindgen(getter)]
+  pub fn ciphertextBytes() -> usize {
+    KYBER_CIPHERTEXTBYTES
+  }
+
+  #[wasm_bindgen(getter)]
+  pub fn sharedSecretBytes() -> usize {
+    KYBER_SSBYTES
   }
 }

@@ -1,5 +1,5 @@
 fn main() {
-  #[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+  #[cfg(all(target_arch = "x86_64", not(any(feature = "reference", feature = "wasm"))))] 
   cc::Build::new()
     .include("src/avx2/")
     .file("src/avx2/basemul.S")
