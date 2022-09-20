@@ -17,7 +17,7 @@ npm -i pqc-kyber
 ### Usage
 
 ```js
-import * as kyber from "pqc-kyber";
+import * as kyber from "pqc_kyber";
 
 // Generate Keypair
 let keys = kyber.keypair();
