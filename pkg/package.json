@@ -1,0 +1,31 @@
+{
+  "name": "pqc_kyber",
+  "collaborators": [
+    "Mitchell Berry <foss@mitchellberry.com>"
+  ],
+  "description": "A rust implementation of the post-quantum Kyber KEM algorithm, packaged as a Wasm binary",
+  "version": "0.3.0",
+  "license": "MIT/Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Argyle-Software/kyber"
+  },
+  "files": [
+    "pqc_kyber_bg.wasm",
+    "pqc_kyber.js",
+    "pqc_kyber_bg.js",
+    "pqc_kyber.d.ts",
+    "LICENSE-MIT",
+    "LICENSE-APACHE"
+  ],
+  "module": "pqc_kyber.js",
+  "types": "pqc_kyber.d.ts",
+  "sideEffects": false,
+  "keywords": [
+    "kyber",
+    "kem",
+    "key-exchange",
+    "kex",
+    "post-quantum"
+  ]
+}
