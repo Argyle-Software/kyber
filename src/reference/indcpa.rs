@@ -1,4 +1,3 @@
-#[cfg(not(feature="KATs"))]
 use crate::rng::randombytes;
 use crate::{
   poly::*,
@@ -200,12 +199,11 @@ pub fn indcpa_keypair<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
-  
-  // Use rng seed for test vectors
-  #[cfg(feature="KATs")]
-  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT feature only for testing").0);
+  if let Some(s) = _seed {
+    randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0);
+  } else {
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+  }
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 

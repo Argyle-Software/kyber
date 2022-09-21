@@ -1,19 +1,19 @@
+
+
 fn main() {
-  #[cfg(all(target_arch = "x86_64", not(any(feature = "reference", feature = "wasm"))))] 
-  cc::Build::new()
-    .include("src/avx2/")
-    .file("src/avx2/basemul.S")
-    .file("src/avx2/fq.S")
-    .file("src/avx2/invntt.S")
-    .file("src/avx2/ntt.S")
-    .file("src/avx2/shuffle.S")
-    .compile("pqc_kyber");
-  // #[cfg(
-  //   all(
-  //     any(target_arch = "arm", target_arch="aarch64"),
-  //     not(feature = "reference")
-  //   )
-  // )] 
-  // cc::Build::new()
-  //   .include("src/neon/");
+
+  #[cfg(not(feature = "wasm"))]
+  {
+    #[cfg(feature = "avx2")]
+    {
+        const ROOT: &str = "src/avx2/";
+        const FILES: [&str; 5] = ["basemul.S", "fq.S", "invntt.S", "ntt.S", "shuffle.S"];
+
+        let paths = FILES.iter().map(|name| format!("{}{}", ROOT, name));
+        cc::Build::new()
+          .include(ROOT)
+          .files(paths)
+          .compile("pqc_kyber");
+      }
+  }
 }

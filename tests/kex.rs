@@ -1,4 +1,3 @@
-#![cfg(not(feature="KATs"))]
 use pqc_kyber::*;
 
 // Kyber struct uake and ake functions

@@ -1,4 +1,3 @@
-#![cfg(not(feature="KATs"))]
 use rand_core::*;
 
 // Fills buffer x with len bytes, RNG must satisfy the 

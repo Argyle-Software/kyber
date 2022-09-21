@@ -91,9 +91,7 @@ vmovdqa		%ymm11,224(%rdi)
 
 ret
 
-.global nttunpack_avx
 .global _nttunpack_avx
-nttunpack_avx:
 _nttunpack_avx:
 call		nttunpack128_avx
 add		$256,%rdi
@@ -170,9 +168,7 @@ vmovdqu		%ymm9,160(%rdi)
 
 ret
 
-.global ntttobytes_avx
 .global _ntttobytes_avx
-ntttobytes_avx:
 _ntttobytes_avx:
 #consts
 vmovdqa		_16XQ*2(%rdx),%ymm0
@@ -248,9 +244,7 @@ vmovdqa		%ymm1,224(%rdi)
 
 ret
 
-.global nttfrombytes_avx
 .global _nttfrombytes_avx
-nttfrombytes_avx:
 _nttfrombytes_avx:
 #consts
 vmovdqa		_16XMASK*2(%rdx),%ymm0

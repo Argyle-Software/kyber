@@ -68,10 +68,10 @@ fn get_test_dir() -> PathBuf {
   path
 }
 
-// KATs path
+// KAT path
 fn get_kat_filepath() -> PathBuf {
   let mut path = get_test_dir();
-  path.extend(&["KATs"]);
+  path.extend(&["KAT"]);
   path.extend(&[get_filename()]);
   path
 }
