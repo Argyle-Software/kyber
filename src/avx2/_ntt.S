@@ -176,8 +176,8 @@ vmovdqa		%ymm11,(128*\off+112)*2(%rdi)
 .endm
 
 .text
-.global ntt_avx
-ntt_avx:
+.global _ntt_avx
+_ntt_avx:
 vmovdqa		_16XQ*2(%rsi),%ymm0
 
 level0		0

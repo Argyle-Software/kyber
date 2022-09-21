@@ -181,8 +181,8 @@ vmovdqa		%ymm11,(64*\off+176)*2(%rdi)
 .endm
 
 .text
-.global invntt_avx
-invntt_avx:
+.global _invntt_avx
+_invntt_avx:
 vmovdqa         _16XQ*2(%rsi),%ymm0
 
 intt_levels0t5	0

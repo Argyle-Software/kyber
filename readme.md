@@ -44,7 +44,7 @@ pqc_kyber = "0.2.1"
 use pqc_kyber::*;
 ```
 
-For optimisations enable the following RUSTFLAGS on x86_64 systems when building:
+For SIMD optimisations enable the following RUSTFLAGS on compatible systems when building:
 
 ```shell
 export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"

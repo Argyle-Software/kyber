@@ -24,7 +24,6 @@ fn keypairs() {
   }
 }
 
-
 // Encapsulating KAT's using deterministic rand buffers
 #[test]
 fn encaps() {

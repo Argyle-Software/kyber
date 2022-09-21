@@ -22,6 +22,12 @@
 //! 
 //! ## Usage 
 //! 
+//! On AVX2 capable systems please ensure target features are enabled before compiling
+//! 
+//! ```shell
+//! export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+//! ```
+//! 
 //! ```
 //! use pqc_kyber::*;
 //! ```
@@ -118,14 +124,14 @@
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
-#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+#[cfg(all(target_feature = "avx2", not(feature = "reference")))] 
 mod avx2;
-#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+#[cfg(all(target_feature = "avx2", not(feature = "reference")))] 
 use avx2::*;
 
-#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+#[cfg(any(not(target_feature = "avx2"), feature = "reference"))] 
 mod reference;
-#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+#[cfg(any(not(target_feature = "avx2"), feature = "reference"))] 
 use reference::*;
 
 #[cfg(feature = "wasm")]
