@@ -188,7 +188,7 @@ This library has been compiled into web assembly and published as a npm package.
 
 https://www.npmjs.com/package/pqc-kyber
 
-Which is also located here in the [wasm readme](./pkg/README.md)
+Which is also located here in the [wasm readme](./pkg/readme.md)
 
 To install:
 
@@ -204,7 +204,7 @@ For example, using [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/):
 wasm-pack build -- --features wasm
 ```
 
-Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/README.md). 
+Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/readme.md). 
 
 To compile a different variant into a separate folder: 
 ```shell
@@ -212,7 +212,7 @@ wasm-pack build --out-dir pkg_kyber512/ -- --features "wasm kyber512"
 ```
 
 There is also a basic html demo in the [www](./www/readme.md) folder.
-
+ 
 From the www folder run: 
 
 ```shell
