@@ -32,7 +32,7 @@ criterion = { version = "0.3.6", features = ["html_reports"] }
 rand = "0.8.3"
 
 [build-dependencies]
-cc = "1.0.67"
+cc = "1.0.73"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
