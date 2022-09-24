@@ -3,7 +3,6 @@ use core::arch::x86_64::*;
 use crate::{fips202::*, fips202x4::*};
 #[cfg(feature = "90s")] 
 use crate::{aes256ctr::*, cbd::*};
-#[cfg(not(feature="KATs"))]
 use crate::rng::randombytes;
 use crate::{
   align::*,
@@ -471,12 +470,11 @@ pub fn indcpa_keypair<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
-
-  #[cfg(feature="KATs")]
-  randbuf[..KYBER_SYMBYTES].copy_from_slice(&_seed.expect("KAT seed").0);
-
+  if let Some(s) = _seed {
+    randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0);
+  } else {
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+  }
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
 

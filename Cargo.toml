@@ -46,7 +46,7 @@ harness = false
 # Defaults to "kyber768" if none selected
 # Will throw a compile-time error if more than one level is chosen
 kyber512 = []
-kyber764 = [] 
+kyber768 = [] 
 kyber1024 = []
 
 ### Additional features ###

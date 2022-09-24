@@ -148,18 +148,19 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "reference"]}
 | 90s       | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
 | reference | On x86_64 platforms the optimized version is used by default. Enabling this feature will force usage of the reference codebase. This flag is redundant on other architectures and has no effect. |
 | wasm      | For compiling to WASM targets.                                                                                                                                     |
-
+| zero      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+| benchmarking |  Enables the criterion benchmarking suite |
 ---
 
 ## Testing
 
 The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels and variants.
 
-Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them, you must also specify the module as noted below. Using this feature outside of `cargo test` will result in a compile-time error.
+Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them. Using this feature outside of `cargo test` will result in a compile-time error.
 
 ```bash
-# This example runs all KATs for kyber512-90s, note `--test kat` is needed here.
-cargo test --test kat --features "KATs kyber512 90s"
+# This example runs all KATs for kyber512-90s.
+cargo test --features "KATs kyber512 90s"
 ```
 
 The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KATs/build_kats.sh). 
@@ -173,6 +174,8 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `./target/criterion/`.
 
 See the [benchmarking readme](./benches/readme.md) for information on correct usage.
+
+You will need to use the `benchmarking` feature
 
 ---
 
