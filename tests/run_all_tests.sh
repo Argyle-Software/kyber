@@ -5,7 +5,7 @@ set -e
 
 # Enable avx2 target features
 # Enable LLVM address sanitser checks
-export RUSTFLAGS="-Z sanitizer=address"
+export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2"
 export RUSTDOCFLAGS="-Z sanitizer=address" 
 
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
@@ -37,6 +37,7 @@ for level in "${LEVELS[@]}"; do
       feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}
       announce "$name"
       cargo test --features  KAT,$feat -vv
+      break;
     done
   done
 done
