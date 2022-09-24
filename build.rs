@@ -8,16 +8,10 @@ fn main() {
     const ROOT: &str = "src/avx2/";
     const FILES: [&str; 5] = ["basemul.S", "fq.S", "invntt.S", "ntt.S", "shuffle.S"];
 
-    // Separate asm files export underscored symbols for Apple and 32 bit Windows
+    // Separate asm files export underscored symbols for Apple
     // M1 macs cannot use avx instructions
     fn filepath(name: &str) -> String {
-      if cfg!(
-        any(
-          target = "i686-pc-windows-gnu", 
-          target = "i686-pc-windows-msvc",
-          target_vendor = "apple",
-        )
-      ) 
+      if cfg!(target_vendor = "apple") 
       {
         format!("{}_{}", ROOT, name) 
       } else {

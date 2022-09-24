@@ -26,7 +26,7 @@ start=`date +%s`
 
 announce $TARGET
 
-LEVELS=("kyber512")
+LEVELS=("kyber512", "kyber768", "kyber1024")
 OPT=("" "reference")
 NINES=("" "90s")
 
@@ -36,7 +36,7 @@ for level in "${LEVELS[@]}"; do
       name="$level $opt $nine"
       feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}
       announce "$name"
-      cargo test --features  KAT,$feat
+      cargo test --features  KAT,$feat -vv
     done
   done
 done
