@@ -156,14 +156,14 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "reference"]}
 
 The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels and variants.
 
-Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them. Using this feature outside of `cargo test` will result in a compile-time error.
+Known Answer Tests require deterministic rng seeds, enable the `KAT` feature to run them. Using this feature outside of `cargo test` will result in a compile-time error.
 
 ```bash
 # This example runs all KATs for kyber512-90s.
-cargo test --features "KATs kyber512 90s"
+cargo test --features "KAT kyber512 90s"
 ```
 
-The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KATs/build_kats.sh). 
+The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KAT/build_kats.sh). 
 
 See the [testing readme](./tests/readme.md) for more comprehensive info.
 

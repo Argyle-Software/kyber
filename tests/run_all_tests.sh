@@ -36,7 +36,7 @@ for level in "${LEVELS[@]}"; do
       name="$level $opt $nine"
       feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}
       announce "$name"
-      cargo test --features  KATs,$feat
+      cargo test --features  KAT,$feat
     done
   done
 done

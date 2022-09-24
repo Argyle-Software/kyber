@@ -11,7 +11,7 @@ This results in 6 files, each containing 10000 KATs, total size is ~600MB:
 * tvecs1024
 * tvecs1024-90s
 
-These need to be then moved into the `tests/KATs` folder. The `SHA256SUMS_ORIG` file contains 
+These need to be then moved into the `tests/KAT` folder. The `SHA256SUMS_ORIG` file contains 
 the digests this library was tested against.
 
 
@@ -33,8 +33,8 @@ for tvec in test_vectors*[^.c];
     ./$tvec > ${sub_str/tor/};
 done;
 
-# Move test vectors and sha256sums into the PQC-Kyber KATs folder
-mv tvecs* <Project Root>/tests/KATs
+# Move test vectors and sha256sums into the PQC-Kyber KATfolder
+mv tvecs* <Project Root>/tests/KAT
 
 # SHA256SUMS
 for tvec in tvecs{5,7,1}*;

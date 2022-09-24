@@ -26,9 +26,9 @@ jobs:
         with:
           command: build
 
-      - name: Generate KATs
+      - name: Generate KAT
         shell: bash
-        working-directory: ./tests/KATs
+        working-directory: ./tests/KAT
         run: |
           chmod +x build_kats.sh
           bash build_kats.sh

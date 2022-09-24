@@ -154,5 +154,5 @@ pub use rand_core::{RngCore, CryptoRng};
 // Feature hack to expose private functions for the Known Answer Tests
 // and fuzzing. Will fail to compile if used outside `cargo test` or 
 // the fuzz binaries.
-#[cfg(any(feature="KATs", fuzzing))]
+#[cfg(any(feature="KAT", fuzzing))]
 pub use kem::*;

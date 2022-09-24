@@ -1,4 +1,4 @@
-#![cfg(feature="KATs")]
+#![cfg(feature="KAT")]
 
 mod load;
 

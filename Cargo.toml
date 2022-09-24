@@ -59,7 +59,7 @@ reference = []
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen", "getrandom", "rand"]
 
-zeroise = ["zeroize"]
+zero = ["zeroize"]
 
 # For benchmarking
 benchmarking = ["criterion"]
@@ -67,7 +67,7 @@ benchmarking = ["criterion"]
 # Known Answer Tests
 # Allows private internal api access to seed the RNG output.
 # Do not use this feature for any purpose other than testing.
-KATs = []
+KAT = []
 
 # Prevents leak sanitiser failing in tests
 [profile.test]
