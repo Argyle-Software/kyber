@@ -35,7 +35,7 @@ In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc_kyber = "0.2.1"
+pqc_kyber = "0.3.0"
 ```
 
 ## Usage 
