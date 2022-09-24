@@ -21,11 +21,6 @@ jobs:
         with:
           toolchain: nightly
 
-      - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-
       - name: Generate KAT
         shell: bash
         working-directory: ./tests/KAT
