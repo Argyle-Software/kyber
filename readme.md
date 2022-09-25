@@ -47,7 +47,7 @@ use pqc_kyber::*;
 For SIMD optimisations enable the following RUSTFLAGS on compatible systems when building:
 
 ```shell
-export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 ```
 
 The higher level key exchange structs will be appropriate for most use-cases. 

@@ -1,0 +1,30 @@
+
+env: 
+  RUSTFLAGS: "-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ master, development ]
+
+jobs:
+  linux:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        # MSRV 1.47
+        rust: [1.47.0, stable] 
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      - name: Run Tests
+        shell: bash
+        working-directory: ./tests
+        run: bash run_all_tests.sh

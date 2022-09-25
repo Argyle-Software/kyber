@@ -5,13 +5,21 @@ set -e
 
 # Enable avx2 target features
 # Enable LLVM address sanitser checks
-export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2"
-export RUSTDOCFLAGS="-Z sanitizer=address" 
+# export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+# export RUSTDOCFLAGS="-Z sanitizer=address" 
 
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
 
-# Required for address sanitiser checks
-rustup default nightly
+# If any argument supplied run KAT's
+if [ -z "$1" ]
+  then
+    KAT=""
+  else
+    KAT="KAT"
+fi
+
+# # Required for address sanitiser checks
+# rustup default nightly
 
 # Print Headers
 announce(){
@@ -34,9 +42,9 @@ for level in "${LEVELS[@]}"; do
  for opt in "${OPT[@]}"; do
     for nine in "${NINES[@]}"; do
       name="$level $opt $nine"
-      feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}
+      feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}${KAT:+",$KAT"}
       announce "$name"
-      cargo test --features  KAT,$feat -vv
+      cargo test --features  $feat
       break;
     done
   done
