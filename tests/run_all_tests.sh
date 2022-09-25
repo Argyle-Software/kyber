@@ -13,19 +13,19 @@ TARGET=$(rustc -vV | sed -n 's|host: ||p')
 # KAT and AVX2 bash variables
 if [ -z "$KAT" ]
   then
-    echo NO KAT
+    echo Not running Known Answer Tests 
     KAT=""
   else
-  echo KAT
+  echo Running Known Answer Tests
     KAT="KAT"
 fi
 
 if [ -z "$AVX2" ]
   then
-  echo NO AVX2
+  echo Not using AVX2 optimisations 
     OPT=("")
   else
-  echo AVX2
+  echo Using AVX2 optimisations
     OPT=("" "avx2")
 fi
 
@@ -36,7 +36,7 @@ fi
 announce(){
   title="#    $1    #"
   edge=$(echo "$title" | sed 's/./#/g')
-  echo -e "\n$edge"; echo "$title"; echo -e "$edge";
+  echo -e "\n\n$edge"; echo "$title"; echo -e "$edge";
 }
 
 ##############################################################

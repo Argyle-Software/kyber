@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/bin/bash
 set -e
 
 current_dir="${PWD##*/}"
