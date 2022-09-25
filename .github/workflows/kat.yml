@@ -29,6 +29,4 @@ jobs:
       - name: Run Known Answer Tests
         shell: bash
         working-directory: ./tests
-        run: |
-          chmod +x run_all_tests.sh
-          bash KAT=1 AVX2=1 run_all_tests.sh
+        run: KAT=1 AVX2=1 ./run_all_tests.sh

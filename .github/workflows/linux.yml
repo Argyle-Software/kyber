@@ -32,4 +32,4 @@ jobs:
       - name: Run Tests
         shell: bash
         working-directory: ./tests
-        run: bash AVX2=1 run_all_tests.sh
+        run: AVX2=1 ./run_all_tests.sh
