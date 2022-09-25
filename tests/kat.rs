@@ -1,4 +1,4 @@
-#![cfg(feature="KATs")]
+#![cfg(feature="KAT")]
 
 mod load;
 
@@ -23,7 +23,6 @@ fn keypairs() {
     assert_eq!(&sk[..], &known_sk[..], "Secret key KAT mismatch");
   }
 }
-
 
 // Encapsulating KAT's using deterministic rand buffers
 #[test]

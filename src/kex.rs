@@ -1,4 +1,6 @@
 use rand_core::{RngCore, CryptoRng};
+#[cfg(feature = "zeroise")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 use crate::{
   kem::*,
   symmetric::kdf,
@@ -55,7 +57,9 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 /// 
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
-#[derive(Clone, Debug, Eq, PartialEq, zeroize::Zeroize, zeroize::ZeroizeOnDrop)]
+
+#[cfg_attr(feature = "zeroise", derive(Zeroize, ZeroizeOnDrop))]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
@@ -181,7 +185,8 @@ impl Uake {
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
-#[derive(Clone, Debug, Eq, PartialEq, zeroize::Zeroize, zeroize::ZeroizeOnDrop)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "zeroise", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Ake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,

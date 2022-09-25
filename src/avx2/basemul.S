@@ -1,5 +1,7 @@
+#include "consts.h"
+
 .macro schoolbook off
-vmovdqa		32(%rcx),%ymm0
+vmovdqa		_16XQINV*2(%rcx),%ymm0
 vmovdqa		(64*\off+ 0)*2(%rsi),%ymm1		# a0
 vmovdqa		(64*\off+16)*2(%rsi),%ymm2		# b0
 vmovdqa		(64*\off+32)*2(%rsi),%ymm3		# a1
@@ -38,7 +40,7 @@ vpmullw		%ymm8,%ymm11,%ymm11			# a1d1.lo
 vpmullw		%ymm7,%ymm12,%ymm7			# b1c1.lo
 vpmullw		%ymm8,%ymm12,%ymm12			# b1d1.lo
 
-vmovdqa		0*2(%rcx),%ymm8
+vmovdqa		_16XQ*2(%rcx),%ymm8
 vpmulhw		%ymm8,%ymm13,%ymm13
 vpmulhw		%ymm8,%ymm9,%ymm9
 vpmulhw		%ymm8,%ymm5,%ymm5
@@ -82,12 +84,14 @@ vmovdqa		%ymm11,(64*\off+48)*2(%rdi)
 
 .text
 .global basemul_avx
+.global _basemul_avx
 basemul_avx:
+_basemul_avx:
 mov		%rsp,%r8
 and		$-32,%rsp
 sub		$32,%rsp
 
-lea		(336)*2(%rcx),%r9
+lea		(_ZETAS_EXP+176)*2(%rcx),%r9
 schoolbook	0
 
 add		$32*2,%r9

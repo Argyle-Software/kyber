@@ -1,34 +1,5 @@
-
-.macro red16 r,rs=0,x=12
-vpmulhw         %ymm1,%ymm\r,%ymm\x
-.if \rs
-vpmulhrsw	%ymm\rs,%ymm\x,%ymm\x
-.else
-vpsraw          $10,%ymm\x,%ymm\x
-.endif
-vpmullw         %ymm0,%ymm\x,%ymm\x
-vpsubw          %ymm\x,%ymm\r,%ymm\r
-.endm
-
-.macro csubq r,x=12
-vpsubw		%ymm0,%ymm\r,%ymm\r
-vpsraw		$15,%ymm\r,%ymm\x
-vpand		%ymm0,%ymm\x,%ymm\x
-vpaddw		%ymm\x,%ymm\r,%ymm\r
-.endm
-
-.macro caddq r,x=12
-vpsraw		$15,%ymm\r,%ymm\x
-vpand		%ymm0,%ymm\x,%ymm\x
-vpaddw		%ymm\x,%ymm\r,%ymm\r
-.endm
-
-.macro fqmulprecomp al,ah,b,x=12
-vpmullw		%ymm\al,%ymm\b,%ymm\x
-vpmulhw		%ymm\ah,%ymm\b,%ymm\b
-vpmulhw		%ymm0,%ymm\x,%ymm\x
-vpsubw		%ymm\x,%ymm\b,%ymm\b
-.endm
+#include "consts.h"
+.include "fq.inc"
 
 .text
 reduce128_avx:
@@ -64,10 +35,12 @@ vmovdqa		%ymm9,224(%rdi)
 ret
 
 .global reduce_avx
+.global _reduce_avx
 reduce_avx:
+_reduce_avx:
 #consts
-vmovdqa		0*2(%rsi),%ymm0
-vmovdqa		32*2(%rsi),%ymm1
+vmovdqa		_16XQ*2(%rsi),%ymm0
+vmovdqa		_16XV*2(%rsi),%ymm1
 call		reduce128_avx
 add		$256,%rdi
 call		reduce128_avx
@@ -106,11 +79,13 @@ vmovdqa		%ymm10,224(%rdi)
 ret
 
 .global tomont_avx
+.global _tomont_avx
 tomont_avx:
+_tomont_avx:
 #consts
-vmovdqa		0*2(%rsi),%ymm0
-vmovdqa		80*2(%rsi),%ymm1
-vmovdqa		96*2(%rsi),%ymm2
+vmovdqa		_16XQ*2(%rsi),%ymm0
+vmovdqa		_16XMONTSQLO*2(%rsi),%ymm1
+vmovdqa		_16XMONTSQHI*2(%rsi),%ymm2
 call		tomont128_avx
 add		$256,%rdi
 call		tomont128_avx

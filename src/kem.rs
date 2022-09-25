@@ -1,4 +1,3 @@
-#[cfg(not(feature="KATs"))]
 use crate::rng::randombytes;
 use rand_core::{RngCore, CryptoRng};
 use crate::{
@@ -31,12 +30,11 @@ pub fn crypto_kem_keypair<R>(
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
   
-  #[cfg(feature="KATs")]
-  sk[SK_START..].copy_from_slice(&_seed.expect("KATs feature only for testing").1);
-
-  #[cfg(not(feature="KATs"))]
-  randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng);
-
+  if let Some(s) = _seed {
+    sk[SK_START..].copy_from_slice(&s.1)
+  } else {
+    randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng);
+  }
 }
 
 // Name:        crypto_kem_enc
@@ -56,13 +54,12 @@ pub fn crypto_kem_enc<R>(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
 
-  #[cfg(not(feature="KATs"))]
-  randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
-  
   // Deterministic randbuf for KAT's
-  #[cfg(feature="KATs")]
-  randbuf[..KYBER_SYMBYTES]
-    .copy_from_slice(&_seed.expect("KATs feature only works with `cargo test`"));
+  if let Some(s) = _seed {
+    randbuf[..KYBER_SYMBYTES].copy_from_slice(&s);
+  } else {
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+  }
 
   // Don't release system RNG output 
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);
