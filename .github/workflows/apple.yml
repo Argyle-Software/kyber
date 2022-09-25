@@ -1,6 +1,6 @@
 
-# env: 
-#   RUSTFLAGS: "-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+env: 
+  RUSTFLAGS: "-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 on:
   workflow_dispatch:
@@ -32,4 +32,4 @@ jobs:
         shell: bash
         working-directory: ./tests
         # run: bash run_all_tests.sh
-        run: cargo test --features reference
+        run: cargo test
