@@ -1,10 +1,10 @@
-#!/bin/env bash
+#!/bin/bash
 set -e
 
 current_dir="${PWD##*/}"
-if [ $current_dir != "KATs" ];
+if [ $current_dir != "KAT" ];
 then
-  echo "Script needs to be run from inside the KATs folder";
+  echo "Script needs to be run from inside the KAT folder";
   echo "Current working directory: "$current_dir
   exit;
 fi;
@@ -22,7 +22,7 @@ done;
 
 echo 'Moving Files...'
 
-# Move test vectors and sha256sums into the PQC-Kyber KATs folder
+# Move test vectors and sha256sums into the PQC-Kyber KAT folder
 mv tvecs* ../..
 cd ../..
 

@@ -1,28 +1,5 @@
-.macro shuffle8 r0,r1,r2,r3
-vperm2i128	$0x20,%ymm\r1,%ymm\r0,%ymm\r2
-vperm2i128	$0x31,%ymm\r1,%ymm\r0,%ymm\r3
-.endm
-
-.macro shuffle4 r0,r1,r2,r3
-vpunpcklqdq	%ymm\r1,%ymm\r0,%ymm\r2
-vpunpckhqdq	%ymm\r1,%ymm\r0,%ymm\r3
-.endm
-
-.macro shuffle2 r0,r1,r2,r3
-#vpsllq		$32,%ymm\r1,%ymm\r2
-vmovsldup	%ymm\r1,%ymm\r2
-vpblendd	$0xAA,%ymm\r2,%ymm\r0,%ymm\r2
-vpsrlq		$32,%ymm\r0,%ymm\r0
-#vmovshdup	%ymm\r0,%ymm\r0
-vpblendd	$0xAA,%ymm\r1,%ymm\r0,%ymm\r3
-.endm
-
-.macro shuffle1 r0,r1,r2,r3
-vpslld		$16,%ymm\r1,%ymm\r2
-vpblendw	$0xAA,%ymm\r2,%ymm\r0,%ymm\r2
-vpsrld		$16,%ymm\r0,%ymm\r0
-vpblendw	$0xAA,%ymm\r1,%ymm\r0,%ymm\r3
-.endm
+#include "consts.h"
+.include "shuffle.inc"
 
 .macro mul rh0,rh1,rh2,rh3,zl0=15,zl1=15,zh0=2,zh1=2
 vpmullw		%ymm\zl0,%ymm\rh0,%ymm12
@@ -71,12 +48,12 @@ vpaddw		%ymm15,%ymm\rh3,%ymm\rh3
 .endm
 
 .macro level0 off
-vpbroadcastq	(160+0)*2(%rsi),%ymm15
+vpbroadcastq	(_ZETAS_EXP+0)*2(%rsi),%ymm15
 vmovdqa		(64*\off+128)*2(%rdi),%ymm8
 vmovdqa		(64*\off+144)*2(%rdi),%ymm9
 vmovdqa		(64*\off+160)*2(%rdi),%ymm10
 vmovdqa		(64*\off+176)*2(%rdi),%ymm11
-vpbroadcastq	(160+4)*2(%rsi),%ymm2
+vpbroadcastq	(_ZETAS_EXP+4)*2(%rsi),%ymm2
 
 mul		8,9,10,11
 
@@ -100,12 +77,12 @@ vmovdqa		%ymm11,(64*\off+176)*2(%rdi)
 
 .macro levels1t6 off
 /* level 1 */
-vmovdqa		(160+224*\off+16)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+16)*2(%rsi),%ymm15
 vmovdqa		(128*\off+ 64)*2(%rdi),%ymm8
 vmovdqa		(128*\off+ 80)*2(%rdi),%ymm9
 vmovdqa		(128*\off+ 96)*2(%rdi),%ymm10
 vmovdqa		(128*\off+112)*2(%rdi),%ymm11
-vmovdqa		(160+224*\off+32)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+32)*2(%rsi),%ymm2
 
 mul		8,9,10,11
 
@@ -121,8 +98,8 @@ update		3,4,5,6,7,8,9,10,11
 shuffle8	5,10,7,10
 shuffle8	6,11,5,11
 
-vmovdqa		(160+224*\off+48)*2(%rsi),%ymm15
-vmovdqa		(160+224*\off+64)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+48)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+64)*2(%rsi),%ymm2
 
 mul		7,10,5,11
 
@@ -136,8 +113,8 @@ update		4,6,8,3,9,7,10,5,11
 shuffle4	8,5,9,5
 shuffle4	3,11,8,11
 
-vmovdqa		(160+224*\off+80)*2(%rsi),%ymm15
-vmovdqa		(160+224*\off+96)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+80)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+96)*2(%rsi),%ymm2
 
 mul		9,5,8,11
 
@@ -151,8 +128,8 @@ update		6,3,7,4,10,9,5,8,11
 shuffle2	7,8,10,8
 shuffle2	4,11,7,11
 
-vmovdqa		(160+224*\off+112)*2(%rsi),%ymm15
-vmovdqa		(160+224*\off+128)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+112)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+128)*2(%rsi),%ymm2
 
 mul		10,8,7,11
 
@@ -166,8 +143,8 @@ update		3,4,9,6,5,10,8,7,11
 shuffle1	9,7,5,7
 shuffle1	6,11,9,11
 
-vmovdqa		(160+224*\off+144)*2(%rsi),%ymm15
-vmovdqa		(160+224*\off+160)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+144)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+160)*2(%rsi),%ymm2
 
 mul		5,7,9,11
 
@@ -178,10 +155,10 @@ reduce
 update		4,6,10,3,8,5,7,9,11
 
 /* level 6 */
-vmovdqa		(160+224*\off+176)*2(%rsi),%ymm14
-vmovdqa		(160+224*\off+208)*2(%rsi),%ymm15
-vmovdqa		(160+224*\off+192)*2(%rsi),%ymm8
-vmovdqa		(160+224*\off+224)*2(%rsi),%ymm2
+vmovdqa		(_ZETAS_EXP+224*\off+176)*2(%rsi),%ymm14
+vmovdqa		(_ZETAS_EXP+224*\off+208)*2(%rsi),%ymm15
+vmovdqa		(_ZETAS_EXP+224*\off+192)*2(%rsi),%ymm8
+vmovdqa		(_ZETAS_EXP+224*\off+224)*2(%rsi),%ymm2
 
 mul		10,3,9,11,14,15,8,2
 
@@ -200,8 +177,10 @@ vmovdqa		%ymm11,(128*\off+112)*2(%rdi)
 
 .text
 .global ntt_avx
+.global _ntt_avx
 ntt_avx:
-vmovdqa		0*2(%rsi),%ymm0
+_ntt_avx:
+vmovdqa		_16XQ*2(%rsi),%ymm0
 
 level0		0
 level0		1
