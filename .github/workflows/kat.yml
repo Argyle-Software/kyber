@@ -31,4 +31,4 @@ jobs:
         working-directory: ./tests
         run: |
           chmod +x run_all_tests.sh
-          bash run_all_tests.sh KAT
+          bash KAT=1 AVX2=1 run_all_tests.sh

@@ -53,8 +53,9 @@ kyber1024 = []
 # 90s mode uses AES-CTR and SHA2 as primitives instead
 90s = ["sha2"]
 
-# Force usage of the reference codebase on x86_64 architectures
-reference = []
+# Use avx2 intrinsics on x86 architectures
+# Wont compile if the platform doesn't supprt it
+avx2 = []
 
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen", "getrandom", "rand"]

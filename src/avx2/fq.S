@@ -35,7 +35,9 @@ vmovdqa		%ymm9,224(%rdi)
 ret
 
 .global reduce_avx
+.global _reduce_avx
 reduce_avx:
+_reduce_avx:
 #consts
 vmovdqa		_16XQ*2(%rsi),%ymm0
 vmovdqa		_16XV*2(%rsi),%ymm1
@@ -77,7 +79,9 @@ vmovdqa		%ymm10,224(%rdi)
 ret
 
 .global tomont_avx
+.global _tomont_avx
 tomont_avx:
+_tomont_avx:
 #consts
 vmovdqa		_16XQ*2(%rsi),%ymm0
 vmovdqa		_16XMONTSQLO*2(%rsi),%ymm1

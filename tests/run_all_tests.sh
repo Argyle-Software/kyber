@@ -10,12 +10,23 @@ set -e
 
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
 
-# If any argument supplied run KAT's
-if [ -z "$1" ]
+# KAT and AVX2 bash variables
+if [ -z "$KAT" ]
   then
+    echo NO KAT
     KAT=""
   else
+  echo KAT
     KAT="KAT"
+fi
+
+if [ -z "$AVX2" ]
+  then
+  echo NO AVX2
+    OPT=("")
+  else
+  echo AVX2
+    OPT=("" "avx2")
 fi
 
 # # Required for address sanitiser checks
@@ -34,14 +45,13 @@ start=`date +%s`
 
 announce $TARGET
 
-LEVELS=("kyber512", "kyber768", "kyber1024")
-OPT=("" "reference")
+LEVELS=("kyber512" "kyber768" "kyber1024")
 NINES=("" "90s")
 
 for level in "${LEVELS[@]}"; do
- for opt in "${OPT[@]}"; do
-    for nine in "${NINES[@]}"; do
-      name="$level $opt $nine"
+  for nine in "${NINES[@]}"; do
+    for opt in "${OPT[@]}"; do
+      name="$level $nine $opt"
       feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}${KAT:+",$KAT"}
       announce "$name"
       cargo test --features  $feat
