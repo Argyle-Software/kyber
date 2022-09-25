@@ -6,7 +6,7 @@ fn main() {
   {
     #[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
     {
-      if std::is_x86_feature_detected!("avx2") {
+      // if std::is_x86_feature_detected!("avx2") {
         const ROOT: &str = "src/avx2/";
         const FILES: [&str; 5] = ["basemul.S", "fq.S", "invntt.S", "ntt.S", "shuffle.S"];
     
@@ -26,7 +26,7 @@ fn main() {
           .files(paths)
           .compile("pqc_kyber");
       }
-      }
+    // }
 
   }
 }
