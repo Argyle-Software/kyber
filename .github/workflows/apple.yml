@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # MSRV 1.47
-        rust: [1.47.0, stable] 
+        rust: [stable] # , 1.47.0 
     
     steps:
       - uses: actions/checkout@v3
@@ -27,4 +27,5 @@ jobs:
       - name: Run Tests
         shell: bash
         working-directory: ./tests
-        run: bash run_all_tests.sh
+        # run: bash run_all_tests.sh
+        run: cargo test --features reference
