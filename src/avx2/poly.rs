@@ -7,6 +7,7 @@ use crate::{
   fips202x4::*,
   params::*,
   symmetric::*,
+  reference::ntt::*
 };
 
 pub(crate) const NOISE_NBLOCKS: usize = 
