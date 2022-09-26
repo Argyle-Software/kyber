@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 use core::arch::x86_64::*;
 use crate::{
   align::*,
@@ -16,8 +15,8 @@ pub(crate) const NOISE_NBLOCKS: usize =
 #[derive(Clone)]
 #[repr(C)]
 pub union Poly {
-    pub coeffs: [i16; KYBER_N],
-    pub vec: [__m256i; (KYBER_N+15)/16]
+  pub coeffs: [i16; KYBER_N],
+  pub vec: [__m256i; (KYBER_N+15)/16]
 }
 
 impl Copy for Poly {}
@@ -28,17 +27,6 @@ impl Poly {
       coeffs: [0i16; KYBER_N]
     }
   }
-  // Basic polynomial value checking for development
-  // #[cfg(debug_assertions)]
-  // fn checksum(&self) -> i16 {
-  //   unsafe{
-  //     let mut out = 0;
-  //     for x in &self.coeffs {
-  //       out ^= x;
-  //     }
-  //     out
-  //   }
-  // }
 }
 
 extern {
@@ -191,6 +179,10 @@ pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8])
 
 pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::nttfrombytes(&mut r.coeffs, &a);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { 
     nttfrombytes_avx(r.coeffs.as_mut_ptr(), a.as_ptr(), &QDATA.coeffs);
   }
@@ -199,6 +191,11 @@ pub fn poly_frombytes(r: &mut Poly, a: &[u8])
 pub fn poly_tobytes(r: &mut[u8], a: Poly)
 {
   let mut buf = [0u8; KYBER_POLYBYTES];
+
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::ntttobytes(&mut bufa.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { ntttobytes_avx(buf.as_mut_ptr(), &a.coeffs, &QDATA.coeffs); }
   r[..KYBER_POLYBYTES].copy_from_slice(&buf[..]);
 }
@@ -355,31 +352,55 @@ pub fn poly_getnoise_eta1122_4x(
 
 pub fn poly_ntt(r: &mut Poly) 
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::ntt(&mut r.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { ntt_avx(&mut r.coeffs, &QDATA.coeffs); }
 }
 
 pub fn poly_invntt_tomont(r: &mut Poly)
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::invntt(&mut r.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { invntt_avx(&mut r.coeffs, &QDATA.coeffs); }
 }
 
 pub fn poly_nttunpack(r: &mut Poly)
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::nttunpack(&mut r.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { nttunpack_avx(&mut r.coeffs, &QDATA.coeffs); }
 }
 
 pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::basemul(&mut r.coeffs, &a.coeffs, &b.coeffs);
+      
+  #[cfg(not(target_family = "windows"))]
   unsafe { basemul_avx(&mut r.coeffs, &a.coeffs, &b.coeffs, &QDATA.coeffs); }
 }
 
 pub fn poly_tomont(r: &mut Poly)
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::tomont(&mut r.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { tomont_avx(&mut r.coeffs, &QDATA.coeffs); }
 }
 
 pub fn poly_reduce(r: &mut Poly)
 {
+  #[cfg(target_family = "windows")]
+  crate::reference::ntt::reduce(&mut r.coeffs);
+
+  #[cfg(not(target_family = "windows"))]
   unsafe { reduce_avx(&mut r.coeffs, &QDATA.coeffs); }
 }
 

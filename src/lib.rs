@@ -134,6 +134,9 @@ mod reference;
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))] 
 use reference::*;
 
+#[cfg(target_family = "windows")]
+mod reference;
+
 #[cfg(feature = "wasm")]
 mod wasm;
 
