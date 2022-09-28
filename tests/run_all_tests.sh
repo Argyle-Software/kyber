@@ -34,7 +34,7 @@ if [ -z "$AVX2" ]
     OPT=("" "avx2")
 fi
 
-if [ -z "$NASM" ]
+if [[ ! -z "$NASM" ]]
   then
     echo Using AVX2 optimisations with NASM assembler
     OPT+=("nasm")
@@ -66,7 +66,6 @@ for level in "${LEVELS[@]}"; do
       feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}${KAT:+",$KAT"}
       announce "$name"
       cargo test --features  $feat
-      break;
     done
   done
 done
