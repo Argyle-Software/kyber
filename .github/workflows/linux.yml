@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install nasm
+        run: sudo apt-get install -y nasm
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
