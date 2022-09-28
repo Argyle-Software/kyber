@@ -2,6 +2,11 @@
 set -e
 
 # This script runs a matrix of every valid feature combination
+#
+# Variables: 
+# KAT - Runs the known answer tests
+# AVX2 - Runs avx2 code on x86 platforms with compiled GAS files
+# NASM - Runs avx2 code with both GAS and NASM files seperately
 
 # Enable avx2 target features
 # Enable LLVM address sanitser checks
@@ -22,11 +27,17 @@ fi
 
 if [ -z "$AVX2" ]
   then
-  echo Not using AVX2 optimisations 
+    echo Not using AVX2 optimisations 
     OPT=("")
   else
-  echo Using AVX2 optimisations
+    echo Using AVX2 optimisations with GAS assembler
     OPT=("" "avx2")
+fi
+
+if [ -z "$NASM" ]
+  then
+    echo Using AVX2 optimisations with NASM assembler
+    OPT+=("nasm")
 fi
 
 # # Required for address sanitiser checks
