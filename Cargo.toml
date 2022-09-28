@@ -33,6 +33,7 @@ rand = "0.8.3"
 
 [build-dependencies]
 cc = "1.0.73"
+nasm-rs = "0.2.4"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
