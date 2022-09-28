@@ -1,8 +1,3 @@
-// #ifndef CONSTS_H
-// #define CONSTS_H
-
-// #include "params.h"
-
 #define _16XQ            0
 #define _16XQINV        16
 #define _16XV           32

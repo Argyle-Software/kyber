@@ -17,10 +17,16 @@
 //! | kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.                                                                                                |
 //! | kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.                   |
 //! | 90s       | 90's mode uses SHA2 and AES-CTR as a replacement for SHAKE. This may provide hardware speedups on certain architectures.                                                           |
-//! | reference | On x86_64 platforms the optimized version is used by default. Enabling this feature will force usage of the reference codebase. This is unnecessary on other architectures |
+//! | avx2      | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 //! | wasm      | For compiling to WASM targets. |
 //! 
 //! ## Usage 
+//! 
+//! For optimisations on x86 platforms enable the `avx2` feature and the following RUSTFLAGS:
+//! 
+//! ```shell
+//! export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+//! ```
 //! 
 //! ```
 //! use pqc_kyber::*;
@@ -118,14 +124,14 @@
 #[cfg(all(feature = "kyber1024", feature = "kyber512"))]
 compile_error!("Only one security level can be specified");
 
-#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+#[cfg(all(target_arch = "x86_64", feature = "avx2"))] 
 mod avx2;
-#[cfg(all(target_arch = "x86_64", not(feature = "reference")))] 
+#[cfg(all(target_arch = "x86_64", feature = "avx2"))] 
 use avx2::*;
 
-#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))] 
 mod reference;
-#[cfg(any(not(target_arch = "x86_64"), feature = "reference"))] 
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))] 
 use reference::*;
 
 #[cfg(feature = "wasm")]
@@ -148,5 +154,5 @@ pub use rand_core::{RngCore, CryptoRng};
 // Feature hack to expose private functions for the Known Answer Tests
 // and fuzzing. Will fail to compile if used outside `cargo test` or 
 // the fuzz binaries.
-#[cfg(any(feature="KATs", fuzzing))]
+#[cfg(any(feature="KAT", fuzzing))]
 pub use kem::*;

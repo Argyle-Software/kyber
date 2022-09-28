@@ -35,7 +35,7 @@ In `Cargo.toml`:
 
 ```toml
 [dependencies]
-pqc_kyber = "0.2.1"
+pqc_kyber = "0.3.0"
 ```
 
 ## Usage 
@@ -44,10 +44,10 @@ pqc_kyber = "0.2.1"
 use pqc_kyber::*;
 ```
 
-For optimisations enable the following RUSTFLAGS on x86_64 systems when building:
+For optimisations on x86 platforms enable the `avx2` feature and the following RUSTFLAGS:
 
 ```shell
-export RUSTFLAGS="-C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
+export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 ```
 
 The higher level key exchange structs will be appropriate for most use-cases. 
@@ -137,7 +137,7 @@ If no security level is specified then kyber768 is used by default as recommende
 
 ```toml
 [dependencies]
-pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "reference"]}
+pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 ```
 
 
@@ -146,23 +146,24 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "reference"]}
 | kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.                                                                                                |
 | kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.  A compile-time error is raised if more than one security level is specified.                 |
 | 90s       | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
-| reference | On x86_64 platforms the optimized version is used by default. Enabling this feature will force usage of the reference codebase. This flag is redundant on other architectures and has no effect. |
+| avx2      | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 | wasm      | For compiling to WASM targets.                                                                                                                                     |
-
+| zero      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+| benchmarking |  Enables the criterion benchmarking suite |
 ---
 
 ## Testing
 
 The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels and variants.
 
-Known Answer Tests require deterministic rng seeds, enable the `KATs` feature to run them, you must also specify the module as noted below. Using this feature outside of `cargo test` will result in a compile-time error.
+Known Answer Tests require deterministic rng seeds, enable the `KAT` feature to run them. Using this feature outside of `cargo test` will result in a compile-time error.
 
 ```bash
-# This example runs all KATs for kyber512-90s, note `--test kat` is needed here.
-cargo test --test kat --features "KATs kyber512 90s"
+# This example runs all KATs for kyber512-90s.
+cargo test --features "KAT kyber512 90s"
 ```
 
-The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KATs/build_kats.sh). 
+The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KAT/build_kats.sh). 
 
 See the [testing readme](./tests/readme.md) for more comprehensive info.
 
@@ -173,6 +174,8 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `./target/criterion/`.
 
 See the [benchmarking readme](./benches/readme.md) for information on correct usage.
+
+You will need to use the `benchmarking` feature
 
 ---
 
@@ -188,7 +191,7 @@ This library has been compiled into web assembly and published as a npm package.
 
 https://www.npmjs.com/package/pqc-kyber
 
-Which is also located here in the [wasm readme](./pkg/README.md)
+Which is also located here in the [wasm readme](./pkg/readme.md)
 
 To install:
 
@@ -204,7 +207,7 @@ For example, using [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/):
 wasm-pack build -- --features wasm
 ```
 
-Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/README.md). 
+Which will export the wasm, javascript and  typescript files into [./pkg/](./pkg/readme.md). 
 
 To compile a different variant into a separate folder: 
 ```shell
@@ -212,7 +215,7 @@ wasm-pack build --out-dir pkg_kyber512/ -- --features "wasm kyber512"
 ```
 
 There is also a basic html demo in the [www](./www/readme.md) folder.
-
+ 
 From the www folder run: 
 
 ```shell
