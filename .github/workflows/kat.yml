@@ -15,9 +15,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Rust Nightly
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.6
         with:
           toolchain: nightly
+          override: true
         
       - name: Generate Known Answer Tests
         shell: bash
@@ -29,4 +30,4 @@ jobs:
       - name: Run Known Answer Tests
         shell: bash
         working-directory: ./tests
-        run: KAT=1 AVX2=1 ./run_all_tests.sh
+        run: KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
