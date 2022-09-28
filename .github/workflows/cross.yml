@@ -27,14 +27,8 @@ jobs:
           # x86_64-unknown-netbsd,
         ]
         feature: [kyber512, kyber768, kyber1024]
-      
-        include:
-          - feature: kyber512
-            opt: 90s
-          - feature: kyber768
-            opt: 90s
-          - feature: kyber1024
-            opt: 90s
+        opt: ["", 90s]
+        
     steps:
       - uses: actions/checkout@v3
 
