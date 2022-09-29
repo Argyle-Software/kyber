@@ -65,11 +65,6 @@ zero = ["zeroize"]
 # For benchmarking
 benchmarking = ["criterion"]
 
-# Known Answer Tests
-# Allows private internal api access to seed the RNG output.
-# Do not use this feature for any purpose other than testing.
-KAT = []
-
 # Prevents leak sanitiser failing in tests
 [profile.test]
 opt-level = 2
