@@ -156,3 +156,5 @@ pub use rand_core::{RngCore, CryptoRng};
 // the fuzz binaries.
 #[cfg(any(feature="KAT", fuzzing))]
 pub use kem::*;
+// for exposing encryption/decryption
+pub use reference::indcpa::{indcpa_dec, indcpa_enc};
