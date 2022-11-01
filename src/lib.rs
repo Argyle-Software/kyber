@@ -1,4 +1,3 @@
-#![cfg_attr(not(std), no_std)]
 //! # Kyber
 //! 
 //! A rust implementation of the Kyber algorithm
