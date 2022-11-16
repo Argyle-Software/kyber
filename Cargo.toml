@@ -32,7 +32,7 @@ optional = true
 rand = "0.8.3"
 
 [build-dependencies]
-cc = "1.0.76"
+cc = "1.0.73"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
