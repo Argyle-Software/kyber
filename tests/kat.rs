@@ -1,4 +1,4 @@
-#![cfg(feature="KAT")]
+#![cfg(kyber_kat)]
 
 mod load;
 

@@ -10,14 +10,15 @@ set -e
 
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
 
+RUSTFLAGS=${RUSTFLAGS:-""}
+
 # KAT and AVX2 bash variables
 if [ -z "$KAT" ]
   then
     echo Not running Known Answer Tests 
-    KAT=""
   else
   echo Running Known Answer Tests
-    KAT="KAT"
+    RUSTFLAGS+=" --cfg kyber_kat"
 fi
 
 if [ -z "$AVX2" ]
@@ -52,9 +53,9 @@ for level in "${LEVELS[@]}"; do
   for nine in "${NINES[@]}"; do
     for opt in "${OPT[@]}"; do
       name="$level $nine $opt"
-      feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}${KAT:+",$KAT"}
+      feat=${level:+"$level"}${opt:+",$opt"}${nine:+",$nine"}
       announce "$name"
-      cargo test --features  $feat
+      RUSTFLAGS=$RUSTFLAGS cargo test --features $feat
       break;
     done
   done

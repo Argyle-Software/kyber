@@ -1,13 +1,8 @@
 #!/bin/bash
 set -e
 
-current_dir="${PWD##*/}"
-if [ $current_dir != "KAT" ];
-then
-  echo "Script needs to be run from inside the KAT folder";
-  echo "Current working directory: "$current_dir
-  exit;
-fi;
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$SCRIPT_DIR"
 
 git clone https://github.com/pq-crystals/kyber.git;
 cd kyber/ref;
