@@ -148,7 +148,7 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 | 90s       | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
 | avx2      | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 | wasm      | For compiling to WASM targets.                                                                                                                                     |
-| zero      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+| zeroize      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
 | benchmarking |  Enables the criterion benchmarking suite |
 ---
 

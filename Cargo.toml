@@ -61,8 +61,6 @@ avx2 = ["cc"]
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen", "getrandom", "rand"]
 
-zero = ["zeroize"]
-
 # Uses Netwide Assembler avx2 code instead of GAS, this offers increased 
 # portability, you will need a nasm compiler installed. 
 # Can be downloaded from https://www.nasm.us/ 
@@ -70,11 +68,6 @@ nasm = ["nasm-rs", "avx2"]
 
 # For benchmarking
 benchmarking = ["criterion"]
-
-# Known Answer Tests
-# Allows private internal api access to seed the RNG output.
-# Do not use this feature for any purpose other than testing.
-KAT = []
 
 # Prevents leak sanitiser failing in tests
 [profile.test]
