@@ -6,10 +6,9 @@
 
 
 # Kyber
-[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
+[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/kat.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
-[![dependency status](https://deps.rs/repo/github/Argyle-Software/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Software/kyber)
 [![License](https://img.shields.io/crates/l/pqc_kyber)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE-MIT)
 
 A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Post-Quantum Standardization Project.
@@ -26,6 +25,8 @@ See the [**features**](#features) section for different options regarding securi
 It is recommended to use Kyber in a hybrid system alongside a traditional key exchange algorithm such as X25519. 
 
 Please also read the [**security considerations**](#security-considerations) before use.
+
+**Minimum Supported Rust Version: 1.47.0**
 
 ---
 
@@ -154,16 +155,20 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 
 ## Testing
 
-The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels and variants.
+The [run_all_tests](tests/run_all_tests.sh) script will traverse all possible codepaths by running a matrix of the security levels, variants and crate features.
 
-Known Answer Tests require deterministic rng seeds, enable the `KAT` feature to run them. Using this feature outside of `cargo test` will result in a compile-time error.
+Known Answer Tests require deterministic rng seeds, enable `kyber_kat` in `RUSTFLAGS`to use them. 
+Using this outside of `cargo test` will result in a compile-time error. 
+The test vector files are quite large, you will need to build them yourself from the C reference code. 
+There's a helper script to do this [here](./tests/KAT/build_kats.sh). 
 
 ```bash
-# This example runs all KATs for kyber512-90s.
-cargo test --features "KAT kyber512 90s"
-```
+# This example runs the basic tests for kyber768
+cargo test
 
-The test vector files are quite large, you will need to build them yourself from the C reference code. There's a helper script to do this [here](./tests/KAT/build_kats.sh). 
+# This runs the KATs for kyber512 in 90's mode
+RUSTFLAGS='--cfg kyber_kat' cargo test --features "kyber512 90s"
+```
 
 See the [testing readme](./tests/readme.md) for more comprehensive info.
 
