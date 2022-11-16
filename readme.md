@@ -6,10 +6,9 @@
 
 
 # Kyber
-[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/ci.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
+[![Build Status](https://github.com/Argyle-Software/kyber/actions/workflows/kat.yml/badge.svg)](https://github.com/Argyle-Software/kyber/actions)
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber)](https://www.npmjs.com/package/pqc-kyber)
-[![dependency status](https://deps.rs/repo/github/Argyle-Software/kyber/status.svg)](https://deps.rs/repo/github/Argyle-Software/kyber)
 [![License](https://img.shields.io/crates/l/pqc_kyber)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE-MIT)
 
 A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Post-Quantum Standardization Project.
@@ -26,6 +25,8 @@ See the [**features**](#features) section for different options regarding securi
 It is recommended to use Kyber in a hybrid system alongside a traditional key exchange algorithm such as X25519. 
 
 Please also read the [**security considerations**](#security-considerations) before use.
+
+**Minimum Supported Rust Version: 1.47.0**
 
 ---
 
