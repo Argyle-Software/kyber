@@ -60,8 +60,6 @@ avx2 = []
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen", "getrandom", "rand"]
 
-zero = ["zeroize"]
-
 # For benchmarking
 benchmarking = ["criterion"]
 
