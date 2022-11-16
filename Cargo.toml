@@ -32,7 +32,8 @@ optional = true
 rand = "0.8.3"
 
 [build-dependencies]
-cc = "1.0.73"
+cc = {version = "1.0.73", optional = true }
+nasm-rs = {version = "0.2.4", optional = true }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -55,12 +56,17 @@ kyber1024 = []
 
 # Use avx2 intrinsics on x86 architectures
 # Wont compile if the platform doesn't supprt it
-avx2 = []
+avx2 = ["cc"]
 
 # For compiling to wasm targets 
 wasm = ["wasm-bindgen", "getrandom", "rand"]
 
 zero = ["zeroize"]
+
+# Uses Netwide Assembler avx2 code instead of GAS, this offers increased 
+# portability, you will need a nasm compiler installed. 
+# Can be downloaded from https://www.nasm.us/ 
+nasm = ["nasm-rs", "avx2"]
 
 # For benchmarking
 benchmarking = ["criterion"]
