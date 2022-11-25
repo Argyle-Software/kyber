@@ -134,6 +134,10 @@ mod reference;
 #[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))] 
 use reference::*;
 
+#[cfg(any(not(target_arch = "x86_64"), not(feature = "avx2")))]
+#[cfg(feature = "hazmat")]
+pub use reference::indcpa;
+
 #[cfg(feature = "wasm")]
 mod wasm;
 

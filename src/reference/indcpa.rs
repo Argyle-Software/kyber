@@ -240,7 +240,7 @@ pub fn indcpa_keypair<R>(
 //              public-key encryption scheme underlying Kyber.
 //
 // Arguments: - [u8] c:          output ciphertext (length KYBER_INDCPA_BYTES)
-//            - const [u8] m:    input message (length KYBER_INDCPA_MSGBYTES)
+//            - const [u8] m:    input message (length KYBER_SYMBYTES)
 //            - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLICKEYBYTES)
 //            - const [u8] coin: input random coins used as seed (length KYBER_SYMBYTES)
 //                                  to deterministically generate all randomness
@@ -292,7 +292,7 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
 // Description: Decryption function of the CPA-secure
 //              public-key encryption scheme underlying Kyber.
 //
-// Arguments:   - [u8] m:        output decrypted message (of length KYBER_INDCPA_MSGBYTES)
+// Arguments:   - [u8] m:        output decrypted message (of length KYBER_SYMBYTES)
 //              - const [u8] c:  input ciphertext (of length KYBER_INDCPA_BYTES)
 //              - const [u8] sk: input secret key (of length KYBER_INDCPA_SECRETKEYBYTES)
 pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
