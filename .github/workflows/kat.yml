@@ -19,6 +19,9 @@ jobs:
         with:
           toolchain: nightly
           override: true
+
+      - name: Install NASM Compiler
+        run: sudo apt-get install -y nasm
         
       - name: Generate Known Answer Tests
         shell: bash
@@ -30,4 +33,6 @@ jobs:
       - name: Run Known Answer Tests
         shell: bash
         working-directory: ./tests
-        run: KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
+        run: |
+          chmod +x run_all_tests.sh 
+          KAT=1 AVX2=1 NASM=1 ./run_all_tests.sh
