@@ -35,4 +35,6 @@ jobs:
       - name: Run Tests
         shell: bash
         working-directory: ./tests
-        run: AVX2=1 NASM=1 ./run_all_tests.sh
+        run: | 
+          chmod +x run_all_tests.sh 
+          AVX2=1 NASM=1 ./run_all_tests.sh

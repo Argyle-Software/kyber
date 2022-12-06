@@ -66,6 +66,9 @@ wasm = ["wasm-bindgen", "getrandom", "rand"]
 # Can be downloaded from https://www.nasm.us/ 
 nasm = ["nasm-rs", "avx2"]
 
+# Enable std library support
+std = []
+
 # For benchmarking
 benchmarking = ["criterion"]
 
