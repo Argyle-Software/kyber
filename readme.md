@@ -142,15 +142,17 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 ```
 
 
-| Feature   | Description                                                                                                                                                                |
-|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.                                                                                                |
-| kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.  A compile-time error is raised if more than one security level is specified.                 |
-| 90s       | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
-| avx2      | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
-| wasm      | For compiling to WASM targets.                                                                                                                                     |
-| zeroize      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+| Feature   | Description |
+|-----------|------------|
+| kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.|
+| kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.  A compile-time error is raised if more than one security level is specified.|
+| 90s | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
+| avx2 | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
+| wasm | For compiling to WASM targets|
+| nasm | Uses Netwide Assembler avx2 code instead of GAS for portability you will need a nasm compiler installed: https://www.nasm.us/ | 
+| zeroize | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
 | benchmarking |  Enables the criterion benchmarking suite |
+| std | Enable the standard library |
 ---
 
 ## Testing
@@ -239,7 +241,7 @@ For further reading the IETF have a draft construction for hybrid key exchange i
 
 https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
 
-You can also see how such an system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
+You can also see how such a system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
 
 Please use at your own risk.
 
