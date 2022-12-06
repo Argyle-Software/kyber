@@ -150,6 +150,7 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 | wasm      | For compiling to WASM targets.                                                                                                                                     |
 | zeroize      | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
 | benchmarking |  Enables the criterion benchmarking suite |
+| std | Enable the standard library |
 ---
 
 ## Testing
@@ -234,7 +235,7 @@ For further reading the IETF have a draft construction for hybrid key exchange i
 
 https://www.ietf.org/archive/id/draft-ietf-tls-hybrid-design-04.html
 
-You can also see how such an system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
+You can also see how such a system is implemented [here](https://github.com/openssh/openssh-portable/blob/a2188579032cf080213a78255373263466cb90cc/kexsntrup761x25519.c) in C by OpenSSH
 
 Please use at your own risk.
 
