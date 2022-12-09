@@ -29,7 +29,7 @@ pub(crate) const KYBER_ETA1: usize = if cfg!(feature = "kyber512") { 3 } else { 
 pub(crate) const KYBER_ETA2: usize = 2;
 
 // Size of the hashes and seeds
-pub(crate) const KYBER_SYMBYTES: usize = 32;
+pub const KYBER_SYMBYTES: usize = 32;
 
 /// Size of the shared key 
 pub const KYBER_SSBYTES: usize =  32; 
@@ -47,9 +47,9 @@ pub(crate) const KYBER_POLYCOMPRESSEDBYTES: usize =     160;
 #[cfg(feature = "kyber1024")]
 pub(crate) const KYBER_POLYVECCOMPRESSEDBYTES: usize = KYBER_K * 352;
 
-pub(crate) const KYBER_INDCPA_PUBLICKEYBYTES: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
-pub(crate) const KYBER_INDCPA_SECRETKEYBYTES: usize = KYBER_POLYVECBYTES;
-pub(crate) const KYBER_INDCPA_BYTES: usize = KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES;
+pub const KYBER_INDCPA_PUBLICKEYBYTES: usize = KYBER_POLYVECBYTES + KYBER_SYMBYTES;
+pub const KYBER_INDCPA_SECRETKEYBYTES: usize = KYBER_POLYVECBYTES;
+pub const KYBER_INDCPA_BYTES: usize = KYBER_POLYVECCOMPRESSEDBYTES + KYBER_POLYCOMPRESSEDBYTES;
 
 /// Size in bytes of the Kyber public key
 pub const KYBER_PUBLICKEYBYTES: usize = KYBER_INDCPA_PUBLICKEYBYTES;

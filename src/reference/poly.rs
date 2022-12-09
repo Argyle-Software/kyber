@@ -298,10 +298,10 @@ pub fn poly_sub(r: &mut Poly, a: &Poly)
 
 // Name:        poly_frommsg
 //
-// Description: Convert 32-byte message to polynomial
+// Description: Convert `KYBER_SYMBYTES`-byte message to polynomial
 //
 // Arguments:   - poly *r:                  output polynomial
-//              - const [u8] msg: input message
+//              - const [u8] msg: input message (of length KYBER_SYMBYTES)
 pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 {
   let mut mask;

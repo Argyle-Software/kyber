@@ -50,6 +50,10 @@ kyber512 = []
 kyber768 = [] 
 kyber1024 = []
 
+### Export IND-CPA primitives
+# **WARNING** use with caution
+hazmat = []
+
 ### Additional features ###
 # 90s mode uses AES-CTR and SHA2 as primitives instead
 90s = ["sha2"]
