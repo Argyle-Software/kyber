@@ -1,0 +1,24 @@
+name: CI checks
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          # Using a rustfmt.toml with unstable features, need nightly
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      # Ensure all code has been formatted with rustfmt
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check --color always
