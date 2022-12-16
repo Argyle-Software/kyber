@@ -41,7 +41,7 @@ vpsubw    ymm%8,ymm15,ymm%8
 %endmacro
 
 %macro intt_levels0t5 1
-;  level 0 
+;  level 0
 vmovdqa   ymm2,[rsi + _16XFLO*2]
 vmovdqa   ymm3,[rsi + _16XFHI*2]
 
@@ -77,7 +77,7 @@ vpshufb   ymm3,ymm3,ymm12
 
 butterfly  4,5,8,9,6,7,10,11,15,1,2,3
 
-;  level 1 
+;  level 1
 vpermq ymm2,[rsi + (_ZETAS_EXP+(1-%1)*224+144)*2],04Eh
 vpermq ymm3,[rsi + (_ZETAS_EXP+(1-%1)*224+160)*2],04Eh
 vmovdqa   ymm1,[rsi + _REVIDXB*2]
@@ -91,7 +91,7 @@ shuffle1  6,7,4,7
 shuffle1  8,9,6,9
 shuffle1  10,11,8,11
 
-;  level 2 
+;  level 2
 vmovdqa   ymm12,[rsi + _REVIDXD*2]
 vpermd    ymm2,ymm12,[rsi + (_ZETAS_EXP+(1-%1)*224+112)*2]
 vpermd    ymm10,ymm12,[rsi + (_ZETAS_EXP+(1-%1)*224+128)*2]
@@ -106,7 +106,7 @@ shuffle2  6,8,3,8
 shuffle2  5,7,6,7
 shuffle2  9,11,5,11
 
-;  level 3 
+;  level 3
 vpermq ymm2,[rsi + (_ZETAS_EXP+(1-%1)*224+80)*2],01Bh
 vpermq ymm9,[rsi + (_ZETAS_EXP+(1-%1)*224+96)*2],01Bh
 
@@ -117,7 +117,7 @@ shuffle4  6,5,10,5
 shuffle4  4,8,6,8
 shuffle4  7,11,4,11
 
-;  level 4 
+;  level 4
 vpermq ymm2,[rsi + (_ZETAS_EXP+(1-%1)*224+48)*2],04Eh
 vpermq ymm7,[rsi + (_ZETAS_EXP+(1-%1)*224+64)*2],04Eh
 
@@ -130,7 +130,7 @@ shuffle8  6,4,9,4
 shuffle8  3,5,6,5
 shuffle8  8,11,3,11
 
-;  level 5 
+;  level 5
 vmovdqa    ymm2,[rsi + (_ZETAS_EXP+(1-%1)*224+16)*2]
 vmovdqa    ymm8,[rsi + (_ZETAS_EXP+(1-%1)*224+32)*2]
 
@@ -147,7 +147,7 @@ vmovdqa    [rdi + (128*%1 + 112)*2],ymm11
 %endmacro
 
 %macro intt_level6 1
-;  level 6 
+;  level 6
 vmovdqa       ymm4,[rdi + (64*%1+  0)*2]
 vmovdqa       ymm8,[rdi + (64*%1+  128)*2]
 vmovdqa       ymm5,[rdi + (64*%1+  16)*2]

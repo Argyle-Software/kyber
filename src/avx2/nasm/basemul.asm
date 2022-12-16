@@ -1,6 +1,6 @@
 %include "consts.inc"
 
-%macro schoolbook 1 
+%macro schoolbook 1
 vmovdqa		ymm0,[rcx + _16XQINV*2]
 vmovdqa		ymm1,[rsi + (64*%1+ 0)*2]		; a0
 vmovdqa		ymm2,[rsi + (64*%1+16)*2]		; b0

@@ -76,7 +76,7 @@ vmovdqa		[rdi + (64*%1+ 176)*2],ymm11
 %endmacro
 
 %macro levels1t6 1
-;  level 1 
+;  level 1
 vmovdqa		ymm15,[rsi+ (_ZETAS_EXP+224*%1+16)*2]
 vmovdqa		ymm8,[rdi + (128*%1+ 64)*2]
 vmovdqa		ymm9,[rdi + (128*%1+ 80)*2]
@@ -94,7 +94,7 @@ vmovdqa		ymm7,[rdi + (128*%1+ 48)*2]
 reduce
 update		3,4,5,6,7,8,9,10,11
 
-;  level 2 
+;  level 2
 shuffle8	5,10,7,10
 shuffle8	6,11,5,11
 
@@ -109,7 +109,7 @@ shuffle8	4,9,3,9
 reduce
 update		4,6,8,3,9,7,10,5,11
 
-;  level 3 
+;  level 3
 shuffle4	8,5,9,5
 shuffle4	3,11,8,11
 
@@ -124,7 +124,7 @@ shuffle4	6,10,4,10
 reduce
 update		6,3,7,4,10,9,5,8,11
 
-;  level 4 
+;  level 4
 shuffle2	7,8,10,8
 shuffle2	4,11,7,11
 
@@ -139,7 +139,7 @@ shuffle2	3,5,6,5
 reduce
 update		3,4,9,6,5,10,8,7,11
 
-;  level 5 
+;  level 5
 shuffle1	9,7,5,7
 shuffle1	6,11,9,11
 
@@ -154,7 +154,7 @@ shuffle1	4,8,3,8
 reduce
 update		4,6,10,3,8,5,7,9,11
 
-;  level 6 
+;  level 6
 vmovdqa		ymm14,[rsi+ (_ZETAS_EXP+224*%1+176)*2]
 vmovdqa		ymm15,[rsi+ (_ZETAS_EXP+224*%1+208)*2]
 vmovdqa		ymm8,[rsi+ (_ZETAS_EXP+224*%1+192)*2]
