@@ -17,3 +17,6 @@ impl core::fmt::Display for KyberError {
     }
   }
 }
+
+#[cfg(feature = "std")]
+impl std::error::Error for KyberError {}
