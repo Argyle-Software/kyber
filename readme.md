@@ -32,11 +32,8 @@ Please also read the [**security considerations**](#security-considerations) bef
 
 ## Installation
 
-In `Cargo.toml`:
-
-```toml
-[dependencies]
-pqc_kyber = "0.3.0"
+```shell
+cargo add pqc_kyber
 ```
 
 ## Usage 
