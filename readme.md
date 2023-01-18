@@ -16,7 +16,7 @@ A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Pos
 This library:
 * Is no_std compatible and needs no allocator, suitable for embedded devices. 
 * Reference files contain no unsafe code and are written in pure rust.
-* On x86_64 platforms uses an avx2 optimized version by default, which includes some assembly code taken from the C repo. 
+* On x86_64 platforms offers an avx2 optimized version, which includes assembly from the C reference repo. 
 * Compiles to WASM using wasm-bindgen and has a ready-to-use binary published on NPM.
 
 
