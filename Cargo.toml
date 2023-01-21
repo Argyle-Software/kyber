@@ -17,6 +17,7 @@ wasm-bindgen = { version = "0.2.83", optional = true }
 sha2 = { version = "0.10.6", optional = true }
 getrandom = {version = "0.2.8", features = ["js"], optional = true}
 zeroize = { version = "1.5.7", features = ["derive"], optional = true}
+criterion = { version = "0.4.0", features = ["html_reports"]} 
 
 [dependencies.rand]
 version = "0.8.5"
@@ -27,7 +28,6 @@ optional = true
 [dev-dependencies]
 rand = "0.8.3"
 aes-gcm = "0.10.1"
-criterion = { version = "0.4.0", features = ["html_reports"]}
 
 [build-dependencies]
 cc = {version = "1.0.73", optional = true }
@@ -70,6 +70,9 @@ nasm = ["nasm-rs", "avx2"]
 
 # Enable std library support
 std = []
+
+# For benchmarking
+benchmarking = ["criterion"]
 
 # Prevents leak sanitiser failing in tests
 [profile.test]

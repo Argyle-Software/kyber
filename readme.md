@@ -179,6 +179,8 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `./target/criterion/`.
 
+You will need to enable the `benchmarking` feature.
+
 See the [benchmarking readme](./benches/readme.md) for information on correct usage.
 
 ---
