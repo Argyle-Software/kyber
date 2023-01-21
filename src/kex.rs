@@ -67,7 +67,7 @@ pub struct Uake {
   send_a: UakeSendInit,
   /// Response to a key exchange initiation
   send_b: UakeSendResponse,
-  // Epheremal keys
+  // Ephemeral keys
   temp_key: TempKey,
   eska: Eska
 }
@@ -192,9 +192,9 @@ pub struct Ake {
   pub shared_secret: SharedSecret,
   /// Sent when initiating a key exchange
   send_a: AkeSendInit,
-  /// Sent back responding to a key exchange initiation
+  /// Response to a key exchange initiation
   send_b: AkeSendResponse,
-  // Epheremal keys
+  // Ephemeral keys
   temp_key: TempKey,
   eska: Eska
 }
