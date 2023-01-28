@@ -152,6 +152,7 @@ pqc_kyber = {version = "0.4.0", features = ["kyber512", "90s", "avx2"]}
 | nasm | Uses Netwide Assembler avx2 code instead of GAS for portability. Requires a nasm compiler: https://www.nasm.us/ | 
 | zeroize | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
 | std | Enable the standard library |
+| benchmarking | Enables the criterion benchmarking suite |
 ---
 
 ## Testing
@@ -271,4 +272,11 @@ Authors of the Kyber Algorithm:
 
 Contributions welcome. For pull requests create a feature fork and submit it to the development branch. More information is available on the [contributing page](./contributing.md)
 
+---
+
+### Alternatives
+
+The PQClean project has rust bindings for their Kyber C codebase:
+
+https://github.com/rustpq/pqcrypto
 
