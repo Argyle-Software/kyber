@@ -14,13 +14,10 @@ readme = "readme.md"
 [dependencies]
 rand_core = {version = "0.6.4",  default-features = false }
 wasm-bindgen = { version = "0.2.83", optional = true }
-sha2 = { version = "0.10.6", optional = true }
-getrandom = {version = "0.2.8", features = ["js"], optional = true}
-zeroize = { version = "1.5.7", features = ["derive"], optional = true}
-criterion = { version = "0.4.0", features = ["html_reports"], optional = true}
-
-# TODO: Add rustcrypto AES-CTR feature for 90's mode
-# aes-ctr = {version = "0.6.0", optional = true}
+sha2 = { version = "0.10.6", optional = true , default-features = false }
+getrandom = { version = "0.2.8", features = ["js"], optional = true }
+zeroize = { version = "1.5.7", features = ["derive"], optional = true }
+criterion = { version = "0.4.0", features = ["html_reports"], optional = true }
 
 [dependencies.rand]
 version = "0.8.5"
