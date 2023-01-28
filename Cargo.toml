@@ -14,7 +14,7 @@ readme = "readme.md"
 [dependencies]
 rand_core = { version = "0.6.4",  default-features = false }
 wasm-bindgen = { version = "0.2.83", optional = true }
-sha2 = { version = "0.10.6", optional = true }
+sha2 = { version = "0.10.6", optional = true , default-features = false }
 getrandom = {version = "0.2.8", features = ["js"], optional = true }
 zeroize = { version = "1.5.7", features = ["derive"], optional = true }
 
