@@ -8,10 +8,9 @@ set -e
 # AVX2 - Runs avx2 code on x86 platforms with compiled GAS files
 # NASM - Runs avx2 code with both GAS and NASM files seperately
 
-# Enable avx2 target features
-# Enable LLVM address sanitser checks
-# export RUSTFLAGS="-Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
-# export RUSTDOCFLAGS="-Z sanitizer=address" 
+# When setting AVX2 or NASM flags enable avx2 target features 
+# and LLVM address sanitser checks (requires nightly):
+# export RUSTFLAGS="${RUSTFLAGS:-} -Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 TARGET=$(rustc -vV | sed -n 's|host: ||p')
 
@@ -40,9 +39,6 @@ if [[ ! -z "$NASM" ]]
     echo Using AVX2 optimisations with NASM assembler
     OPT+=("nasm")
 fi
-
-# # Required for address sanitiser checks
-# rustup default nightly
 
 # Print Headers
 announce(){

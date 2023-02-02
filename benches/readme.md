@@ -17,6 +17,7 @@ You will need to enable the benchmarking feature to run:
 ```bash
 cargo bench --features "benchmarking kyber1024 avx2"
 ```
+This is a workaround for issues with address sanitizer checks in the test suite. 
 
 More details on criterion usage [here](https://bheisler.github.io/criterion.rs/book/user_guide/command_line_options.html)
 
