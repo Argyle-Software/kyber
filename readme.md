@@ -36,11 +36,6 @@ Please also read the [**security considerations**](#security-considerations) bef
 cargo add pqc_kyber
 ```
 
-or 
-
-```toml
-pqc_kyber = "0.4.0"
-
 ## Usage 
 
 ```rust
