@@ -26,7 +26,7 @@ It is recommended to use Kyber in a hybrid system alongside a traditional key ex
 
 Please also read the [**security considerations**](#security-considerations) before use.
 
-**Minimum Supported Rust Version: 1.47.0**
+**Minimum Supported Rust Version: 1.56.0**
 
 ---
 
