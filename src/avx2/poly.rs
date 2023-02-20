@@ -28,17 +28,6 @@ impl Poly {
       coeffs: [0i16; KYBER_N]
     }
   }
-  // Basic polynomial value checking for development
-  // #[cfg(debug_assertions)]
-  // fn checksum(&self) -> i16 {
-  //   unsafe{
-  //     let mut out = 0;
-  //     for x in &self.coeffs {
-  //       out ^= x;
-  //     }
-  //     out
-  //   }
-  // }
 }
 
 extern {

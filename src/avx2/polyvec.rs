@@ -18,19 +18,6 @@ impl Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
   }
-  // Basic polynomial value check for development
-  // #[cfg(debug_assertions)]
-  // pub fn checksum(&self) -> i16 {
-  //   unsafe {
-  //     let mut out = 0i16;
-  //     for i in 0..KYBER_K {
-  //       for j in 0..KYBER_N {
-  //         out ^= &self.vec[i].coeffs[j];
-  //       }
-  //     }
-  //     out
-  //   }
-  // }
 }
 
 // #[target_feature(enable = "avx")]

@@ -19,6 +19,9 @@
 //! | 90s       | 90's mode uses SHA2 and AES-CTR as a replacement for SHAKE. This may provide hardware speedups on certain architectures.                                                           |
 //! | avx2      | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 //! | wasm      | For compiling to WASM targets. |
+//! | nasm | Uses Netwide Assembler avx2 code instead of GAS for portability. Requires a nasm compiler: https://www.nasm.us/ | 
+//! | zeroize | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
+//! | std | Enable the standard library |
 //! 
 //! ## Usage 
 //! 
@@ -32,8 +35,25 @@
 //! use pqc_kyber::*;
 //! ```
 //! 
-//! The higher level structs will be appropriate for most use-cases. 
-//! Both [unilateral](struct.Uake.html) or [mutually](struct.Ake.html) authenticated key exchanges are possible.
+//! ##### Key Encapsulation
+//! ```
+//! # use pqc_kyber::*;
+//! # fn main() -> Result<(),KyberError> {
+//! # let mut rng = rand::thread_rng();
+//! // Generate Keypair
+//! let keys_bob = keypair(&mut rng);
+//! 
+//! // Alice encapsulates a shared secret using Bob's public key
+//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
+//! 
+//! // Bob decapsulates a shared secret using the ciphertext sent by Alice 
+//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+//! 
+//! assert_eq!(shared_secret_alice, shared_secret_bob);
+//! # Ok(()) }
+//! ```
+//! 
+//! Higher level functions offering unilateral or mutual authentication
 //! 
 //! #### Unilaterally Authenticated Key Exchange
 //! ```
@@ -66,7 +86,7 @@
 //! ```
 //! 
 //! #### Mutually Authenticated Key Exchange
-//! Mutual authentication follows the same workflow but with additional keys passed to the functions:
+//! Follows the same workflow except Bob requires Alice's public key
 //! 
 //! ```
 //! # use pqc_kyber::*;
@@ -90,24 +110,6 @@
 //! # Ok(()) }
 //! ```
 //! 
-//! ##### Key Encapsulation
-//! Lower level functions for using the Kyber algorithm directly.
-//! ```
-//! # use pqc_kyber::*;
-//! # fn main() -> Result<(),KyberError> {
-//! # let mut rng = rand::thread_rng();
-//! // Generate Keypair
-//! let keys_bob = keypair(&mut rng);
-//! 
-//! // Alice encapsulates a shared secret using Bob's public key
-//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
-//! 
-//! // Bob decapsulates a shared secret using the ciphertext sent by Alice 
-//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
-//! 
-//! assert_eq!(shared_secret_alice, shared_secret_bob);
-//! # Ok(()) }
-//! ```
 //! 
 //! ## Errors
 //! The [KyberError](enum.KyberError.html) enum handles errors. It has two variants:
