@@ -32,11 +32,8 @@ Please also read the [**security considerations**](#security-considerations) bef
 
 ## Installation
 
-In `Cargo.toml`:
-
-```toml
-[dependencies]
-pqc_kyber = "0.3.0"
+```shell
+cargo add pqc_kyber
 ```
 
 ## Usage 
@@ -51,7 +48,22 @@ For optimisations on x86 platforms enable the `avx2` feature and the following R
 export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 ```
 
-The higher level key exchange structs will be appropriate for most use-cases. 
+---
+
+### Key Encapsulation
+
+```rust
+// Generate Keypair
+let keys_bob = keypair(&mut rng);
+
+// Alice encapsulates a shared secret using Bob's public key
+let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
+
+// Bob decapsulates a shared secret using the ciphertext sent by Alice 
+let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+
+assert_eq!(shared_secret_alice, shared_secret_bob);
+```
 
 ---
 
@@ -84,7 +96,7 @@ assert_eq!(alice.shared_secret, bob.shared_secret);
 ---
 
 ### Mutually Authenticated Key Exchange
-Mutual authentication follows the same workflow but with additional keys passed to the functions:
+Follows the same workflow except Bob requires Alice's public keys:
 
 ```rust
 let mut alice = Ake::new();
@@ -106,23 +118,6 @@ assert_eq!(alice.shared_secret, bob.shared_secret);
 
 ---
 
-### Key Encapsulation
-Lower level functions for using the Kyber algorithm directly.
-```rust
-// Generate Keypair
-let keys_bob = keypair(&mut rng);
-
-// Alice encapsulates a shared secret using Bob's public key
-let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
-
-// Bob decapsulates a shared secret using the ciphertext sent by Alice 
-let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
-
-assert_eq!(shared_secret_alice, shared_secret_bob);
-```
-
----
-
 ## Errors
 The KyberError enum has two variants:
 
@@ -138,7 +133,7 @@ If no security level is specified then kyber768 is used by default as recommende
 
 ```toml
 [dependencies]
-pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
+pqc_kyber = {version = "0.4.0", features = ["kyber512", "90s", "avx2"]}
 ```
 
 
@@ -151,7 +146,7 @@ pqc_kyber = {version = "0.2.0", features = ["kyber512", "90s", "avx2"]}
 | 90s-fixslice | Uses a fixslice implementation of AES256 by RustCrypto, this provides greater side-channel attack resistance, especially on embedded platforms |
 | avx2 | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 | wasm | For compiling to WASM targets|
-| nasm | Uses Netwide Assembler avx2 code instead of GAS for portability you will need a nasm compiler installed: https://www.nasm.us/ | 
+| nasm | Uses Netwide Assembler avx2 code instead of GAS for portability. Requires a nasm compiler: https://www.nasm.us/ | 
 | zeroize | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
 | benchmarking |  Enables the criterion benchmarking suite |
 ---
@@ -181,9 +176,9 @@ See the [testing readme](./tests/readme.md) for more comprehensive info.
 
 Uses criterion for benchmarking. If you have GNUPlot installed it will generate statistical graphs in `./target/criterion/`.
 
-See the [benchmarking readme](./benches/readme.md) for information on correct usage.
+You will need to enable the `benchmarking` feature.
 
-You will need to use the `benchmarking` feature
+See the [benchmarking readme](./benches/readme.md) for information on correct usage.
 
 ---
 
@@ -273,4 +268,11 @@ Authors of the Kyber Algorithm:
 
 Contributions welcome. For pull requests create a feature fork and submit it to the development branch. More information is available on the [contributing page](./contributing.md)
 
+---
+
+### Alternatives
+
+The PQClean project has rust bindings for their Kyber C codebase:
+
+https://github.com/rustpq/pqcrypto
 
