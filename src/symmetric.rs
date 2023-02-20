@@ -112,8 +112,8 @@ pub(crate) fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
-  if cfg!(feature = "90s-fixslice")
+pub fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
+  #[cfg(feature = "90s-fixslice")]
   {
     // RustCrypto fixslice
     let mut expnonce = [0u8; 16];
@@ -122,10 +122,11 @@ pub(crate) fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
     let iv = GenericArray::from_slice(&expnonce);
     let mut cipher = Aes256Ctr::new(&key, &iv);
     cipher.apply_keystream(out);
-  } else {
-    // Pornin bitslice
-    aes256ctr_prf(out, _outbytes, &key, nonce);
+    return
   }
+  #[cfg(not(feature = "90s-fixslice"))]
+  // Pornin bitslice
+  aes256ctr_prf(out, _outbytes, &key, nonce);
 }
 
 #[cfg(not(feature = "90s"))]
