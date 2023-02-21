@@ -1,10 +1,13 @@
-use crate::rng::randombytes;
+#[cfg(feature = "zeroize")] 
+use zeroize::Zeroize;
 use rand_core::{RngCore, CryptoRng};
 use crate::{
+  api::zeroize,
   params::*,
   indcpa::*,
   symmetric::*,
   error::KyberError,
+  rng::randombytes,
   verify::*
 };
 
@@ -63,6 +66,7 @@ pub fn crypto_kem_enc<R>(
 
   // Don't release system RNG output 
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);
+  zeroize!(randbuf);
 
   // Multitarget countermeasure for coins + contributory KEM
   hash_h(&mut buf[KYBER_SYMBYTES..], pk, KYBER_PUBLICKEYBYTES);
@@ -70,12 +74,14 @@ pub fn crypto_kem_enc<R>(
 
   // coins are in kr[KYBER_SYMBYTES..]
   indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);
+  zeroize!(buf);
 
   // overwrite coins in kr with H(c) 
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
 
   // hash concatenation of pre-k and H(c) to k
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
+  zeroize!(kr);
 }
 
 // Name:        crypto_kem_dec
@@ -117,6 +123,7 @@ pub fn crypto_kem_dec(
   cmov(&mut kr, &sk[END..], KYBER_SYMBYTES, fail);
   // hash concatenation of pre-k and H(c) to k 
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
+  zeroize!(kr);
 
   match fail {
     0 => Ok(()),

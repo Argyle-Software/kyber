@@ -1,3 +1,5 @@
+#[cfg(feature = "zeroize")]
+use zeroize::Zeroize;
 use crate::{
   params::*, 
   error::KyberError,
@@ -11,10 +13,8 @@ use crate::{
 /// ### Example
 /// ```
 /// # use pqc_kyber::*;
-/// # fn main() -> Result<(), KyberError> {
 /// let mut rng = rand::thread_rng();
 /// let keys = keypair(&mut rng);
-/// # Ok(())}
 /// ```
 pub fn keypair<R>(rng: &mut R) -> Keypair 
   where R: RngCore + CryptoRng
@@ -22,7 +22,9 @@ pub fn keypair<R>(rng: &mut R) -> Keypair
   let mut public = [0u8; KYBER_PUBLICKEYBYTES];
   let mut secret = [0u8; KYBER_SECRETKEYBYTES];
   crypto_kem_keypair(&mut public, &mut secret, rng, None);
-  Keypair { public, secret }
+  let keys  = Keypair { public, secret };
+  zeroize!(secret);
+  keys
 }
 
 /// Encapsulates a public key returning the ciphertext to send
@@ -37,7 +39,7 @@ pub fn keypair<R>(rng: &mut R) -> Keypair
 /// let (ciphertext, shared_secret) = encapsulate(&keys.public, &mut rng)?;
 /// # Ok(())}
 /// ```
-pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated 
+pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
   where R: CryptoRng + RngCore
 {
   if pk.len() != KYBER_PUBLICKEYBYTES {
@@ -59,7 +61,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
 /// let mut rng = rand::thread_rng();
 /// let keys = keypair(&mut rng);
 /// let (ct, ss1) = encapsulate(&keys.public, &mut rng)?;
-/// let ss2 = decapsulate(&ct, &keys.secret)?;
+/// let ss2 = decapsulate(&ct, keys.expose_secret())?;
 /// assert_eq!(ss1, ss2);
 /// #  Ok(())}
 /// ```
@@ -78,26 +80,90 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated
 /// A public/secret keypair for use with Kyber. 
 /// 
 /// Byte lengths of the keys are determined by the security level chosen.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone)]
 pub struct Keypair {
     pub public: PublicKey,
-    pub secret: SecretKey
+    secret: SecretKey,
 }
 
 impl Keypair {
   /// Securely generates a new keypair`
   /// ```
   /// # use pqc_kyber::*;
-  /// # fn main() -> Result<(), KyberError> {
   /// let mut rng = rand::thread_rng();
   /// let keys = Keypair::generate(&mut rng);
-  /// # let empty_keys = Keypair{
-  ///   public: [0u8; KYBER_PUBLICKEYBYTES], secret: [0u8; KYBER_SECRETKEYBYTES]
-  /// };
-  /// # assert!(empty_keys != keys); 
-  /// # Ok(()) }
   /// ```
   pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Keypair {
     keypair(rng)
   }
+
+  /// Explicitly exposes the secret key
+  ///```
+  /// # use pqc_kyber::*;
+  /// # let mut rng = rand::thread_rng();
+  /// let keys = Keypair::generate(&mut rng);
+  /// let secret = keys.expose_secret();
+  /// # assert!(secret.len() == KYBER_SECRETKEYBYTES); 
+  /// ```
+  pub fn expose_secret(&self) -> &SecretKey {
+    &self.secret
+  }
 }
+
+#[cfg(feature = "zeroize")]
+impl Drop for Keypair {
+  fn drop(&mut self) {
+    self.secret.zeroize()
+  }
+}
+
+/// Elides the secret key, to debug it use [`Keypair::expose_secret()`]
+impl core::fmt::Debug for Keypair {
+  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+      write!(f, "{{ public: '{:x?}',\n secret: 'ELIDED'}}", self.public)
+  }
+}
+
+/// Ignores secret key to avoid leakage from of a non-cryptographic hasher
+impl core::hash::Hash for Keypair {
+  fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+    self.public.hash(state);
+  }
+}
+
+/// Non-constant time equality comparison, only checks public keys
+impl PartialEq for Keypair {
+  fn eq(&self, other: &Keypair) -> bool {
+    self.public == other.public
+  }
+}
+
+impl Eq for Keypair {}
+
+/// Helper function for zeroing the target if the `zeroize` feature is enabled. 
+/// 
+/// Used for code brevity.
+///  
+/// Replaces:
+/// 
+/// ```ignore
+/// #[cfg(feature = "zeroize")]
+/// target.zeroize();
+/// ``` 
+/// 
+/// ### Arguments:
+/// 
+/// * target, which implements Zeroize
+/// 
+/// ### Usage:
+/// ```ignore
+/// zeroize!(target);
+/// ```
+macro_rules! zeroize {
+  ($target: ident) => {
+    #[cfg(feature = "zeroize")]
+    $target.zeroize(); 
+  };
+}
+
+pub use zeroize;

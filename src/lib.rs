@@ -41,13 +41,13 @@
 //! # fn main() -> Result<(),KyberError> {
 //! # let mut rng = rand::thread_rng();
 //! // Generate Keypair
-//! let keys_bob = keypair(&mut rng);
+//! let bob_keys = keypair(&mut rng);
 //! 
 //! // Alice encapsulates a shared secret using Bob's public key
-//! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
+//! let (ciphertext, shared_secret_alice) = encapsulate(&bob_keys.public, &mut rng)?;
 //! 
 //! // Bob decapsulates a shared secret using the ciphertext sent by Alice 
-//! let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+//! let shared_secret_bob = decapsulate(&ciphertext, bob_keys.expose_secret())?;
 //! 
 //! assert_eq!(shared_secret_alice, shared_secret_bob);
 //! # Ok(()) }
@@ -74,7 +74,7 @@
 //! 
 //! // Bob authenticates and responds
 //! let server_send = bob.server_receive(
-//!   client_init, &bob_keys.secret, &mut rng
+//!   client_init, bob_keys.expose_secret(), &mut rng
 //! )?;
 //! 
 //! // Alice decapsulates the shared secret
@@ -101,10 +101,10 @@
 //! let client_init = alice.client_init(&bob_keys.public, &mut rng);
 //! 
 //! let server_send = bob.server_receive(
-//!   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
+//!   client_init, &alice_keys.public, bob_keys.expose_secret(), &mut rng
 //! )?;
 //! 
-//! alice.client_confirm(server_send, &alice_keys.secret)?;
+//! alice.client_confirm(server_send, alice_keys.expose_secret())?;
 //! 
 //! assert_eq!(alice.shared_secret, bob.shared_secret);
 //! # Ok(()) }

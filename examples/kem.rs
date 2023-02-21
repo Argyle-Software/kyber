@@ -10,9 +10,9 @@ fn main () -> Result<(), KyberError> {
   let (ciphertext, shared_secret_bob) = encapsulate(&alice_keys.public, &mut rng)?;
   
   // Alice decapsulates the shared secret
-  let shared_secret_alice = decapsulate(&ciphertext, &alice_keys.secret)?;
+  let shared_secret_alice = decapsulate(&ciphertext, alice_keys.expose_secret())?;
   
-  // Both can now communicate symetrically
+  // Both can now communicate symmetrically
   assert_eq!(shared_secret_alice, shared_secret_bob);
   Ok(())
 }
