@@ -547,6 +547,7 @@ fn br_aes_ct64_ctr_init(sk_exp: &mut [u64], key: &[u8])
   br_aes_ct64_skey_expand(sk_exp, &skey); 
 }
 
+#[cfg(not(feature="90s-fixslice"))]
 fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &[u8], cc: u32, data: &mut[u8], mut len: usize)
 {
   let mut ivw = [0u32; 16];
@@ -583,6 +584,7 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut[u64], iv: &[u8], cc: u32, data: &mut[u8], mu
 //              - usize outlen:  length of requested output in bytes
 //              - const [u8] key:   32-byte key
 //              - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
+#[cfg(not(feature="90s-fixslice"))]
 pub fn aes256ctr_prf(output: &mut[u8], outlen: usize, key: &[u8], nonce: u8)
 {
   let mut sk_exp = [0u64; 120];

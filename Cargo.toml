@@ -64,7 +64,7 @@ hazmat = []
 90s-fixslice = ["90s", "aes", "ctr"]
 
 # Use avx2 intrinsics on x86 architectures
-# Wont compile if the platform doesn't supprt it
+# Wont compile if the platform doesn't support it
 avx2 = ["cc"]
 
 # For compiling to wasm targets 
