@@ -83,6 +83,7 @@ impl Default for Uake {
   }
 }
 
+#[cfg(feature = "zeroize")]
 impl Drop for Uake {
   fn drop(&mut self) {
     self.shared_secret.zeroize();
@@ -219,6 +220,7 @@ impl Default for Ake {
   }
 }
 
+#[cfg(feature = "zeroize")]
 impl Drop for Ake {
   fn drop(&mut self) {
     self.shared_secret.zeroize();
