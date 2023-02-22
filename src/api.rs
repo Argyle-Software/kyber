@@ -1,5 +1,6 @@
 #[cfg(feature = "zeroize")]
 use zeroize::Zeroize;
+use pqc_core::zero;
 use crate::{
   params::*, 
   error::KyberError,
@@ -23,7 +24,7 @@ pub fn keypair<R>(rng: &mut R) -> Keypair
   let mut secret = [0u8; KYBER_SECRETKEYBYTES];
   crypto_kem_keypair(&mut public, &mut secret, rng, None);
   let keys  = Keypair { public, secret };
-  zeroize!(secret);
+  zero!(secret);
   keys
 }
 
@@ -50,7 +51,7 @@ pub fn encapsulate<R>(pk: &[u8], rng: &mut R) -> Encapsulated
   crypto_kem_enc(&mut ct, &mut ss, pk, rng, None);
   Ok((ct, ss))
 }
-
+  
 /// Decapsulates ciphertext with a secret key, the result will contain
 /// a KyberError if decapsulation fails
 ///
@@ -140,30 +141,3 @@ impl PartialEq for Keypair {
 
 impl Eq for Keypair {}
 
-/// Helper function for zeroing the target if the `zeroize` feature is enabled. 
-/// 
-/// Used for code brevity.
-///  
-/// Replaces:
-/// 
-/// ```ignore
-/// #[cfg(feature = "zeroize")]
-/// target.zeroize();
-/// ``` 
-/// 
-/// ### Arguments:
-/// 
-/// * target, which implements Zeroize
-/// 
-/// ### Usage:
-/// ```ignore
-/// zeroize!(target);
-/// ```
-macro_rules! zeroize {
-  ($target: ident) => {
-    #[cfg(feature = "zeroize")]
-    $target.zeroize(); 
-  };
-}
-
-pub use zeroize;

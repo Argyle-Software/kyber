@@ -1,9 +1,8 @@
 #[cfg(feature = "zeroize")] 
 use zeroize::Zeroize;
-
+use pqc_core::zero;
 use crate::rng::randombytes;
 use crate::{
-  api::zeroize,
   poly::*,
   polyvec::*,
   symmetric::*,
@@ -210,7 +209,7 @@ pub fn indcpa_keypair<R>(
   }
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
-  zeroize!(randbuf);
+  zero!(randbuf);
 
   let (publicseed, noiseseed) = buf.split_at_mut(KYBER_SYMBYTES);
   gen_a(&mut a, publicseed);
@@ -237,7 +236,7 @@ pub fn indcpa_keypair<R>(
 
   pack_sk(sk, &mut skpv);
   pack_pk(pk, &mut pkpv, publicseed);
-  zeroize!(buf);
+  zero!(buf);
 }
 
 // Name:        indcpa_enc
@@ -291,8 +290,8 @@ pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8])
   poly_reduce(&mut v);
 
   pack_ciphertext(c, &mut b, v);
-  zeroize!(b);
-  zeroize!(v);
+  zero!(b);
+  zero!(v);
 }
 
 // Name:        indcpa_dec
@@ -313,8 +312,8 @@ pub fn indcpa_dec(m: &mut[u8], c: &[u8], sk: &[u8])
 
   polyvec_ntt(&mut b);
   polyvec_basemul_acc_montgomery(&mut mp, &skpv, &b);
-  zeroize!(skpv);
-  zeroize!(b);
+  zero!(skpv);
+  zero!(b);
   poly_invntt_tomont(&mut mp);
 
   poly_sub(&mut mp, &v);
