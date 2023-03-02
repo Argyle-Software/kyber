@@ -11,7 +11,7 @@ Which will clone the C reference repo, generate the KAT files, then rename and p
 
 To run the known answer tests you will need to enable `kyber_kat` in `RUSTFLAGS`. To check different Kyber levels or 90's mode you will need to include those flags also. eg:
 ```bash
-RUSTFLAGS=' --cfg kyber-kat' cargo test --features "kyber1024 90s"
+RUSTFLAGS=' --cfg kyber_kat' cargo test --features "kyber1024 90s"
 ```
 
 For applicible x86 architectures you must export the avx2 RUSTFLAGS if you don't want to test on the reference codebase.
