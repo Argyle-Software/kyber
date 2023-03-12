@@ -26,7 +26,7 @@ It is recommended to use Kyber in a hybrid system alongside a traditional key ex
 
 Please also read the [**security considerations**](#security-considerations) before use.
 
-**Minimum Supported Rust Version: 1.47.0**
+**Minimum Supported Rust Version: 1.56.0**
 
 ---
 
@@ -139,15 +139,16 @@ pqc_kyber = {version = "0.4.0", features = ["kyber512", "90s", "avx2"]}
 
 | Feature   | Description |
 |-----------|------------|
+| std | Enable the standard library |
 | kyber512  | Enables kyber512 mode, with a security level roughly equivalent to AES-128.|
 | kyber1024 | Enables kyber1024 mode, with a security level roughly equivalent to AES-256.  A compile-time error is raised if more than one security level is specified.|
-| 90s | Uses SHA2 and AES in counter mode as a replacement for SHAKE. This can provide hardware speedups in some cases. |
+| 90s | Uses AES256 in counter mode and SHA2 as a replacement for SHAKE. This can provide hardware speedups in some cases.|
+| 90s-fixslice | Uses a fixslice implementation of AES256 by RustCrypto, this provides greater side-channel attack resistance, especially on embedded platforms |
 | avx2 | On x86_64 platforms enable the optimized version. This flag is will cause a compile error on other architectures. |
 | wasm | For compiling to WASM targets|
 | nasm | Uses Netwide Assembler avx2 code instead of GAS for portability. Requires a nasm compiler: https://www.nasm.us/ | 
 | zeroize | This will zero out the key exchange structs on drop using the [zeroize](https://docs.rs/zeroize/latest/zeroize/) crate |
-| std | Enable the standard library |
-| benchmarking | Enables the criterion benchmarking suite |
+| benchmarking |  Enables the criterion benchmarking suite |
 ---
 
 ## Testing

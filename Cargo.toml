@@ -17,7 +17,8 @@ wasm-bindgen = { version = "0.2.83", optional = true }
 sha2 = { version = "0.10.6", optional = true , default-features = false }
 getrandom = {version = "0.2.8", features = ["js"], optional = true }
 zeroize = { version = "1.5.7", features = ["derive"], optional = true }
-
+aes = { version = "0.8.2", optional = true }
+ctr = { version = "0.9.2", optional = true }
 # Optional dev-deps, see https://github.com/rust-lang/cargo/issues/1596
 criterion = { version = "0.4.0", features = ["html_reports"], optional = true } 
 
@@ -54,11 +55,16 @@ kyber1024 = []
 hazmat = []
 
 ### Additional features ###
-# 90s mode uses AES-CTR and SHA2 as primitives instead
+# 90s mode uses AES256-CTR and SHA2 as primitives instead
+# Uses a bitslice implementation
 90s = ["sha2"]
 
+# Fixslice RustCrypto AES implementation offers some additional sidechannel 
+# attack resistance. Suggest benchmarking for comparison.
+90s-fixslice = ["90s", "aes", "ctr"]
+
 # Use avx2 intrinsics on x86 architectures
-# Wont compile if the platform doesn't supprt it
+# Wont compile if the platform doesn't support it
 avx2 = ["cc"]
 
 # For compiling to wasm targets 

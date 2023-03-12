@@ -16,7 +16,7 @@ jobs:
           aarch64-pc-windows-msvc
         ]
 
-        rust: [1.47.0, stable]  # MSRV 1.47
+        rust: [1.56.0, stable]  # MSRV 1.56
     
     steps:
       - uses: actions/checkout@v3

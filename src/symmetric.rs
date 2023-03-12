@@ -1,14 +1,16 @@
 #![allow(dead_code)]
 
-#[cfg(not(feature = "90s"))] use crate::{fips202::*, params::*};
-#[cfg(feature = "90s")] use crate::aes256ctr::*;
-#[cfg(feature = "90s")] use sha2::{Sha256, Sha512, Digest};
-// TODO: Rustrypto AES-CTR feature
-// #[cfg(feature = "90s")] use aes_ctr::Aes256Ctr;
-// #[cfg(feature = "90s")] use aes_ctr::cipher::{
-//   generic_array::GenericArray,
-//   stream::{NewStreamCipher, SyncStreamCipher}
-// };
+#[cfg(feature = "90s")]
+use crate::aes256ctr::*;
+#[cfg(not(feature = "90s"))]
+use crate::{fips202::*, params::*};
+#[cfg(feature = "90s")]
+use sha2::{Digest, Sha256, Sha512};
+
+#[cfg(feature = "90s-fixslice")]
+use aes::cipher::{generic_array::GenericArray, KeyIvInit, StreamCipher};
+#[cfg(feature = "90s-fixslice")]
+type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
 
 #[cfg(feature = "90s")] 
 pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
@@ -110,23 +112,21 @@ pub(crate) fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn prf(out: &mut[u8], outbytes: usize, key: &[u8], nonce: u8)
-{
-  aes256ctr_prf(out, outbytes, &key, nonce);
-
-  // TODO: Add feature to use RustCrypto AES_CTR
-  // implementation with no lookup tables
-  // Perhaps add an option for ring also.
-  
-  // Working RustCrypto code:
-  // if cfg!(feature = "rustcrypto-aes") {
-    // let mut expnonce = [0u8; 16];
-    // expnonce[0] = nonce;
-    // let key = GenericArray::from_slice(key);
-    // let iv = GenericArray::from_slice(&expnonce);
-    // let mut cipher = Aes256Ctr::new(&key, &iv);
-    // cipher.apply_keystream(out);
-  // }
+pub fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
+  #[cfg(feature = "90s-fixslice")]
+  {
+    // RustCrypto fixslice
+    let mut expnonce = [0u8; 16];
+    expnonce[0] = nonce;
+    let key = GenericArray::from_slice(key);
+    let iv = GenericArray::from_slice(&expnonce);
+    let mut cipher = Aes256Ctr::new(&key, &iv);
+    cipher.apply_keystream(out);
+    return
+  }
+  #[cfg(not(feature = "90s-fixslice"))]
+  // Pornin bitslice
+  aes256ctr_prf(out, _outbytes, &key, nonce);
 }
 
 #[cfg(not(feature = "90s"))]

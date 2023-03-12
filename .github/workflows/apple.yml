@@ -9,9 +9,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        # MSRV 1.47 temporarily removed
-        # See https://github.com/Argyle-Software/kyber/issues/34
-        rust: [stable] 
+        rust: [1.56.0, stable] # MSRV 1.56
     
     steps:
       - uses: actions/checkout@v3

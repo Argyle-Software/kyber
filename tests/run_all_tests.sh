@@ -54,7 +54,7 @@ start=`date +%s`
 announce $TARGET
 
 LEVELS=("kyber512" "kyber768" "kyber1024")
-NINES=("" "90s")
+NINES=("" "90s" "90s-fixslice")
 
 for level in "${LEVELS[@]}"; do
   for nine in "${NINES[@]}"; do
