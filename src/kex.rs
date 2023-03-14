@@ -1,6 +1,6 @@
 use rand_core::{RngCore, CryptoRng};
 #[cfg(feature = "zeroize")]
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroize;
 use crate::{
   kem::*,
   symmetric::kdf,
@@ -52,13 +52,12 @@ type Eska = [u8; KYBER_SECRETKEYBYTES];
 /// let bob_keys = keypair(&mut rng);
 /// 
 /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
-/// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
+/// let server_send = bob.server_receive(client_init, bob_keys.expose_secret(), &mut rng)?;
 /// let client_confirm = alice.client_confirm(server_send);
 /// 
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 
-#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Uake {
   /// The resulting shared secret from a key exchange
@@ -81,6 +80,17 @@ impl Default for Uake {
       temp_key: [0u8; KYBER_SSBYTES],
       eska: [0u8; KYBER_SECRETKEYBYTES],
     }
+  }
+}
+
+#[cfg(feature = "zeroize")]
+impl Drop for Uake {
+  fn drop(&mut self) {
+    self.shared_secret.zeroize();
+    self.send_a.zeroize();
+    self.send_b.zeroize();
+    self.temp_key.zeroize();
+    self.eska.zeroize();
   }
 }
 
@@ -124,7 +134,7 @@ impl Uake {
   /// let mut bob = Uake::new();
   /// let mut bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
-  /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
+  /// let server_send = bob.server_receive(client_init, bob_keys.expose_secret(), &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
     &mut self, send_a: UakeSendInit, secretkey: &SecretKey, rng: &mut R
@@ -149,7 +159,7 @@ impl Uake {
   /// # let mut bob = Uake::new();
   /// # let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
-  /// let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng)?;
+  /// let server_send = bob.server_receive(client_init, bob_keys.expose_secret(), &mut rng)?;
   /// let client_confirm = alice.client_confirm(server_send);
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
   /// # Ok(()) }
@@ -179,14 +189,13 @@ impl Uake {
 /// let bob_keys = keypair(&mut rng);
 /// 
 /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
-/// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
-/// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
+/// let server_send = bob.server_receive(client_init, &alice_keys.public, bob_keys.expose_secret(), &mut rng)?;
+/// let client_confirm = alice.client_confirm(server_send, alice_keys.expose_secret());
 /// 
 /// assert_eq!(alice.shared_secret, bob.shared_secret);
 /// # Ok(()) }
 /// ```
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Ake {
   /// The resulting shared secret from a key exchange
   pub shared_secret: SharedSecret,
@@ -208,6 +217,17 @@ impl Default for Ake {
       temp_key: [0u8; KYBER_SSBYTES],
       eska: [0u8; KYBER_SECRETKEYBYTES],
     }
+  }
+}
+
+#[cfg(feature = "zeroize")]
+impl Drop for Ake {
+  fn drop(&mut self) {
+    self.shared_secret.zeroize();
+    self.send_a.zeroize();
+    self.send_b.zeroize();
+    self.temp_key.zeroize();
+    self.eska.zeroize();
   }
 }
 
@@ -252,7 +272,7 @@ impl Ake {
   /// let alice_keys = keypair(&mut rng);
   /// let bob_keys = keypair(&mut rng);
   /// let client_init = alice.client_init(&bob_keys.public, &mut rng);
-  /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
+  /// let server_send = bob.server_receive(client_init, &alice_keys.public, bob_keys.expose_secret(), &mut rng)?;
   /// # Ok(()) }
   pub fn server_receive<R>(
     &mut self, ake_send_a: AkeSendInit, pubkey: &PublicKey, 
@@ -279,8 +299,8 @@ impl Ake {
   /// # let alice_keys = keypair(&mut rng);
   /// # let bob_keys = keypair(&mut rng);
   /// # let client_init = alice.client_init(&bob_keys.public, &mut rng);
-  /// let server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)?;
-  /// let client_confirm = alice.client_confirm(server_send, &alice_keys.secret);
+  /// let server_send = bob.server_receive(client_init, &alice_keys.public, bob_keys.expose_secret(), &mut rng)?;
+  /// let client_confirm = alice.client_confirm(server_send, alice_keys.expose_secret());
   /// assert_eq!(alice.shared_secret, bob.shared_secret);
   /// # Ok(()) }
   pub fn client_confirm(&mut self, send_b: AkeSendResponse, secretkey: &SecretKey) 

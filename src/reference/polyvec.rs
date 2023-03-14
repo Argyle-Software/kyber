@@ -1,4 +1,8 @@
 #![allow(clippy::precedence)]
+
+#[cfg(feature = "zeroize")] 
+use zeroize::Zeroize;
+
 use crate::{
   poly::*,
   params::*
@@ -16,6 +20,13 @@ impl Polyvec {
     Polyvec {
       vec: [Poly::new(); KYBER_K]
     }
+  }
+}
+
+#[cfg(feature = "zeroize")] 
+impl Zeroize for Polyvec {
+  fn zeroize(&mut self) {
+    self.vec.iter_mut().zeroize();
   }
 }
 

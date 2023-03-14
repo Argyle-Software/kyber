@@ -60,7 +60,7 @@ let keys_bob = keypair(&mut rng);
 let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
 
 // Bob decapsulates a shared secret using the ciphertext sent by Alice 
-let shared_secret_bob = decapsulate(&ciphertext, &keys_bob.secret)?;
+let shared_secret_bob = decapsulate(&ciphertext, keys_bob.expose_secret())?;
 
 assert_eq!(shared_secret_alice, shared_secret_bob);
 ```
@@ -83,7 +83,7 @@ let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
 // Bob authenticates and responds
 let server_response = bob.server_receive(
-  client_init, &bob_keys.secret, &mut rng
+  client_init, bob_keys.expose_secret(), &mut rng
 )?;
 
 // Alice decapsulates the shared secret
@@ -108,10 +108,10 @@ let bob_keys = keypair(&mut rng);
 let client_init = alice.client_init(&bob_keys.public, &mut rng);
 
 let server_response = bob.server_receive(
-  client_init, &alice_keys.public, &bob_keys.secret, &mut rng
+  client_init, &alice_keys.public, bob_keys.expose_secret(), &mut rng
 )?;
 
-alice.client_confirm(server_response, &alice_keys.secret)?;
+alice.client_confirm(server_response, alice_keys.expose_secret())?;
 
 assert_eq!(alice.shared_secret, bob.shared_secret);
 ```

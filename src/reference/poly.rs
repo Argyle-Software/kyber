@@ -1,3 +1,6 @@
+#[cfg(feature = "zeroize")] 
+use zeroize::Zeroize;
+
 use crate::{
   params::*,
   ntt::*,
@@ -25,6 +28,13 @@ impl Default for Poly {
 impl Poly {
   pub fn new() -> Self {
     Self::default()
+  }
+}
+
+#[cfg(feature = "zeroize")] 
+impl Zeroize for Poly {
+  fn zeroize(&mut self) {
+    self.coeffs.zeroize();
   }
 }
 

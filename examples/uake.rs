@@ -14,10 +14,10 @@ fn main() -> Result<(), KyberError> {
   // Bob receives the request and authenticates Alice, sends 
   // encapsulated shared secret back
   let server_send = bob.server_receive(
-    client_send, &bob_keys.secret, &mut rng
+    client_send, bob_keys.expose_secret(), &mut rng
   )?;
 
-  // Alice autheticates and decapsulates
+  // Alice authenticates and decapsulates
   alice.client_confirm(server_send)?;
 
   // Both structs now have the shared secret
