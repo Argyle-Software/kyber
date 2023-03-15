@@ -1,9 +1,9 @@
-fn main() {
+fn main()
+{
   #[cfg(not(feature = "wasm"))]
   {
     #[cfg(feature = "avx2")]
     {
-      
       const FILES: [&str; 5] = ["basemul", "fq", "invntt", "ntt", "shuffle"];
 
       #[cfg(feature = "nasm")]
@@ -17,10 +17,11 @@ fn main() {
         nasm.files(paths);
         nasm.include(ROOT);
 
-        for o in  nasm.compile_objects().expect("
+        for o in nasm.compile_objects().expect(
+          "
           Compiling NASM files: 
           Ensure it is installed and in your path
-          https://www.nasm.us/"
+          https://www.nasm.us/",
         ) {
           linker.object(o);
         }

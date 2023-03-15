@@ -2,6 +2,8 @@
 
 Contributions always welcome. Checkout the development branch create a feature fork and submit a PR back to the development branch. If possible please run a benchmark first for any significant regressions. 
 
+Please run `cargo +nightly fmt` before committing, nightly is needed to use unstable options.
+
 Current areas of focus:
 
 * **Neon ARM intrinsics** - There is a [neon library](https://github.com/cothan/kyber/tree/round3/neon) for Kyber, though currently many ARM intrinsics still don't exist in rust, so there's two branches, `neon` is a rust port of his work that will have to wait until the intrinsics are upstream, `neon_c` is using the original C code with a FFI.

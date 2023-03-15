@@ -1,12 +1,6 @@
 use crate::rng::randombytes;
-use rand_core::{RngCore, CryptoRng};
-use crate::{
-  params::*,
-  indcpa::*,
-  symmetric::*,
-  error::KyberError,
-  verify::*
-};
+use crate::{error::KyberError, indcpa::*, params::*, symmetric::*, verify::*};
+use rand_core::{CryptoRng, RngCore};
 
 // Name:        crypto_kem_keypair
 //
@@ -16,24 +10,27 @@ use crate::{
 // Arguments:   - [u8] pk: output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 //              - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair<R>(
-  pk: &mut[u8], sk: &mut[u8], _rng: &mut R, _seed: Option<(&[u8], &[u8])> 
-)
-  where R: RngCore + CryptoRng
-{ 
+  pk: &mut [u8],
+  sk: &mut [u8],
+  _rng: &mut R,
+  _seed: Option<(&[u8], &[u8])>,
+) where
+  R: RngCore + CryptoRng,
+{
   const PK_START: usize = KYBER_SECRETKEYBYTES - (2 * KYBER_SYMBYTES);
-  const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
+  const SK_START: usize = KYBER_SECRETKEYBYTES - KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
-  
+
   indcpa_keypair(pk, sk, _seed, _rng);
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
   hash_h(&mut sk[PK_START..], pk, KYBER_PUBLICKEYBYTES);
-  
+
   if let Some(s) = _seed {
     sk[SK_START..].copy_from_slice(&s.1)
   } else {
-    randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng);
+    randombytes(&mut sk[SK_START..], KYBER_SYMBYTES, _rng);
   }
 }
 
@@ -46,13 +43,17 @@ pub fn crypto_kem_keypair<R>(
 //              - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
 //              - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc<R>(
-  ct: &mut[u8], ss: &mut[u8], pk: &[u8], _rng: &mut R,_seed: Option<&[u8]>
-)
-  where R: RngCore + CryptoRng
+  ct: &mut [u8],
+  ss: &mut [u8],
+  pk: &[u8],
+  _rng: &mut R,
+  _seed: Option<&[u8]>,
+) where
+  R: RngCore + CryptoRng,
 {
-  let mut kr = [0u8; 2*KYBER_SYMBYTES];
-  let mut buf = [0u8; 2*KYBER_SYMBYTES];
-  let mut randbuf = [0u8; 2*KYBER_SYMBYTES];
+  let mut kr = [0u8; 2 * KYBER_SYMBYTES];
+  let mut buf = [0u8; 2 * KYBER_SYMBYTES];
+  let mut randbuf = [0u8; 2 * KYBER_SYMBYTES];
 
   // Deterministic randbuf for KAT's
   if let Some(s) = _seed {
@@ -61,21 +62,21 @@ pub fn crypto_kem_enc<R>(
     randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
   }
 
-  // Don't release system RNG output 
+  // Don't release system RNG output
   hash_h(&mut buf, &randbuf, KYBER_SYMBYTES);
 
   // Multitarget countermeasure for coins + contributory KEM
   hash_h(&mut buf[KYBER_SYMBYTES..], pk, KYBER_PUBLICKEYBYTES);
-  hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
+  hash_g(&mut kr, &buf, 2 * KYBER_SYMBYTES);
 
   // coins are in kr[KYBER_SYMBYTES..]
   indcpa_enc(ct, &buf, pk, &kr[KYBER_SYMBYTES..]);
 
-  // overwrite coins in kr with H(c) 
+  // overwrite coins in kr with H(c)
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
 
   // hash concatenation of pre-k and H(c) to k
-  kdf(ss, &kr, 2*KYBER_SYMBYTES);
+  kdf(ss, &kr, 2 * KYBER_SYMBYTES);
 }
 
 // Name:        crypto_kem_dec
@@ -89,37 +90,38 @@ pub fn crypto_kem_enc<R>(
 //
 // On failure, ss will contain a pseudo-random value.
 pub fn crypto_kem_dec(
-  ss: &mut[u8], ct: &[u8], sk: &[u8]
-) 
--> Result<(), KyberError> 
+  ss: &mut [u8],
+  ct: &[u8],
+  sk: &[u8],
+) -> Result<(), KyberError>
 {
-  let mut buf = [0u8; 2*KYBER_SYMBYTES];
-  let mut kr = [0u8; 2*KYBER_SYMBYTES];
+  let mut buf = [0u8; 2 * KYBER_SYMBYTES];
+  let mut kr = [0u8; 2 * KYBER_SYMBYTES];
   let mut cmp = [0u8; KYBER_CIPHERTEXTBYTES];
-  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES + 2*KYBER_SYMBYTES];
+  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES + 2 * KYBER_SYMBYTES];
 
   pk.copy_from_slice(&sk[KYBER_INDCPA_SECRETKEYBYTES..]);
-  
+
   indcpa_dec(&mut buf, ct, sk);
 
   // Multitarget countermeasure for coins + contributory KEM
-  const START: usize = KYBER_SECRETKEYBYTES-2*KYBER_SYMBYTES;
-  const END: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES; 
+  const START: usize = KYBER_SECRETKEYBYTES - 2 * KYBER_SYMBYTES;
+  const END: usize = KYBER_SECRETKEYBYTES - KYBER_SYMBYTES;
   buf[KYBER_SYMBYTES..].copy_from_slice(&sk[START..END]);
-  hash_g(&mut kr, &buf, 2*KYBER_SYMBYTES);
-  
-  // coins are in kr[KYBER_SYMBYTES..] 
+  hash_g(&mut kr, &buf, 2 * KYBER_SYMBYTES);
+
+  // coins are in kr[KYBER_SYMBYTES..]
   indcpa_enc(&mut cmp, &buf, &pk, &kr[KYBER_SYMBYTES..]);
   let fail = verify(ct, &cmp, KYBER_CIPHERTEXTBYTES);
   // overwrite coins in kr with H(c)
   hash_h(&mut kr[KYBER_SYMBYTES..], ct, KYBER_CIPHERTEXTBYTES);
-  // Overwrite pre-k with z on re-encryption failure 
+  // Overwrite pre-k with z on re-encryption failure
   cmov(&mut kr, &sk[END..], KYBER_SYMBYTES, fail);
-  // hash concatenation of pre-k and H(c) to k 
-  kdf(ss, &kr, 2*KYBER_SYMBYTES);
+  // hash concatenation of pre-k and H(c) to k
+  kdf(ss, &kr, 2 * KYBER_SYMBYTES);
 
   match fail {
     0 => Ok(()),
-    _ => Err(KyberError::Decapsulation)
+    _ => Err(KyberError::Decapsulation),
   }
 }

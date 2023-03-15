@@ -2,12 +2,13 @@
 
 mod load;
 
-use pqc_kyber::*;
 use load::*;
+use pqc_kyber::*;
 
 // Generate KAT keypairs from seeds.
 #[test]
-fn keypairs() {
+fn keypairs()
+{
   let kats = build_kats();
   let mut _rng = rand::thread_rng(); // placeholder
   for kat in kats {
@@ -26,7 +27,8 @@ fn keypairs() {
 
 // Encapsulating KAT's using deterministic rand buffers
 #[test]
-fn encaps() {
+fn encaps()
+{
   let kats = build_kats();
   let mut _rng = rand::thread_rng(); // placeholder
   for kat in kats {
@@ -43,7 +45,8 @@ fn encaps() {
 
 // Decapsulating KAT's
 #[test]
-fn decaps() {
+fn decaps()
+{
   let kats = build_kats();
   for kat in kats {
     let sk = decode_hex(&kat.sk);
@@ -51,24 +54,30 @@ fn decaps() {
     let known_ss = decode_hex(&kat.ss);
     let decap_result = decapsulate(&ct, &sk);
     assert!(decap_result.is_ok(), "KEM decapsulation failure");
-    assert_eq!(&decap_result.unwrap()[..], &known_ss[..], "Shared secret KAT doesn't match")
+    assert_eq!(
+      &decap_result.unwrap()[..],
+      &known_ss[..],
+      "Shared secret KAT doesn't match"
+    )
   }
 }
 
 // Helper functions
 // Encodes byte slice into a hex string
-pub fn encode_hex(bytes: &[u8]) -> String {
+pub fn encode_hex(bytes: &[u8]) -> String
+{
   let mut output = String::new();
   for b in bytes {
-        output.push_str(&format!("{:02X}", b));
-    }
+    output.push_str(&format!("{:02X}", b));
+  }
   output
 }
 
 // Decodes hex string into a vector of bytes
-pub fn decode_hex(s: &str) -> Vec<u8> {
+pub fn decode_hex(s: &str) -> Vec<u8>
+{
   (0..s.len())
-      .step_by(2)
-      .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("Hex string decoding"))
-      .collect::<Vec<u8>>()
+    .step_by(2)
+    .map(|i| u8::from_str_radix(&s[i..i + 2], 16).expect("Hex string decoding"))
+    .collect::<Vec<u8>>()
 }

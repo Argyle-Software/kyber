@@ -264,13 +264,15 @@ Authors of the Kyber Algorithm:
 
 ---
 
-### Contributing 
+## Contributing 
 
-Contributions welcome. For pull requests create a feature fork and submit it to the development branch. More information is available on the [contributing page](./contributing.md)
+Contributions welcome. For pull requests create a feature fork and submit it to the development branch. More information is available on the [contributing page](./contributing.md).
+
+Please remember to run `cargo +nightly fmt` before pushing the branch. Nightly is needed for cargo fmt's unstable options.
 
 ---
 
-### Alternatives
+## Alternatives
 
 The PQClean project has rust bindings for their Kyber C codebase:
 
