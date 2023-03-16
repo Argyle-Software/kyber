@@ -1,3 +1,19 @@
+## 0.5.0 - 2023-3-16
+
+### Added
+ - `90s-fixslice` feature, using RustCrypto's AES implementation
+ - More key exchange testing (thanks Francesco Medina)
+ - Examples
+
+### Changed
+- Bumped dependencies
+
+### Fixed
+- Documentation
+
+### Removed
+ - Unnecessary sha2 default dependencies
+
 ## 0.4.0 - 2023-1-18
 
 ### Added

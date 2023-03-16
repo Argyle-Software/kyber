@@ -1,19 +1,19 @@
 [package]
 name = "pqc_kyber"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Mitchell Berry <foss@mitchellberry.com>"]
 edition = "2018"
 license = "MIT/Apache-2.0"
 repository = "https://github.com/Argyle-Software/kyber"
 documentation = "https://docs.rs/crate/pqc_kyber/"
-categories = ["algorithms", "cryptography"]
+categories = ["algorithms", "cryptography", "wasm", "no-std"]
 description = "A rust implementation of the post-quantum Kyber KEM algorithm"
 keywords = ["kyber", "kem", "key-exchange", "kex", "post-quantum"]
 readme = "readme.md"
 
 [dependencies]
 rand_core = { version = "0.6.4",  default-features = false }
-wasm-bindgen = { version = "0.2.83", optional = true }
+wasm-bindgen = { version = "0.2.84", optional = true }
 sha2 = { version = "0.10.6", optional = true , default-features = false }
 getrandom = {version = "0.2.8", features = ["js"], optional = true }
 zeroize = { version = "1.5.7", features = ["derive"], optional = true }
