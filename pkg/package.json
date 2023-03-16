@@ -3,8 +3,8 @@
   "collaborators": [
     "Mitchell Berry <foss@mitchellberry.com>"
   ],
-  "description": "The post-quantum Kyber KEM algorithm",
-  "version": "0.4.0",
+  "description": "The post-quantum Kyber key exchange algorithm, written in rust and compiled to wasm",
+  "version": "0.5.0",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",
