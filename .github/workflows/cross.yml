@@ -40,4 +40,4 @@ jobs:
         with:
           use-cross: true
           command: test
-          args: --target ${{ matrix.target }} --features "${{ matrix.feature }} ${{ matrix.opt }}" 
+          args: --target ${{ matrix.target }} --features "std ${{ matrix.feature }} ${{ matrix.opt }}" 
