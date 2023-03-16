@@ -23,6 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Setup Cross Configuration
+        shell: bash
+        run: echo -e "[build]\nbuild-std =true" > Cross.toml
+
+      - name: Install Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.target }}
+          override: true
+
       - name: Cross Compile Tests ${{ matrix.target }} ${{ matrix.feature }} ${{ matrix.opt }}
         uses: actions-rs/cargo@v1.0.1
         with:
