@@ -147,5 +147,7 @@ fn ake_invalid_server_send_second_ciphertext()
     .server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng)
     .unwrap();
   server_send[KYBER_CIPHERTEXTBYTES..][..4].copy_from_slice(&[255u8; 4]);
-  assert!(alice.client_confirm(server_send, &alice_keys.secret).is_err());
+  assert!(alice
+    .client_confirm(server_send, &alice_keys.secret)
+    .is_err());
 }

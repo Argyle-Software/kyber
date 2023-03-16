@@ -100,286 +100,138 @@ fn br_aes_ct64_bitslice_sbox(q: &mut [u64])
   // to cryptology" (https://eprint.iacr.org/2009/191.pdf).
   // Note that variables x(input) and s(output) are numbered
   // in "reverse" order (x0 is the high bit, x7 is the low bit).
-  let (x0, x1, x2, x3, x4, x5, x6, x7): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (y1, y2, y3, y4, y5, y6, y7, y8, y9): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (y10, y11, y12, y13, y14, y15, y16, y17, y18, y19): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (y20, y21): (u64, u64);
-  let (z0, z1, z2, z3, z4, z5, z6, z7, z8, z9): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (z10, z11, z12, z13, z14, z15, z16, z17): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t10, t11, t12, t13, t14, t15, t16, t17, t18, t19): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t20, t21, t22, t23, t24, t25, t26, t27, t28, t29): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t30, t31, t32, t33, t34, t35, t36, t37, t38, t39): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t40, t41, t42, t43, t44, t45, t46, t47, t48, t49): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t50, t51, t52, t53, t54, t55, t56, t57, t58, t59): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (t60, t61, t62, t63, t64, t65, t66, t67): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
-  let (s0, s1, s2, s3, s4, s5, s6, s7): (
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-    u64,
-  );
 
-  x0 = q[7];
-  x1 = q[6];
-  x2 = q[5];
-  x3 = q[4];
-  x4 = q[3];
-  x5 = q[2];
-  x6 = q[1];
-  x7 = q[0];
+  let x0 = q[7];
+  let x1 = q[6];
+  let x2 = q[5];
+  let x3 = q[4];
+  let x4 = q[3];
+  let x5 = q[2];
+  let x6 = q[1];
+  let x7 = q[0];
 
   // Top linear transformation.
-  y14 = x3 ^ x5;
-  y13 = x0 ^ x6;
-  y9 = x0 ^ x3;
-  y8 = x0 ^ x5;
-  t0 = x1 ^ x2;
-  y1 = t0 ^ x7;
-  y4 = y1 ^ x3;
-  y12 = y13 ^ y14;
-  y2 = y1 ^ x0;
-  y5 = y1 ^ x6;
-  y3 = y5 ^ y8;
-  t1 = x4 ^ y12;
-  y15 = t1 ^ x5;
-  y20 = t1 ^ x1;
-  y6 = y15 ^ x7;
-  y10 = y15 ^ t0;
-  y11 = y20 ^ y9;
-  y7 = x7 ^ y11;
-  y17 = y10 ^ y11;
-  y19 = y10 ^ y8;
-  y16 = t0 ^ y11;
-  y21 = y13 ^ y16;
-  y18 = x0 ^ y16;
+  let y14 = x3 ^ x5;
+  let y13 = x0 ^ x6;
+  let y9 = x0 ^ x3;
+  let y8 = x0 ^ x5;
+  let t0 = x1 ^ x2;
+  let y1 = t0 ^ x7;
+  let y4 = y1 ^ x3;
+  let y12 = y13 ^ y14;
+  let y2 = y1 ^ x0;
+  let y5 = y1 ^ x6;
+  let y3 = y5 ^ y8;
+  let t1 = x4 ^ y12;
+  let y15 = t1 ^ x5;
+  let y20 = t1 ^ x1;
+  let y6 = y15 ^ x7;
+  let y10 = y15 ^ t0;
+  let y11 = y20 ^ y9;
+  let y7 = x7 ^ y11;
+  let y17 = y10 ^ y11;
+  let y19 = y10 ^ y8;
+  let y16 = t0 ^ y11;
+  let y21 = y13 ^ y16;
+  let y18 = x0 ^ y16;
 
   // Non-linear section.
-  t2 = y12 & y15;
-  t3 = y3 & y6;
-  t4 = t3 ^ t2;
-  t5 = y4 & x7;
-  t6 = t5 ^ t2;
-  t7 = y13 & y16;
-  t8 = y5 & y1;
-  t9 = t8 ^ t7;
-  t10 = y2 & y7;
-  t11 = t10 ^ t7;
-  t12 = y9 & y11;
-  t13 = y14 & y17;
-  t14 = t13 ^ t12;
-  t15 = y8 & y10;
-  t16 = t15 ^ t12;
-  t17 = t4 ^ t14;
-  t18 = t6 ^ t16;
-  t19 = t9 ^ t14;
-  t20 = t11 ^ t16;
-  t21 = t17 ^ y20;
-  t22 = t18 ^ y19;
-  t23 = t19 ^ y21;
-  t24 = t20 ^ y18;
+  let t2 = y12 & y15;
+  let t3 = y3 & y6;
+  let t4 = t3 ^ t2;
+  let t5 = y4 & x7;
+  let t6 = t5 ^ t2;
+  let t7 = y13 & y16;
+  let t8 = y5 & y1;
+  let t9 = t8 ^ t7;
+  let t10 = y2 & y7;
+  let t11 = t10 ^ t7;
+  let t12 = y9 & y11;
+  let t13 = y14 & y17;
+  let t14 = t13 ^ t12;
+  let t15 = y8 & y10;
+  let t16 = t15 ^ t12;
+  let t17 = t4 ^ t14;
+  let t18 = t6 ^ t16;
+  let t19 = t9 ^ t14;
+  let t20 = t11 ^ t16;
+  let t21 = t17 ^ y20;
+  let t22 = t18 ^ y19;
+  let t23 = t19 ^ y21;
+  let t24 = t20 ^ y18;
 
-  t25 = t21 ^ t22;
-  t26 = t21 & t23;
-  t27 = t24 ^ t26;
-  t28 = t25 & t27;
-  t29 = t28 ^ t22;
-  t30 = t23 ^ t24;
-  t31 = t22 ^ t26;
-  t32 = t31 & t30;
-  t33 = t32 ^ t24;
-  t34 = t23 ^ t33;
-  t35 = t27 ^ t33;
-  t36 = t24 & t35;
-  t37 = t36 ^ t34;
-  t38 = t27 ^ t36;
-  t39 = t29 & t38;
-  t40 = t25 ^ t39;
+  let t25 = t21 ^ t22;
+  let t26 = t21 & t23;
+  let t27 = t24 ^ t26;
+  let t28 = t25 & t27;
+  let t29 = t28 ^ t22;
+  let t30 = t23 ^ t24;
+  let t31 = t22 ^ t26;
+  let t32 = t31 & t30;
+  let t33 = t32 ^ t24;
+  let t34 = t23 ^ t33;
+  let t35 = t27 ^ t33;
+  let t36 = t24 & t35;
+  let t37 = t36 ^ t34;
+  let t38 = t27 ^ t36;
+  let t39 = t29 & t38;
+  let t40 = t25 ^ t39;
 
-  t41 = t40 ^ t37;
-  t42 = t29 ^ t33;
-  t43 = t29 ^ t40;
-  t44 = t33 ^ t37;
-  t45 = t42 ^ t41;
-  z0 = t44 & y15;
-  z1 = t37 & y6;
-  z2 = t33 & x7;
-  z3 = t43 & y16;
-  z4 = t40 & y1;
-  z5 = t29 & y7;
-  z6 = t42 & y11;
-  z7 = t45 & y17;
-  z8 = t41 & y10;
-  z9 = t44 & y12;
-  z10 = t37 & y3;
-  z11 = t33 & y4;
-  z12 = t43 & y13;
-  z13 = t40 & y5;
-  z14 = t29 & y2;
-  z15 = t42 & y9;
-  z16 = t45 & y14;
-  z17 = t41 & y8;
+  let t41 = t40 ^ t37;
+  let t42 = t29 ^ t33;
+  let t43 = t29 ^ t40;
+  let t44 = t33 ^ t37;
+  let t45 = t42 ^ t41;
+  let z0 = t44 & y15;
+  let z1 = t37 & y6;
+  let z2 = t33 & x7;
+  let z3 = t43 & y16;
+  let z4 = t40 & y1;
+  let z5 = t29 & y7;
+  let z6 = t42 & y11;
+  let z7 = t45 & y17;
+  let z8 = t41 & y10;
+  let z9 = t44 & y12;
+  let z10 = t37 & y3;
+  let z11 = t33 & y4;
+  let z12 = t43 & y13;
+  let z13 = t40 & y5;
+  let z14 = t29 & y2;
+  let z15 = t42 & y9;
+  let z16 = t45 & y14;
+  let z17 = t41 & y8;
 
   // Bottom linear transformation.
-  t46 = z15 ^ z16;
-  t47 = z10 ^ z11;
-  t48 = z5 ^ z13;
-  t49 = z9 ^ z10;
-  t50 = z2 ^ z12;
-  t51 = z2 ^ z5;
-  t52 = z7 ^ z8;
-  t53 = z0 ^ z3;
-  t54 = z6 ^ z7;
-  t55 = z16 ^ z17;
-  t56 = z12 ^ t48;
-  t57 = t50 ^ t53;
-  t58 = z4 ^ t46;
-  t59 = z3 ^ t54;
-  t60 = t46 ^ t57;
-  t61 = z14 ^ t57;
-  t62 = t52 ^ t58;
-  t63 = t49 ^ t58;
-  t64 = z4 ^ t59;
-  t65 = t61 ^ t62;
-  t66 = z1 ^ t63;
-  s0 = t59 ^ t63;
-  s6 = t56 ^ !t62;
-  s7 = t48 ^ !t60;
-  t67 = t64 ^ t65;
-  s3 = t53 ^ t66;
-  s4 = t51 ^ t66;
-  s5 = t47 ^ t65;
-  s1 = t64 ^ !s3;
-  s2 = t55 ^ !t67;
+  let t46 = z15 ^ z16;
+  let t47 = z10 ^ z11;
+  let t48 = z5 ^ z13;
+  let t49 = z9 ^ z10;
+  let t50 = z2 ^ z12;
+  let t51 = z2 ^ z5;
+  let t52 = z7 ^ z8;
+  let t53 = z0 ^ z3;
+  let t54 = z6 ^ z7;
+  let t55 = z16 ^ z17;
+  let t56 = z12 ^ t48;
+  let t57 = t50 ^ t53;
+  let t58 = z4 ^ t46;
+  let t59 = z3 ^ t54;
+  let t60 = t46 ^ t57;
+  let t61 = z14 ^ t57;
+  let t62 = t52 ^ t58;
+  let t63 = t49 ^ t58;
+  let t64 = z4 ^ t59;
+  let t65 = t61 ^ t62;
+  let t66 = z1 ^ t63;
+  let s0 = t59 ^ t63;
+  let s6 = t56 ^ !t62;
+  let s7 = t48 ^ !t60;
+  let t67 = t64 ^ t65;
+  let s3 = t53 ^ t66;
+  let s4 = t51 ^ t66;
+  let s5 = t47 ^ t65;
+  let s1 = t64 ^ !s3;
+  let s2 = t55 ^ !t67;
 
   q[7] = s0;
   q[6] = s1;
