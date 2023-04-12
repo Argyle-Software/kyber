@@ -149,8 +149,8 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
   // 530 is expected number of required bytes
   const GEN_MATRIX_NBLOCKS: usize = 
     (12*KYBER_N/8*(1 << 12)/KYBER_Q + XOF_BLOCKBYTES)/XOF_BLOCKBYTES;
-  const BUFLEN: usize = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
-  let mut buf = [0u8; BUFLEN+2];
+  let mut buf = [0u8; GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+2];
+  let mut buflen: usize;
   let mut off: usize;
   let mut state = XofState::new();
 
@@ -163,16 +163,18 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool)
         xof_absorb(&mut state, seed, j as u8, i as u8);
       }
       xof_squeezeblocks(&mut buf, GEN_MATRIX_NBLOCKS, &mut state);
-      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, BUFLEN);
+      buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
+      ctr = rej_uniform(&mut a[i].vec[j].coeffs, KYBER_N, &buf, buflen);
 
       while ctr < KYBER_N
       {
-        off = BUFLEN % 3;
+        off = buflen % 3;
         for k in 0..off {
-          buf[k] = buf[BUFLEN - off + k];
+          buf[k] = buf[buflen - off + k];
         }
         xof_squeezeblocks(&mut buf[off..], 1, &mut state);
-        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, BUFLEN);
+        buflen = off + XOF_BLOCKBYTES;
+        ctr += rej_uniform(&mut a[i].vec[j].coeffs[ctr..], KYBER_N - ctr, &buf, buflen);
       }
     }
   }
