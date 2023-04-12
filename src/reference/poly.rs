@@ -240,13 +240,13 @@ pub fn poly_basemul(r: &mut Poly, a: &Poly, b: &Poly)
   }
 }
 
-// Name:        poly_frommont
+// Name:        poly_tomont
 //
 // Description: Inplace conversion of all coefficients of a polynomial 
-//              from Montgomery domain to normal domain
+//              from normal domain to Montgomery domain
 //
 // Arguments:   - poly *r:       input/output polynomial
-pub fn poly_frommont(r: &mut Poly)
+pub fn poly_tomont(r: &mut Poly)
 {
   let f = ((1u64 << 32) % KYBER_Q as u64) as i16;
   for i in 0..KYBER_N {

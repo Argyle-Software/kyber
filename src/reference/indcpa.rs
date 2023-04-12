@@ -225,7 +225,7 @@ pub fn indcpa_keypair<R>(
   // matrix-vector multiplication
   for i in 0..KYBER_K {
     polyvec_basemul_acc_montgomery(&mut pkpv.vec[i], &a[i], &skpv);
-    poly_frommont(&mut pkpv.vec[i]);
+    poly_tomont(&mut pkpv.vec[i]);
   }
   polyvec_add(&mut pkpv, &e);
   polyvec_reduce(&mut pkpv);
