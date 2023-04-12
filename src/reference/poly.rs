@@ -305,7 +305,7 @@ pub fn poly_sub(r: &mut Poly, a: &Poly)
 pub fn poly_frommsg(r: &mut Poly, msg: &[u8])
 {
   let mut mask;
-  for i in 0..KYBER_SYMBYTES {
+  for i in 0..KYBER_N/8 {
     for j in 0..8 {
       mask = ((msg[i] as u16 >> j) & 1 ).wrapping_neg();
       r.coeffs[8*i+j] = (mask & ((KYBER_Q+1)/2) as u16) as i16;
@@ -323,7 +323,7 @@ pub fn poly_tomsg(msg: &mut[u8], a: Poly)
 {
   let mut t;
 
-  for i in 0..KYBER_SYMBYTES {
+  for i in 0..KYBER_N/8 {
     msg[i] = 0;
     for j in 0..8 {
       t  = a.coeffs[8*i+j];
