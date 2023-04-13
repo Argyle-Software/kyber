@@ -101,3 +101,26 @@ impl Keypair {
     keypair(rng)
   }
 }
+
+struct DummyRng{}
+impl CryptoRng for DummyRng{}
+impl RngCore for DummyRng{
+    fn next_u32(&mut self) -> u32 { panic!() }
+    fn next_u64(&mut self) -> u64 { panic!() }
+    fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), rand_core::Error> { panic!() }
+    fn fill_bytes(&mut self, _dest: &mut [u8]) { panic!() }
+}
+
+/// Deterministically derive a keypair from a seed as specified
+/// in draft-schwabe-cfrg-kyber.
+pub fn derive(seed: &[u8]) -> Result<Keypair, KyberError>
+{
+  let mut public = [0u8; KYBER_PUBLICKEYBYTES];
+  let mut secret = [0u8; KYBER_SECRETKEYBYTES];
+  let mut _rng = DummyRng{};
+  if seed.len() != 64 {
+    return Err(KyberError::InvalidInput)
+  }
+  crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&seed[..32], &seed[32..])));
+  Ok(Keypair { public, secret })
+}
