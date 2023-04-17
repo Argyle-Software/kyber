@@ -24,7 +24,7 @@
     * name - Replace `pqc_kyber` with `pqc-kyber`
     * description - Revert line to replace with old description
 
-9. `git commit -m "v0.0.0"`
+9. `git commit -m "release v0.0.0"`
 
 10. `git tag v0.0.0`
 

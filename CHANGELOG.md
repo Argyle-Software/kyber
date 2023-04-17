@@ -1,3 +1,17 @@
+## 0.6.0 - 2023-4-18
+
+### Security
+- Rejection sampling (thanks Bas Westerbaan @Cloudflare)
+
+### Changed
+- KYBER_N/8 constant definition
+
+### Fixed
+- frommont function incorrectly named
+
+### Removed
+ - Unnecessary copy in decapsulation function
+
 ## 0.5.0 - 2023-3-16
 
 ### Added
