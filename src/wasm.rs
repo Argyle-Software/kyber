@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn keypair() -> Keys {
   let mut rng = rand::rngs::OsRng{};
-  let keys = api::keypair(&mut rng);
+  let keys = api::keypair(&mut rng).unwrap();
   Keys{
     pubkey: Box::new(keys.public),
     secret: Box::new(keys.secret)

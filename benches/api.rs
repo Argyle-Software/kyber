@@ -16,7 +16,7 @@ fn keypair(c: &mut Criterion) {
   let bufs = Some(([1u8; 32].as_slice(), [255u8; 32].as_slice()));
   c.bench_function("Keypair Generation", |b| {
     b.iter(|| {
-      crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs);
+      crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs).unwrap();
     })
   });
 }
@@ -30,7 +30,7 @@ fn encap(c: &mut Criterion) {
   let encap_buf = Some([255u8; 32].as_slice());
   c.bench_function("Encapsulate", |b| {
     b.iter(|| {
-      crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf);
+      crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf).unwrap();
     })
   });
 }

@@ -14,7 +14,7 @@ fn main() -> Result<(), KyberError> {
     rng.fill_bytes(&mut s1);
     rng.fill_bytes(&mut s2); 
     fuzz!(|data: ()| {
-      crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&s1, &s2)));
+      crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&s1, &s2)))?;
     });
   };
 }

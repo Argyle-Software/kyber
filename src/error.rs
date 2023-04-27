@@ -7,6 +7,8 @@ pub enum KyberError {
   /// The ciphertext was unable to be authenticated. 
   /// The shared secret was not decapsulated. 
   Decapsulation,
+  /// Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
+  RandomBytesGeneration,
 }
 
 impl core::fmt::Display for KyberError {
@@ -14,6 +16,7 @@ impl core::fmt::Display for KyberError {
     match *self {
       KyberError::InvalidInput => write!(f, "Function input is of incorrect length"),
       KyberError::Decapsulation => write!(f, "Decapsulation Failure, unable to obtain shared secret from ciphertext"),
+      KyberError::RandomBytesGeneration => write!(f, "Random bytes generation function failed"),
     }
   }
 }

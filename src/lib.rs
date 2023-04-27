@@ -41,7 +41,7 @@
 //! # fn main() -> Result<(),KyberError> {
 //! # let mut rng = rand::thread_rng();
 //! // Generate Keypair
-//! let keys_bob = keypair(&mut rng);
+//! let keys_bob = keypair(&mut rng)?;
 //! 
 //! // Alice encapsulates a shared secret using Bob's public key
 //! let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
@@ -66,11 +66,11 @@
 //! let mut bob = Uake::new();
 //! 
 //! // Generate Keypairs
-//! let alice_keys = keypair(&mut rng);
-//! let bob_keys = keypair(&mut rng);
+//! let alice_keys = keypair(&mut rng)?;
+//! let bob_keys = keypair(&mut rng)?;
 //! 
 //! // Alice initiates key exchange
-//! let client_init = alice.client_init(&bob_keys.public, &mut rng);
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 //! 
 //! // Bob authenticates and responds
 //! let server_send = bob.server_receive(
@@ -95,10 +95,10 @@
 //! let mut alice = Ake::new();
 //! let mut bob = Ake::new();
 //! 
-//! let alice_keys = keypair(&mut rng);
-//! let bob_keys = keypair(&mut rng);
+//! let alice_keys = keypair(&mut rng)?;
+//! let bob_keys = keypair(&mut rng)?;
 //! 
-//! let client_init = alice.client_init(&bob_keys.public, &mut rng);
+//! let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 //! 
 //! let server_send = bob.server_receive(
 //!   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
