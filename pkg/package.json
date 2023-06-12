@@ -20,7 +20,10 @@
   ],
   "module": "pqc_kyber.js",
   "types": "pqc_kyber.d.ts",
-  "sideEffects": false,
+  "sideEffects": [
+    "./pqc_kyber.js",
+    "./snippets/*"
+  ],
   "keywords": [
     "kyber",
     "kem",

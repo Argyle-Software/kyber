@@ -96,9 +96,10 @@ pub fn crypto_kem_dec(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
   let mut cmp = [0u8; KYBER_CIPHERTEXTBYTES];
-  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES + 2*KYBER_SYMBYTES];
+  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
 
-  pk.copy_from_slice(&sk[KYBER_INDCPA_SECRETKEYBYTES..]);
+  pk.copy_from_slice(
+    &sk[KYBER_INDCPA_SECRETKEYBYTES..][..KYBER_INDCPA_PUBLICKEYBYTES]);
   
   indcpa_dec(&mut buf, ct, sk);
 
