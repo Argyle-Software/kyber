@@ -13,7 +13,7 @@ fn main() -> Result<(), KyberError> {
     rng.fill_bytes(&mut s1);
     fuzz!(|data: &[u8] | {
       if data.len() != KYBER_PUBLICKEYBYTES {return};
-      crypto_kem_enc(&mut ct, &mut ss, data, &mut _rng, Some(&s1));
+      crypto_kem_enc(&mut ct, &mut ss, data, &mut _rng, Some(&s1))?;
     });
   };
 }
