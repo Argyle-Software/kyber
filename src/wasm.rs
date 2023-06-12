@@ -7,12 +7,15 @@ use alloc::boxed::Box;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn keypair() -> Keys {
+pub fn keypair() -> Result<Keys, JsError>  {
   let mut rng = rand::rngs::OsRng{};
-  let keys = api::keypair(&mut rng).unwrap();
-  Keys{
-    pubkey: Box::new(keys.public),
-    secret: Box::new(keys.secret)
+  match api::keypair(&mut rng) {
+    Ok(keys) => Ok(Keys{
+      pubkey: Box::new(keys.public),
+      secret: Box::new(keys.secret)
+    }),
+    Err(KyberError::RandomBytesGeneration) => Err(JsError::new("Error trying to fill random bytes")),
+    _ => Err(JsError::new("The keypair could not be generated"))
   }
 }
 
@@ -59,7 +62,7 @@ pub struct Kex{
 #[wasm_bindgen]
 impl Keys {
   #[wasm_bindgen(constructor)]
-  pub fn new() -> Self {
+  pub fn new() -> Result<Keys, JsError> {
     keypair()
   }
 

@@ -121,7 +121,7 @@ pub fn derive(seed: &[u8]) -> Result<Keypair, KyberError>
   if seed.len() != 64 {
     return Err(KyberError::InvalidInput)
   }
-  crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&seed[..32], &seed[32..])));
+  crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&seed[..32], &seed[32..])))?;
   Ok(Keypair { public, secret })
 }
 
