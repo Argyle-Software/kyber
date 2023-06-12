@@ -58,7 +58,7 @@ fn keypair_encap_failed_randombytes() {
 #[test]
 fn public_from_private() {
   let mut rng = rand::thread_rng();
-  let keys = keypair(&mut rng);
+  let keys = keypair(&mut rng).unwrap();
   let pk2 = public(&keys.secret);
   assert_eq!(pk2, keys.public);
 }
