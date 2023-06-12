@@ -123,6 +123,7 @@ pub fn derive(seed: &[u8]) -> Result<Keypair, KyberError>
   }
   crypto_kem_keypair(&mut public, &mut secret, &mut _rng, Some((&seed[..32], &seed[32..])));
   Ok(Keypair { public, secret })
+}
 
 /// Extracts public key from private key.
 pub fn public(sk: &[u8]) -> PublicKey
