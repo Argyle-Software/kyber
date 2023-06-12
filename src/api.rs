@@ -101,3 +101,14 @@ impl Keypair {
     keypair(rng)
   }
 }
+
+/// Extracts public key from private key.
+pub fn public(sk: &[u8]) -> PublicKey
+{
+  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
+  pk.copy_from_slice(
+    &sk[KYBER_INDCPA_SECRETKEYBYTES
+               ..KYBER_INDCPA_SECRETKEYBYTES+KYBER_INDCPA_PUBLICKEYBYTES]
+  );
+  pk
+}

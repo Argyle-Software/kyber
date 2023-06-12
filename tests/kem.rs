@@ -38,3 +38,11 @@ fn keypair_decap_sk_wrong_size() {
   let sk: [u8; KYBER_SECRETKEYBYTES + 3] = [1u8; KYBER_SECRETKEYBYTES + 3];
   assert!(decapsulate(&ct, &sk).is_err());
 }
+
+#[test]
+fn public_from_private() {
+  let mut rng = rand::thread_rng();
+  let keys = keypair(&mut rng);
+  let pk2 = public(&keys.secret);
+  assert_eq!(pk2, keys.public);
+}
