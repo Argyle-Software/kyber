@@ -5,11 +5,11 @@ fn main() -> Result<(), KyberError> {
 
   let mut alice = Ake::new();
   let mut bob = Ake::new();
-  let alice_keys = keypair(&mut rng);
-  let bob_keys = keypair(&mut rng);
+  let alice_keys = keypair(&mut rng)?;
+  let bob_keys = keypair(&mut rng)?;
 
   // Alice initiates key exchange with bob
-  let client_send = alice.client_init(&bob_keys.public, &mut rng);
+  let client_send = alice.client_init(&bob_keys.public, &mut rng)?;
   
   // Bob receives the request and authenticates Alice, sends 
   // encapsulated shared secret back

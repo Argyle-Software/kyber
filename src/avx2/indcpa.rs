@@ -4,16 +4,7 @@ use crate::{fips202::*, fips202x4::*};
 #[cfg(feature = "90s")] 
 use crate::{aes256ctr::*, cbd::*};
 use crate::rng::randombytes;
-use crate::{
-  align::*,
-  CryptoRng,
-  params::*,
-  poly::*,
-  polyvec::*,
-  rejsample::*,
-  RngCore,
-  symmetric::*,
-};
+use crate::{align::*, CryptoRng, KyberError, params::*, poly::*, polyvec::*, rejsample::*, RngCore, symmetric::*};
 
 // Name:        pack_pk
 //
@@ -461,7 +452,7 @@ pub fn indcpa_keypair<R>(
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
   _rng: &mut R
-)
+) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
 
@@ -473,7 +464,7 @@ pub fn indcpa_keypair<R>(
   if let Some(s) = _seed {
     randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0);
   } else {
-    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng)?;
   }
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
@@ -559,6 +550,7 @@ pub fn indcpa_keypair<R>(
 
   pack_sk(sk, &skpv);
   pack_pk(pk, &pkpv, publicseed);
+  Ok(())
 }
 
 pub fn indcpa_enc(c: &mut[u8], m: &[u8], pk: &[u8], coins: &[u8]) 

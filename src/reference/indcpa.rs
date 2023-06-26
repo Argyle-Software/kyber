@@ -1,12 +1,5 @@
 use crate::rng::randombytes;
-use crate::{
-  poly::*,
-  polyvec::*,
-  symmetric::*,
-  params::*,
-  RngCore,
-  CryptoRng,
-};
+use crate::{poly::*, polyvec::*, symmetric::*, params::*, RngCore, CryptoRng, KyberError};
 
 // Name:        pack_pk
 //
@@ -192,7 +185,7 @@ pub fn indcpa_keypair<R>(
   sk: &mut[u8], 
   _seed: Option<(&[u8], &[u8])>, 
   _rng: &mut R
-)
+) -> Result<(), KyberError>
   where R: CryptoRng + RngCore
 {
   let mut a = [Polyvec::new(); KYBER_K];
@@ -204,7 +197,7 @@ pub fn indcpa_keypair<R>(
   if let Some(s) = _seed {
     randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0);
   } else {
-    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng)?;
   }
   
   hash_g(&mut buf, &randbuf, KYBER_SYMBYTES);
@@ -234,6 +227,7 @@ pub fn indcpa_keypair<R>(
 
   pack_sk(sk, &mut skpv);
   pack_pk(pk, &mut pkpv, publicseed);
+  Ok(())
 }
 
 // Name:        indcpa_enc

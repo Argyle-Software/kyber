@@ -55,7 +55,7 @@ export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 ```rust
 // Generate Keypair
-let keys_bob = keypair(&mut rng);
+let keys_bob = keypair(&mut rng)?;
 
 // Alice encapsulates a shared secret using Bob's public key
 let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
@@ -77,10 +77,10 @@ let mut alice = Uake::new();
 let mut bob = Uake::new();
 
 // Generate Bob's Keypair
-let bob_keys = keypair(&mut rng);
+let bob_keys = keypair(&mut rng)?;
 
 // Alice initiates key exchange
-let client_init = alice.client_init(&bob_keys.public, &mut rng);
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 
 // Bob authenticates and responds
 let server_response = bob.server_receive(
@@ -103,10 +103,10 @@ Follows the same workflow except Bob requires Alice's public keys:
 let mut alice = Ake::new();
 let mut bob = Ake::new();
 
-let alice_keys = keypair(&mut rng);
-let bob_keys = keypair(&mut rng);
+let alice_keys = keypair(&mut rng)?;
+let bob_keys = keypair(&mut rng)?;
 
-let client_init = alice.client_init(&bob_keys.public, &mut rng);
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 
 let server_response = bob.server_receive(
   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
@@ -125,6 +125,8 @@ The KyberError enum has two variants:
 * **InvalidInput** - One or more inputs to a function are incorrectly sized. A possible cause of this is two parties using different security levels while trying to negotiate a key exchange.
 
 * **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
+
+* **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
 
 ---
 

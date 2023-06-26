@@ -499,10 +499,12 @@ pub(crate) fn keccak_squeeze(
       pos = 0
     }
     let mut i = pos;
+    let mut w = i/8;
     while i < r  && i < pos+outlen {
-      out[idx] = (s[i/8] >> 8*(i%8)) as u8;
-      i += 1;
-      idx += 1;
+      store64(&mut out[idx..], s[w]);
+      i += 8;
+      w += 1;
+      idx += 8;
     }
     outlen -= i-pos;
     pos = i;
