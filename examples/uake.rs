@@ -6,10 +6,10 @@ fn main() -> Result<(), KyberError> {
   let mut alice = Uake::new();
   let mut bob = Uake::new();
 
-  let bob_keys = keypair(&mut rng)?;
+  let bob_keys = keypair(&mut rng);
 
   // Alice initiates key exchange with bob
-  let client_send = alice.client_init(&bob_keys.public, &mut rng)?;
+  let client_send = alice.client_init(&bob_keys.public, &mut rng);
   
   // Bob receives the request and authenticates Alice, sends 
   // encapsulated shared secret back
