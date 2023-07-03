@@ -4,7 +4,7 @@ fn main () -> Result<(), KyberError> {
   let mut rng = rand::thread_rng();
 
   // Alice generates a keypair
-  let alice_keys = keypair(&mut rng)?;
+  let alice_keys = keypair(&mut rng);
 
   // Bob encapsulates a shared secret
   let (ciphertext, shared_secret_bob) = encapsulate(&alice_keys.public, &mut rng)?;
