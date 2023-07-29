@@ -25,4 +25,4 @@ jobs:
           override: true
 
       - name: Run Benches
-        run: cargo bench --features "benchmarking ${{ matrix.level }} ${{ matrix.90s }}"
+        run: cargo bench --features "benchmarking ${{ matrix.level }} ${{ matrix.nineties }}"
