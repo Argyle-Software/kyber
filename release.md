@@ -12,7 +12,7 @@
 
 3. Bump version in **Cargo.toml**
 
-4. Bump version in deps.rs badge and features section of **readme.md**
+4. Bump version in deps.rs badge and features section of `readme.md` along with `pkg/package.json`
 
 5. Update **changelog.md**
 

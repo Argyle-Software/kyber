@@ -2,7 +2,7 @@
 
 use crate::symmetric::KeccakState;
 
-pub(crate) const SHAKE128_RATE: usize = 168;
+pub const SHAKE128_RATE: usize = 168;
 const SHAKE256_RATE: usize = 136;
 const SHA3_256_RATE: usize = 136;
 const SHA3_512_RATE: usize =  72;
@@ -334,7 +334,7 @@ pub fn keccakf1600_statepermute(state: &mut[u64])
 //              - u64 nblocks:        number of blocks to be squeezed (written to h)
 //              - u64 *s:             in/output Keccak state
 //              - usize r:            rate in bytes (e.g., 168 for SHAKE128)
-pub(crate) fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: usize, s: &mut [u64], r: usize)
+pub fn keccak_squeezeblocks(h: &mut[u8], mut nblocks: usize, s: &mut [u64], r: usize)
 {
   let mut idx = 0usize;
   while nblocks > 0 {
@@ -370,7 +370,7 @@ pub(crate) fn shake128_squeezeblocks(out: &mut[u8], nblocks: usize, state: &mut 
 //              - usize outlen:  requested output length in bytes
 //              - [u8] input: input
 //              - usize inlen:   length of input in bytes
-pub(crate) fn shake256(out: &mut[u8], mut outlen: usize, input: &[u8], inlen: usize)
+pub fn shake256(out: &mut[u8], mut outlen: usize, input: &[u8], inlen: usize)
 {
   let mut state = KeccakState::new();
   let mut idx = 0;
@@ -389,7 +389,7 @@ pub(crate) fn shake256(out: &mut[u8], mut outlen: usize, input: &[u8], inlen: us
 // Arguments:   - [u8] h:      output (32 bytes)
 //              - const [u8] input: input
 //              - usize inlen:   length of input in bytes
-pub(crate) fn sha3_256(h: &mut[u8], input: &[u8], inlen: usize)
+pub fn sha3_256(h: &mut[u8], input: &[u8], inlen: usize)
 {
   let mut s = [0u64; 25]; 
   keccak_absorb_once(&mut s, SHA3_256_RATE, input, inlen, 0x06);
@@ -406,7 +406,7 @@ pub(crate) fn sha3_256(h: &mut[u8], input: &[u8], inlen: usize)
 // Arguments:   - [u8] h:      output (64 bytes)
 //              - const [u8] input: input
 //              - usize inlen:   length of input in bytes
-pub(crate) fn sha3_512(h: &mut[u8], input: &[u8], inlen: usize)
+pub fn sha3_512(h: &mut[u8], input: &[u8], inlen: usize)
 {
   let mut s = [0u64; 25]; 
   keccak_absorb_once(&mut s, SHA3_512_RATE, input, inlen, 0x06);
@@ -442,18 +442,15 @@ fn keccak_finalize(s: &mut[u64], pos: usize, r: usize, p: u8)
 //              - const [u8] input:  input to be absorbed into s
 //              - u64 mlen: length of input in bytes
 //              - [u8]  p:         domain-separation byte for different Keccak-derived functions
-pub(crate) fn keccak_absorb_once(
+pub fn keccak_absorb_once(
   s: &mut[u64], 
   r: usize, 
   input: &[u8], 
-  mut inlen: 
-  usize, 
+  mut inlen: usize, 
   p: u8)
 {
   // Zero State
-  for i in s.iter_mut() {
-    *i = 0;
-  }
+  s.fill(0);
 
   let mut idx = 0usize;
   while inlen >= r {
@@ -484,7 +481,7 @@ pub(crate) fn keccak_absorb_once(
 //                usize pos: number of bytes in current block already squeezed
 //              - usize r:            rate in bytes (e.g., 168 for SHAKE128)
 // Returns new position pos in current block
-pub(crate) fn keccak_squeeze(
+pub fn keccak_squeeze(
   out: &mut[u8], 
   mut outlen: usize, 
   s: &mut [u64], 
