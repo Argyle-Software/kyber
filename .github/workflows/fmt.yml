@@ -1,0 +1,22 @@
+name: Check cargo fmt
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  format-check:
+    name: Enforce formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
