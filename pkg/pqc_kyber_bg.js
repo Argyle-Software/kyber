@@ -40,6 +40,7 @@ function getUint8Memory0() {
 }
 
 function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
@@ -140,14 +141,14 @@ function passStringToWasm0(arg, malloc, realloc) {
 
     if (realloc === undefined) {
         const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
+        const ptr = malloc(buf.length, 1) >>> 0;
         getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
         WASM_VECTOR_LEN = buf.length;
         return ptr;
     }
 
     let len = arg.length;
-    let ptr = malloc(len);
+    let ptr = malloc(len, 1) >>> 0;
 
     const mem = getUint8Memory0();
 
@@ -163,7 +164,7 @@ function passStringToWasm0(arg, malloc, realloc) {
         if (offset !== 0) {
             arg = arg.slice(offset);
         }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
+        ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
         const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
         const ret = encodeString(arg, view);
 
@@ -186,12 +187,23 @@ function getInt32Memory0() {
 * @returns {Keys}
 */
 export function keypair() {
-    const ret = wasm.keypair();
-    return Keys.__wrap(ret);
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.keypair(retptr);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return Keys.__wrap(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
 }
 
 function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1);
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
     getUint8Memory0().set(arg, ptr / 1);
     WASM_VECTOR_LEN = arg.length;
     return ptr;
@@ -219,6 +231,7 @@ export function encapsulate(pk) {
 }
 
 function getArrayU8FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 /**
@@ -241,9 +254,9 @@ export function decapsulate(ct, sk) {
         if (r3) {
             throw takeObject(r2);
         }
-        var v2 = getArrayU8FromWasm0(r0, r1).slice();
+        var v3 = getArrayU8FromWasm0(r0, r1).slice();
         wasm.__wbindgen_free(r0, r1 * 1);
-        return v2;
+        return v3;
     } finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
@@ -261,15 +274,16 @@ function handleError(f, args) {
 export class Kex {
 
     static __wrap(ptr) {
+        ptr = ptr >>> 0;
         const obj = Object.create(Kex.prototype);
-        obj.ptr = ptr;
+        obj.__wbg_ptr = ptr;
 
         return obj;
     }
 
     __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
 
         return ptr;
     }
@@ -293,12 +307,12 @@ export class Kex {
     get ciphertext() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.kex_ciphertext(retptr, this.ptr);
+            wasm.kex_ciphertext(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
+            return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -309,12 +323,12 @@ export class Kex {
     get sharedSecret() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.kex_sharedSecret(retptr, this.ptr);
+            wasm.kex_sharedSecret(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
+            return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -325,7 +339,7 @@ export class Kex {
     set ciphertext(ciphertext) {
         const ptr0 = passArray8ToWasm0(ciphertext, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.kex_set_ciphertext(this.ptr, ptr0, len0);
+        wasm.kex_set_ciphertext(this.__wbg_ptr, ptr0, len0);
     }
     /**
     * @param {Uint8Array} sharedSecret
@@ -333,7 +347,7 @@ export class Kex {
     set sharedSecret(sharedSecret) {
         const ptr0 = passArray8ToWasm0(sharedSecret, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
-        wasm.kex_set_sharedSecret(this.ptr, ptr0, len0);
+        wasm.kex_set_sharedSecret(this.__wbg_ptr, ptr0, len0);
     }
 }
 /**
@@ -341,15 +355,16 @@ export class Kex {
 export class Keys {
 
     static __wrap(ptr) {
+        ptr = ptr >>> 0;
         const obj = Object.create(Keys.prototype);
-        obj.ptr = ptr;
+        obj.__wbg_ptr = ptr;
 
         return obj;
     }
 
     __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
 
         return ptr;
     }
@@ -361,8 +376,19 @@ export class Keys {
     /**
     */
     constructor() {
-        const ret = wasm.keypair();
-        return Keys.__wrap(ret);
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.keypair(retptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var r2 = getInt32Memory0()[retptr / 4 + 2];
+            if (r2) {
+                throw takeObject(r1);
+            }
+            return Keys.__wrap(r0);
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
     /**
     * @returns {Uint8Array}
@@ -370,12 +396,12 @@ export class Keys {
     get pubkey() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.kex_ciphertext(retptr, this.ptr);
+            wasm.kex_ciphertext(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
+            return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -386,12 +412,12 @@ export class Keys {
     get secret() {
         try {
             const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-            wasm.kex_sharedSecret(retptr, this.ptr);
+            wasm.kex_sharedSecret(retptr, this.__wbg_ptr);
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
-            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1);
-            return v0;
+            return v1;
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
@@ -402,8 +428,8 @@ export class Keys {
 export class Params {
 
     __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
 
         return ptr;
     }
@@ -416,28 +442,28 @@ export class Params {
     * @returns {number}
     */
     get publicKeyBytes() {
-        const ret = wasm.__wbg_get_params_publicKeyBytes(this.ptr);
+        const ret = wasm.__wbg_get_params_publicKeyBytes(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
     * @returns {number}
     */
     get secretKeyBytes() {
-        const ret = wasm.__wbg_get_params_secretKeyBytes(this.ptr);
+        const ret = wasm.__wbg_get_params_secretKeyBytes(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
     * @returns {number}
     */
     get ciphertextBytes() {
-        const ret = wasm.__wbg_get_params_ciphertextBytes(this.ptr);
+        const ret = wasm.__wbg_get_params_ciphertextBytes(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
     * @returns {number}
     */
     get sharedSecretBytes() {
-        const ret = wasm.__wbg_get_params_sharedSecretBytes(this.ptr);
+        const ret = wasm.__wbg_get_params_sharedSecretBytes(this.__wbg_ptr);
         return ret >>> 0;
     }
     /**
@@ -474,7 +500,12 @@ export function __wbindgen_object_drop_ref(arg0) {
     takeObject(arg0);
 };
 
-export function __wbg_crypto_70a96de3b6b73dac(arg0) {
+export function __wbindgen_error_new(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
+};
+
+export function __wbg_crypto_c48a774b022d20ac(arg0) {
     const ret = getObject(arg0).crypto;
     return addHeapObject(ret);
 };
@@ -485,17 +516,17 @@ export function __wbindgen_is_object(arg0) {
     return ret;
 };
 
-export function __wbg_process_dd1577445152112e(arg0) {
+export function __wbg_process_298734cf255a885d(arg0) {
     const ret = getObject(arg0).process;
     return addHeapObject(ret);
 };
 
-export function __wbg_versions_58036bec3add9e6f(arg0) {
+export function __wbg_versions_e2e78e134e3e5d01(arg0) {
     const ret = getObject(arg0).versions;
     return addHeapObject(ret);
 };
 
-export function __wbg_node_6a9d28205ed5b0d8(arg0) {
+export function __wbg_node_1cd7a5d853dbea79(arg0) {
     const ret = getObject(arg0).node;
     return addHeapObject(ret);
 };
@@ -505,12 +536,12 @@ export function __wbindgen_is_string(arg0) {
     return ret;
 };
 
-export function __wbg_msCrypto_adbc770ec9eca9c7(arg0) {
+export function __wbg_msCrypto_bcb970640f50a1e8(arg0) {
     const ret = getObject(arg0).msCrypto;
     return addHeapObject(ret);
 };
 
-export function __wbg_require_f05d779769764e82() { return handleError(function () {
+export function __wbg_require_8f08ceecec0f4fee() { return handleError(function () {
     const ret = module.require;
     return addHeapObject(ret);
 }, arguments) };
@@ -525,11 +556,11 @@ export function __wbindgen_string_new(arg0, arg1) {
     return addHeapObject(ret);
 };
 
-export function __wbg_getRandomValues_3774744e221a22ad() { return handleError(function (arg0, arg1) {
+export function __wbg_getRandomValues_37fa2ca9e4e07fab() { return handleError(function (arg0, arg1) {
     getObject(arg0).getRandomValues(getObject(arg1));
 }, arguments) };
 
-export function __wbg_randomFillSync_e950366c42764a07() { return handleError(function (arg0, arg1) {
+export function __wbg_randomFillSync_dc1e9a60c158336d() { return handleError(function (arg0, arg1) {
     getObject(arg0).randomFillSync(takeObject(arg1));
 }, arguments) };
 
@@ -609,10 +640,10 @@ export function __wbg_subarray_7526649b91a252a6(arg0, arg1, arg2) {
 
 export function __wbindgen_debug_string(arg0, arg1) {
     const ret = debugString(getObject(arg1));
-    const ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len0;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr0;
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
 };
 
 export function __wbindgen_throw(arg0, arg1) {

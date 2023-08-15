@@ -1,4 +1,11 @@
 ## 0.6.0 - 2023-4-18
+ - Handle RNG failure on embedded platforms
+ - Deterministic keypair derivation
+ - Public to private key conversion
+ - Implicit rejection used in decapsulation
+ - Bump dependencies
+ 
+## 0.6.0 - 2023-4-18
 
 ### Security
 - Rejection sampling (thanks Bas Westerbaan @Cloudflare)
