@@ -321,8 +321,8 @@ fn uake_shared_b<R>(
   where R: CryptoRng + RngCore
 {
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
-  crypto_kem_enc(send, &mut buf, recv, rng, None)?;
-  crypto_kem_dec(&mut buf[KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb)?;
+  crypto_kem_enc(send, &mut buf, recv, rng, None);
+  crypto_kem_dec(&mut buf[KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb);
   kdf(k, &buf, 2*KYBER_SYMBYTES);
   Ok(())
 }
@@ -369,9 +369,9 @@ fn ake_shared_b<R>(
   where R: CryptoRng + RngCore
 {
   let mut buf = [0u8; 3*KYBER_SYMBYTES];
-  crypto_kem_enc(send, &mut buf, recv, rng, None)?;
-  crypto_kem_enc(&mut send[KYBER_CIPHERTEXTBYTES..], &mut buf[KYBER_SYMBYTES..], pka, rng, None)?;
-  crypto_kem_dec(&mut buf[2*KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb)?;
+  crypto_kem_enc(send, &mut buf, recv, rng, None);
+  crypto_kem_enc(&mut send[KYBER_CIPHERTEXTBYTES..], &mut buf[KYBER_SYMBYTES..], pka, rng, None);
+  crypto_kem_dec(&mut buf[2*KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb);
   kdf(k, &buf, 3*KYBER_SYMBYTES);
   Ok(())
 }
