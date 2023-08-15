@@ -93,7 +93,7 @@ pub fn crypto_kem_enc<R>(
 pub fn crypto_kem_dec(
   ss: &mut[u8], ct: &[u8], sk: &[u8]
 ) 
--> Result<(), KyberError> 
+-> ()
 {
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
@@ -120,9 +120,4 @@ pub fn crypto_kem_dec(
   cmov(&mut kr, &sk[END..], KYBER_SYMBYTES, fail);
   // hash concatenation of pre-k and H(c) to k 
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
-
-  match fail {
-    0 => Ok(()),
-    _ => Err(KyberError::Decapsulation)
-  }
 }

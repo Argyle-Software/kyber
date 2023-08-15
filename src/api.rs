@@ -69,10 +69,8 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated
     return Err(KyberError::InvalidInput)
   }
   let mut ss = [0u8; KYBER_SSBYTES];
-  match crypto_kem_dec(&mut ss, ct, sk) {
-    Ok(_) => Ok(ss),
-    Err(e) => Err(e)
-  }
+  crypto_kem_dec(&mut ss, ct, sk);
+  Ok(ss)
 }
 
 /// A public/secret keypair for use with Kyber. 

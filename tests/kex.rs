@@ -24,7 +24,8 @@ fn uake_invalid_client_init_ciphertext() {
   let bob_keys = keypair(&mut rng).unwrap();
   let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   client_init[KYBER_PUBLICKEYBYTES..][..4].copy_from_slice(&[255u8;4]);
-  assert!(bob.server_receive(client_init, &bob_keys.secret, &mut rng).is_err());
+  assert!(!bob.server_receive(client_init, &bob_keys.secret, &mut rng).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 // Corrupted public key sent to bob, detected by Alice
@@ -37,7 +38,8 @@ fn uake_invalid_client_init_publickey() {
   let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   client_init[..4].copy_from_slice(&[255u8;4]);
   let server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng).unwrap();
-  assert!(alice.client_confirm(server_send).is_err());
+  assert!(!alice.client_confirm(server_send).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 // Corrupted ciphertext sent back to Alice
@@ -50,7 +52,8 @@ fn uake_invalid_server_send_ciphertext() {
   let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   let mut server_send = bob.server_receive(client_init, &bob_keys.secret, &mut rng).unwrap();
   server_send[..4].copy_from_slice(&[255u8;4]);
-  assert!(alice.client_confirm(server_send).is_err());
+  assert!(!alice.client_confirm(server_send).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 // Same tests for AKE
@@ -77,7 +80,8 @@ fn ake_invalid_client_init_ciphertext() {
   let bob_keys = keypair(&mut rng).unwrap();
   let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   client_init[KYBER_PUBLICKEYBYTES..][..4].copy_from_slice(&[255u8;4]);
-  assert!(bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng).is_err());
+  assert!(!bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 #[test]
@@ -90,7 +94,8 @@ fn ake_invalid_client_init_publickey() {
   let mut client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   client_init[..4].copy_from_slice(&[255u8;4]);
   let server_send = bob.server_receive(client_init, &alice_keys.public,  &bob_keys.secret, &mut rng).unwrap();
-  assert!(alice.client_confirm(server_send, &alice_keys.secret).is_err());
+  assert!(!alice.client_confirm(server_send, &alice_keys.secret).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 #[test]
@@ -103,7 +108,8 @@ fn ake_invalid_server_send_first_ciphertext() {
   let client_init = alice.client_init(&bob_keys.public, &mut rng).unwrap();
   let mut server_send = bob.server_receive(client_init, &alice_keys.public, &bob_keys.secret, &mut rng).unwrap();
   server_send[..4].copy_from_slice(&[255u8;4]);
-  assert!(alice.client_confirm(server_send, &alice_keys.secret).is_err());
+  assert!(!alice.client_confirm(server_send, &alice_keys.secret).is_err());
+  assert_ne!(alice.shared_secret, bob.shared_secret);
 }
 
 #[test]
