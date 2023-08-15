@@ -10,7 +10,7 @@
 [![Crates](https://img.shields.io/crates/v/pqc-kyber)](https://crates.io/crates/pqc-kyber)
 [![NPM](https://img.shields.io/npm/v/pqc-kyber?color=yellow)](https://www.npmjs.com/package/pqc-kyber)
 [![License](https://img.shields.io/crates/l/pqc_kyber)](https://github.com/Argyle-Software/kyber/blob/master/LICENSE-MIT)
-[![dependency status](https://deps.rs/crate/pqc_kyber/0.4.0/status.svg)](https://deps.rs/crate/pqc_kyber/0.5.0)
+[![dependency status](https://deps.rs/crate/pqc_kyber/0.6.0/status.svg)](https://deps.rs/crate/pqc_kyber/0.6.0)
 
 A rust implementation of the Kyber algorithm, a KEM standardised by the NIST Post-Quantum Standardization Project.
 
@@ -55,7 +55,7 @@ export RUSTFLAGS="-C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt"
 
 ```rust
 // Generate Keypair
-let keys_bob = keypair(&mut rng);
+let keys_bob = keypair(&mut rng)?;
 
 // Alice encapsulates a shared secret using Bob's public key
 let (ciphertext, shared_secret_alice) = encapsulate(&keys_bob.public, &mut rng)?;
@@ -77,10 +77,10 @@ let mut alice = Uake::new();
 let mut bob = Uake::new();
 
 // Generate Bob's Keypair
-let bob_keys = keypair(&mut rng);
+let bob_keys = keypair(&mut rng)?;
 
 // Alice initiates key exchange
-let client_init = alice.client_init(&bob_keys.public, &mut rng);
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 
 // Bob authenticates and responds
 let server_response = bob.server_receive(
@@ -103,10 +103,10 @@ Follows the same workflow except Bob requires Alice's public keys:
 let mut alice = Ake::new();
 let mut bob = Ake::new();
 
-let alice_keys = keypair(&mut rng);
-let bob_keys = keypair(&mut rng);
+let alice_keys = keypair(&mut rng)?;
+let bob_keys = keypair(&mut rng)?;
 
-let client_init = alice.client_init(&bob_keys.public, &mut rng);
+let client_init = alice.client_init(&bob_keys.public, &mut rng)?;
 
 let server_response = bob.server_receive(
   client_init, &alice_keys.public, &bob_keys.secret, &mut rng
@@ -126,6 +126,8 @@ The KyberError enum has two variants:
 
 * **Decapsulation** - The ciphertext was unable to be authenticated. The shared secret was not decapsulated.
 
+* **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
+
 ---
 
 ## Features
@@ -134,7 +136,7 @@ If no security level is specified then kyber768 is used by default as recommende
 
 ```toml
 [dependencies]
-pqc_kyber = {version = "0.5.0", features = ["kyber512", "90s", "avx2"]}
+pqc_kyber = {version = "0.6.0", features = ["kyber512", "90s", "avx2"]}
 ```
 
 

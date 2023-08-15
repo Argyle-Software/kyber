@@ -1,0 +1,28 @@
+name: Benchmarking
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ master ] 
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        level: [kyber512, "", kyber1024]
+        nineties: [90s, ""]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Stable Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Run Benches
+        run: cargo bench --features "benchmarking ${{ matrix.level }} ${{ matrix.nineties }}"

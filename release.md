@@ -12,7 +12,7 @@
 
 3. Bump version in **Cargo.toml**
 
-4. Bump version in deps.rs badge and features section of **readme.md**
+4. Bump version in deps.rs badge and features section of `readme.md` along with `pkg/package.json`
 
 5. Update **changelog.md**
 
@@ -24,7 +24,7 @@
     * name - Replace `pqc_kyber` with `pqc-kyber`
     * description - Revert line to replace with old description
 
-9. `git commit -m "v0.0.0"`
+9. `git commit -m "release v0.0.0"`
 
 10. `git tag v0.0.0`
 

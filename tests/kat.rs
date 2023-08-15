@@ -18,7 +18,7 @@ fn keypairs() {
     let bufs = Some((&buf1[..], &buf2[..]));
     let mut pk = [0u8; KYBER_PUBLICKEYBYTES];
     let mut sk = [0u8; KYBER_SECRETKEYBYTES];
-    crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs);
+    crypto_kem_keypair(&mut pk, &mut sk, &mut _rng, bufs).unwrap();
     assert_eq!(&pk[..], &known_pk[..], "Public key KAT mismatch");
     assert_eq!(&sk[..], &known_sk[..], "Secret key KAT mismatch");
   }
@@ -36,7 +36,7 @@ fn encaps() {
     let encap_buf = Some(&buf1[..]);
     let mut ct = [0u8; KYBER_CIPHERTEXTBYTES];
     let mut ss = [0u8; KYBER_SSBYTES];
-    crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf);
+    crypto_kem_enc(&mut ct, &mut ss, &pk, &mut _rng, encap_buf).unwrap();
     assert_eq!(&ss[..], &known_ss[..], "Shared secret KAT mismatch");
   }
 }

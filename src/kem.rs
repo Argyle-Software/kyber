@@ -16,14 +16,14 @@ use crate::{
 //              - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair<R>(
   pk: &mut[u8], sk: &mut[u8], _rng: &mut R, _seed: Option<(&[u8], &[u8])> 
-)
+) -> Result<(), KyberError>
   where R: RngCore + CryptoRng
 { 
   const PK_START: usize = KYBER_SECRETKEYBYTES - (2 * KYBER_SYMBYTES);
   const SK_START: usize = KYBER_SECRETKEYBYTES-KYBER_SYMBYTES;
   const END: usize = KYBER_INDCPA_PUBLICKEYBYTES + KYBER_INDCPA_SECRETKEYBYTES;
   
-  indcpa_keypair(pk, sk, _seed, _rng);
+  indcpa_keypair(pk, sk, _seed, _rng)?;
 
   sk[KYBER_INDCPA_SECRETKEYBYTES..END]
     .copy_from_slice(&pk[..KYBER_INDCPA_PUBLICKEYBYTES]);
@@ -32,8 +32,9 @@ pub fn crypto_kem_keypair<R>(
   if let Some(s) = _seed {
     sk[SK_START..].copy_from_slice(&s.1)
   } else {
-    randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng);
+    randombytes(&mut sk[SK_START..],KYBER_SYMBYTES, _rng)?;
   }
+  Ok(())
 }
 
 // Name:        crypto_kem_enc
@@ -46,7 +47,7 @@ pub fn crypto_kem_keypair<R>(
 //              - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc<R>(
   ct: &mut[u8], ss: &mut[u8], pk: &[u8], _rng: &mut R,_seed: Option<&[u8]>
-)
+) -> Result<(), KyberError>
   where R: RngCore + CryptoRng
 {
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
@@ -57,7 +58,7 @@ pub fn crypto_kem_enc<R>(
   if let Some(s) = _seed {
     randbuf[..KYBER_SYMBYTES].copy_from_slice(&s);
   } else {
-    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng);
+    randombytes(&mut randbuf, KYBER_SYMBYTES, _rng)?;
   }
 
   // Don't release system RNG output 
@@ -75,6 +76,7 @@ pub fn crypto_kem_enc<R>(
 
   // hash concatenation of pre-k and H(c) to k
   kdf(ss, &kr, 2*KYBER_SYMBYTES);
+  Ok(())
 }
 
 // Name:        crypto_kem_dec
@@ -95,9 +97,10 @@ pub fn crypto_kem_dec(
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
   let mut kr = [0u8; 2*KYBER_SYMBYTES];
   let mut cmp = [0u8; KYBER_CIPHERTEXTBYTES];
-  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES + 2*KYBER_SYMBYTES];
+  let mut pk = [0u8; KYBER_INDCPA_PUBLICKEYBYTES];
 
-  pk.copy_from_slice(&sk[KYBER_INDCPA_SECRETKEYBYTES..]);
+  pk.copy_from_slice(
+    &sk[KYBER_INDCPA_SECRETKEYBYTES..][..KYBER_INDCPA_PUBLICKEYBYTES]);
   
   indcpa_dec(&mut buf, ct, sk);
 
