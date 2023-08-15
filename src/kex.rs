@@ -19,7 +19,7 @@ pub const AKE_RESPONSE_BYTES: usize = 2 * KYBER_CIPHERTEXTBYTES;
 
 /// Result of encapsulating a public key which includes the ciphertext and shared secret
 pub type Encapsulated =  Result<([u8; KYBER_CIPHERTEXTBYTES], [u8; KYBER_SSBYTES]), KyberError>;
-/// The result of  decapsulating a ciphertext which produces a shared secret when confirmed
+/// Decapsulated ciphertext
 pub type Decapsulated = Result<[u8; KYBER_SSBYTES], KyberError>;
 /// Kyber public key
 pub type PublicKey = [u8; KYBER_PUBLICKEYBYTES];
@@ -294,7 +294,6 @@ impl Ake {
   }
 }
 
-
 // Unilaterally Authenticated Key Exchange initiation
 fn uake_init_a<R>(
   send: &mut[u8], 
@@ -321,7 +320,7 @@ fn uake_shared_b<R>(
   where R: CryptoRng + RngCore
 {
   let mut buf = [0u8; 2*KYBER_SYMBYTES];
-  crypto_kem_enc(send, &mut buf, recv, rng, None);
+  crypto_kem_enc(send, &mut buf, recv, rng, None)?;
   crypto_kem_dec(&mut buf[KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb);
   kdf(k, &buf, 2*KYBER_SYMBYTES);
   Ok(())
@@ -369,8 +368,8 @@ fn ake_shared_b<R>(
   where R: CryptoRng + RngCore
 {
   let mut buf = [0u8; 3*KYBER_SYMBYTES];
-  crypto_kem_enc(send, &mut buf, recv, rng, None);
-  crypto_kem_enc(&mut send[KYBER_CIPHERTEXTBYTES..], &mut buf[KYBER_SYMBYTES..], pka, rng, None);
+  crypto_kem_enc(send, &mut buf, recv, rng, None)?;
+  crypto_kem_enc(&mut send[KYBER_CIPHERTEXTBYTES..], &mut buf[KYBER_SYMBYTES..], pka, rng, None)?;
   crypto_kem_dec(&mut buf[2*KYBER_SYMBYTES..], &recv[KYBER_PUBLICKEYBYTES..], skb);
   kdf(k, &buf, 3*KYBER_SYMBYTES);
   Ok(())
