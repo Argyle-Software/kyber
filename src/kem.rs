@@ -4,6 +4,7 @@ use crate::{
   params::*,
   indcpa::*,
   symmetric::*,
+  error::KyberError,
   verify::*
 };
 
