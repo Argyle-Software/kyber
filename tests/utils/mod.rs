@@ -21,7 +21,9 @@ impl RngCore for FailingRng {
     fn fill_bytes(&mut self, _: &mut [u8]) {}
 
     fn try_fill_bytes(&mut self, _: &mut [u8]) -> Result<(), Error> {
-        Err(Error::new("Error filling bytes with random numbers generated from an external True RNG device"))
+        Err(Error::new(
+            "Error filling bytes with random numbers generated from an external True RNG device",
+        ))
     }
 }
 
