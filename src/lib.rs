@@ -154,7 +154,9 @@ mod symmetric;
 pub use api::*;
 pub use error::KyberError;
 pub use kex::*;
-pub use params::{KYBER_PUBLICKEYBYTES, KYBER_SECRETKEYBYTES, KYBER_SSBYTES, KYBER_CIPHERTEXTBYTES, KYBER_90S};
+pub use params::{
+    KYBER_90S, KYBER_CIPHERTEXTBYTES, KYBER_PUBLICKEYBYTES, KYBER_SECRETKEYBYTES, KYBER_SSBYTES,
+};
 pub use rand_core::{CryptoRng, RngCore};
 
 // Feature hack to expose private functions for the Known Answer Tests
