@@ -7,22 +7,6 @@ use crate::poly::NOISE_NBLOCKS;
 use crate::symmetric::*;
 use core::arch::x86_64::*;
 
-// Buffer unions
-// #[derive(Copy, Clone)]
-// #[repr(C, align(8))]
-// pub(crate) union Align8<const N: usize, const V: usize> {
-//   pub coeffs: [u8; N],
-//   pub vec: [__m256i; V]
-// }
-
-// impl<const N: usize, const V: usize> Align8 <N, V>{
-//   pub fn new() -> Self {
-//     Self {
-//       coeffs: [0u8; N]
-//     }
-//   }
-// }
-
 #[derive(Copy, Clone)]
 #[repr(C, align(32))]
 pub union GenMatrixBuf {

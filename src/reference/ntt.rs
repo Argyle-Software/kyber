@@ -47,24 +47,24 @@ pub const ZETAS: [i16; 128] = [
     -1530, -1278, 794, -1510, -854, -870, 478, -108, -308, 996, 991, 958, -1460, 1522, 1628,
 ];
 
-// Name:        fqmul
-//
-// Description: Multiplication followed by Montgomery reduction
-//
-// Arguments:   - i16 a: first factor
-//              - i16 b: second factor
-//
-// Returns 16-bit integer congruent to a*b*R^{-1} mod q
+/// Name:  fqmul
+///
+/// Description: Multiplication followed by Montgomery reduction
+///
+/// Arguments:   - i16 a: first factor
+///  - i16 b: second factor
+///
+/// Returns 16-bit integer congruent to a*b*R^{-1} mod q
 pub fn fqmul(a: i16, b: i16) -> i16 {
     montgomery_reduce(a as i32 * b as i32)
 }
 
-// Name:        ntt
-//
-// Description: Inplace number-theoretic transform (NTT) in Rq
-//              input is in standard order, output is in bitreversed order
-//
-// Arguments:   - i16 r[256]: input/output vector of elements of Zq
+/// Name:  ntt
+///
+/// Description: Inplace number-theoretic transform (NTT) in Rq
+///  input is in standard order, output is in bitreversed order
+///
+/// Arguments:   - i16 r[256]: input/output vector of elements of Zq
 pub fn ntt(r: &mut [i16]) {
     let mut j;
     let mut k = 1usize;
@@ -89,12 +89,12 @@ pub fn ntt(r: &mut [i16]) {
     }
 }
 
-// Name:        invntt
-//
-// Description: Inplace inverse number-theoretic transform in Rq
-//              input is in bitreversed order, output is in standard order
-//
-// Arguments:   - i16 r[256]: input/output vector of elements of Zq
+/// Name:  invntt
+///
+/// Description: Inplace inverse number-theoretic transform in Rq
+///  input is in bitreversed order, output is in standard order
+///
+/// Arguments:   - i16 r[256]: input/output vector of elements of Zq
 pub fn invntt(r: &mut [i16]) {
     let mut j;
     let mut k = 127usize;
@@ -123,15 +123,15 @@ pub fn invntt(r: &mut [i16]) {
     }
 }
 
-// Name:        basemul
-//
-// Description: Multiplication of polynomials in Zq[X]/((X^2-zeta))
-//              used for multiplication of elements in Rq in NTT domain
-//
-// Arguments:   - i16 r[2]: the output polynomial
-//              - const i16 a[2]: the first factor
-//              - const i16 b[2]: the second factor
-//              - i16 zeta: integer defining the reduction polynomial
+/// Name:  basemul
+///
+/// Description: Multiplication of polynomials in Zq[X]/((X^2-zeta))
+///  used for multiplication of elements in Rq in NTT domain
+///
+/// Arguments:   - i16 r[2]: the output polynomial
+///  - const i16 a[2]: the first factor
+///  - const i16 b[2]: the second factor
+///  - i16 zeta: integer defining the reduction polynomial
 pub fn basemul(r: &mut [i16], a: &[i16], b: &[i16], zeta: i16) {
     r[0] = fqmul(a[1], b[1]);
     r[0] = fqmul(r[0], zeta);

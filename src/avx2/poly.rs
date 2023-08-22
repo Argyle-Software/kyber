@@ -73,6 +73,7 @@ pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
         _mm256_storeu_si256(r[32 * i..].as_mut_ptr() as *mut __m256i, f0);
     }
 }
+
 #[cfg(any(feature = "kyber512", not(feature = "kyber1024")))]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) {
     let (mut t, mut f);

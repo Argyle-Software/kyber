@@ -2,7 +2,6 @@ use crate::params::KYBER_Q;
 use core::arch::x86_64::*;
 
 pub(crate) const Q: i16 = KYBER_Q as i16;
-// pub(crate) const MONT: i16 = -1044;       // 2^16 mod q
 pub(crate) const QINV: i16 = -3327; // q^-1 mod 2^16
 pub(crate) const V: i16 = 20159; // floor(2^26/q + 0.5)
 pub(crate) const FHI: i16 = 1441; // mont^2/128
