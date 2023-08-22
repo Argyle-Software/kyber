@@ -257,7 +257,7 @@ pub fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
 
     polyvec_ntt(&mut sp);
 
-    /// matrix-vector multiplication
+    // matrix-vector multiplication
     for i in 0..KYBER_K {
         polyvec_basemul_acc_montgomery(&mut b.vec[i], &at[i], &sp);
     }

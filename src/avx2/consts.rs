@@ -1,28 +1,28 @@
 use crate::params::KYBER_Q;
 use core::arch::x86_64::*;
 
-pub(crate) const Q: i16 = KYBER_Q as i16;
-pub(crate) const QINV: i16 = -3327; // q^-1 mod 2^16
-pub(crate) const V: i16 = 20159; // floor(2^26/q + 0.5)
-pub(crate) const FHI: i16 = 1441; // mont^2/128
-pub(crate) const FLO: i16 = -10079; // qinv*FHI
-pub(crate) const MONTSQHI: i16 = 1353; // mont^2
-pub(crate) const MONTSQLO: i16 = 20553; // qinv*MONTSQHI
-pub(crate) const MASK: i16 = 4095;
-pub(crate) const SHIFT: i16 = 32;
+pub const Q: i16 = KYBER_Q as i16;
+pub const QINV: i16 = -3327; // q^-1 mod 2^16
+pub const V: i16 = 20159; // floor(2^26/q + 0.5)
+pub const FHI: i16 = 1441; // mont^2/128
+pub const FLO: i16 = -10079; // qinv*FHI
+pub const MONTSQHI: i16 = 1353; // mont^2
+pub const MONTSQLO: i16 = 20553; // qinv*MONTSQHI
+pub const MASK: i16 = 4095;
+pub const SHIFT: i16 = 32;
 
-pub(crate) const _16XQ: usize = 0;
-pub(crate) const _16XQINV: usize = 16;
-pub(crate) const _16XV: usize = 32;
-pub(crate) const _16XFLO: usize = 48;
-pub(crate) const _16XFHI: usize = 64;
-pub(crate) const _16XMONTSQLO: usize = 80;
-pub(crate) const _16XMONTSQHI: usize = 96;
-pub(crate) const _16XMASK: usize = 112;
-pub(crate) const _REVIDXB: usize = 128;
-pub(crate) const _REVIDXD: usize = 144;
-pub(crate) const _ZETAS_EXP: usize = 160;
-pub(crate) const _16XSHIFT: usize = 624;
+pub const _16XQ: usize = 0;
+pub const _16XQINV: usize = 16;
+pub const _16XV: usize = 32;
+pub const _16XFLO: usize = 48;
+pub const _16XFHI: usize = 64;
+pub const _16XMONTSQLO: usize = 80;
+pub const _16XMONTSQHI: usize = 96;
+pub const _16XMASK: usize = 112;
+pub const _REVIDXB: usize = 128;
+pub const _REVIDXD: usize = 144;
+pub const _ZETAS_EXP: usize = 160;
+pub const _16XSHIFT: usize = 624;
 
 #[repr(C, align(32))]
 pub union Qdata {

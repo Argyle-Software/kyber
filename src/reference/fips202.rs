@@ -431,7 +431,7 @@ fn keccak_finalize(s: &mut [u64], pos: usize, r: usize, p: u8) {
 ///  - u64 mlen: length of input in bytes
 ///  - [u8]  p:   domain-separation byte for different Keccak-derived functions
 pub fn keccak_absorb_once(s: &mut [u64], r: usize, input: &[u8], mut inlen: usize, p: u8) {
-    /// Zero State
+    // Zero State
     s.fill(0);
 
     let mut idx = 0usize;

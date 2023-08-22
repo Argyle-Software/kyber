@@ -8,7 +8,7 @@ use core::arch::x86_64::*;
 
 #[derive(Clone, Copy)]
 #[repr(C)]
-pub(crate) struct Aes256CtrCtx {
+pub struct Aes256CtrCtx {
     pub rkeys: [__m128i; 16],
     pub n: __m128i,
 }
@@ -76,7 +76,7 @@ unsafe fn cast_128(x: __m128i) -> __m128 {
     _mm_castsi128_ps(x)
 }
 
-pub(crate) fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
+pub fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
     unsafe {
         let mut idx = 0;
         let key0 = _mm_loadu_si128(key.as_ptr() as *const __m128i);
@@ -138,7 +138,7 @@ pub(crate) fn aes256ctr_init(state: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 1
     }
 }
 
-pub(crate) fn aes256ctr_squeezeblocks(out: &mut [u8], nblocks: usize, state: &mut Aes256CtrCtx) {
+pub fn aes256ctr_squeezeblocks(out: &mut [u8], nblocks: usize, state: &mut Aes256CtrCtx) {
     let mut idx = 0;
     for _ in 0..nblocks {
         unsafe {
@@ -149,7 +149,7 @@ pub(crate) fn aes256ctr_squeezeblocks(out: &mut [u8], nblocks: usize, state: &mu
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn aes256ctr_prf(out: &mut [u8], mut outlen: usize, seed: &[u8], nonce: u8) {
+pub fn aes256ctr_prf(out: &mut [u8], mut outlen: usize, seed: &[u8], nonce: u8) {
     let mut buf = [0u8; 64];
     let mut idx = 0;
     let mut pad_nonce = [0u8; 12];

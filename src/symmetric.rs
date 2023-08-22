@@ -13,21 +13,21 @@ use aes::cipher::{generic_array::GenericArray, KeyIvInit, StreamCipher};
 type Aes256Ctr = ctr::Ctr32BE<aes::Aes256>;
 
 #[cfg(feature = "90s")]
-pub(crate) const AES256CTR_BLOCKBYTES: usize = 64;
+pub const AES256CTR_BLOCKBYTES: usize = 64;
 
 #[cfg(feature = "90s")]
-pub(crate) const XOF_BLOCKBYTES: usize = AES256CTR_BLOCKBYTES;
+pub const XOF_BLOCKBYTES: usize = AES256CTR_BLOCKBYTES;
 #[cfg(not(feature = "90s"))]
-pub(crate) const XOF_BLOCKBYTES: usize = SHAKE128_RATE;
+pub const XOF_BLOCKBYTES: usize = SHAKE128_RATE;
 
 #[cfg(not(feature = "90s"))]
-pub(crate) type XofState = KeccakState;
+pub type XofState = KeccakState;
 
 #[cfg(feature = "90s")]
-pub(crate) type XofState = Aes256CtrCtx;
+pub type XofState = Aes256CtrCtx;
 
 #[derive(Copy, Clone)]
-pub(crate) struct KeccakState {
+pub struct KeccakState {
     pub s: [u64; 25],
     pub pos: usize,
 }
@@ -48,13 +48,13 @@ impl KeccakState {
 
 /// SHA3-256
 #[cfg(not(feature = "90s"))]
-pub(crate) fn hash_h(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn hash_h(out: &mut [u8], input: &[u8], inlen: usize) {
     sha3_256(out, input, inlen);
 }
 
 /// 90s mode SHA2-256
 #[cfg(feature = "90s")]
-pub(crate) fn hash_h(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn hash_h(out: &mut [u8], input: &[u8], inlen: usize) {
     let mut hasher = Sha256::new();
     hasher.update(&input[..inlen]);
     let digest = hasher.finalize();
@@ -62,12 +62,12 @@ pub(crate) fn hash_h(out: &mut [u8], input: &[u8], inlen: usize) {
 }
 
 #[cfg(not(feature = "90s"))]
-pub(crate) fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
     sha3_512(out, input, inlen);
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
     let mut hasher = Sha512::new();
     hasher.update(&input[..inlen]);
     let digest = hasher.finalize();
@@ -75,12 +75,12 @@ pub(crate) fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
 }
 
 #[cfg(not(feature = "90s"))]
-pub(crate) fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
+pub fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
     kyber_shake128_absorb(state, &input, x, y);
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
+pub fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
     let mut nonce = [0u8; 12];
     nonce[0] = x;
     nonce[1] = y;
@@ -88,17 +88,17 @@ pub(crate) fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
 }
 
 #[cfg(not(feature = "90s"))]
-pub(crate) fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
+pub fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
     kyber_shake128_squeezeblocks(out, outblocks, state);
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
+pub fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState) {
     aes256ctr_squeezeblocks(out, outblocks, state);
 }
 
 #[cfg(not(feature = "90s"))]
-pub(crate) fn prf(out: &mut [u8], outbytes: usize, key: &[u8], nonce: u8) {
+pub fn prf(out: &mut [u8], outbytes: usize, key: &[u8], nonce: u8) {
     shake256_prf(out, outbytes, &key, nonce);
 }
 
@@ -121,12 +121,12 @@ pub fn prf(out: &mut [u8], _outbytes: usize, key: &[u8], nonce: u8) {
 }
 
 #[cfg(not(feature = "90s"))]
-pub(crate) fn kdf(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn kdf(out: &mut [u8], input: &[u8], inlen: usize) {
     shake256(out, KYBER_SSBYTES, input, inlen);
 }
 
 #[cfg(feature = "90s")]
-pub(crate) fn kdf(out: &mut [u8], input: &[u8], inlen: usize) {
+pub fn kdf(out: &mut [u8], input: &[u8], inlen: usize) {
     let mut hasher = Sha256::new();
     hasher.update(&input[..inlen]);
     let digest = hasher.finalize();
