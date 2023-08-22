@@ -1,3 +1,4 @@
+#[rustfmt::skip]
 fn main() {
     #[cfg(not(feature = "wasm"))]
     {
