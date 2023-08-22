@@ -25,7 +25,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 #![cfg(feature = "90s")]
 
 pub struct Aes256CtrCtx {
@@ -634,15 +633,15 @@ fn br_aes_ct64_ctr_run(sk_exp: &mut [u64], iv: &[u8], cc: u32, data: &mut [u8], 
     }
 }
 
-// Name:        aes256_prf
-//
-// Description: AES256 stream generation in CTR mode using 32-bit counter,
-//              nonce is zero-padded to 12 bytes, counter starts at zero
-//
-// Arguments:   - [u8] output:      output
-//              - usize outlen:  length of requested output in bytes
-//              - const [u8] key:   32-byte key
-//              - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
+/// Name:  aes256_prf
+///
+/// Description: AES256 stream generation in CTR mode using 32-bit counter,
+///  nonce is zero-padded to 12 bytes, counter starts at zero
+///
+/// Arguments:   - [u8] output:  output
+///  - usize outlen:  length of requested output in bytes
+///  - const [u8] key:   32-byte key
+///  - const u8  nonce:  1-byte nonce (will be zero-padded to 12 bytes)
 #[cfg(not(feature = "90s-fixslice"))]
 pub fn aes256ctr_prf(output: &mut [u8], outlen: usize, key: &[u8], nonce: u8) {
     let mut sk_exp = [0u64; 120];
@@ -652,15 +651,15 @@ pub fn aes256ctr_prf(output: &mut [u8], outlen: usize, key: &[u8], nonce: u8) {
     br_aes_ct64_ctr_run(&mut sk_exp, &pad_nonce, 0, output, outlen);
 }
 
-// Name:        aes256ctr_init
-//
-// Description: AES256 CTR used as a replacement for a XOF; this function
-//              "absorbs" a 32-byte key and two additional bytes that are zero-padded
-//              to a 12-byte nonce
-//
-// Arguments:   - aes256xof_ctx *s:          state to "absorb" key and IV into
-//              - const [u8] key:  32-byte key
-//              - [u8]  nonce:           additional bytes to "absorb"
+/// Name:  aes256ctr_init
+///
+/// Description: AES256 CTR used as a replacement for a XOF; this function
+///  "absorbs" a 32-byte key and two additional bytes that are zero-padded
+///  to a 12-byte nonce
+///
+/// Arguments:   - aes256xof_ctx *s:  state to "absorb" key and IV into
+///  - const [u8] key:  32-byte key
+///  - [u8]  nonce:   additional bytes to "absorb"
 pub fn aes256ctr_init(s: &mut Aes256CtrCtx, key: &[u8], nonce: [u8; 12]) {
     br_aes_ct64_ctr_init(&mut s.sk_exp, key);
 

@@ -9,28 +9,28 @@ use crate::{
 use crate::{fips202::*, fips202x4::*};
 use core::arch::x86_64::*;
 
-// Name:        pack_pk
-//
-// Description: Serialize the public key as concatenation of the
-//              serialized vector of polynomials pk
-//              and the public seed used to generate the matrix A.
-//
-// Arguments:   [u8] r:          the output serialized public key
-//              const poly *pk:            the input public-key polynomial
-//              const [u8] seed: the input public seed
+/// Name:  pack_pk
+///
+/// Description: Serialize the public key as concatenation of the
+///  serialized vector of polynomials pk
+///  and the public seed used to generate the matrix A.
+///
+/// Arguments:   [u8] r:  the output serialized public key
+///  const poly *pk:  the input public-key polynomial
+///  const [u8] seed: the input public seed
 fn pack_pk(r: &mut [u8], pk: &Polyvec, seed: &[u8]) {
     polyvec_tobytes(r, pk);
     r[KYBER_POLYVECBYTES..][..KYBER_SYMBYTES].copy_from_slice(&seed[..KYBER_SYMBYTES]);
 }
 
-// Name:        unpack_pk
-//
-// Description: De-serialize public key from a byte array;
-//              approximate inverse of pack_pk
-//
-// Arguments:   - Polyvec pk:                   output public-key vector of polynomials
-//              - [u8] seed:           output seed to generate matrix A
-//              - const [u8] packedpk: input serialized public key
+/// Name:  unpack_pk
+///
+/// Description: De-serialize public key from a byte array;
+///  approximate inverse of pack_pk
+///
+/// Arguments:   - Polyvec pk:     output public-key vector of polynomials
+///  - [u8] seed:   output seed to generate matrix A
+///  - const [u8] packedpk: input serialized public key
 fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
     unsafe {
         polyvec_frombytes(pk, packedpk);
@@ -38,38 +38,38 @@ fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
     seed[..KYBER_SYMBYTES].copy_from_slice(&packedpk[KYBER_POLYVECBYTES..][..KYBER_SYMBYTES]);
 }
 
-// Name:        pack_sk
-//
-// Description: Serialize the secret key
-//
-// Arguments:   - [u8] r:  output serialized secret key
-//              - const Polyvec sk: input vector of polynomials (secret key)
+/// Name:  pack_sk
+///
+/// Description: Serialize the secret key
+///
+/// Arguments:   - [u8] r:  output serialized secret key
+///  - const Polyvec sk: input vector of polynomials (secret key)
 fn pack_sk(r: &mut [u8], sk: &Polyvec) {
     polyvec_tobytes(r, sk);
 }
 
-// Name:        unpack_sk
-//
-// Description: De-serialize the secret key;
-//              inverse of pack_sk
-//
-// Arguments:   - Polyvec sk:                   output vector of polynomials (secret key)
-//              - const [u8] packedsk: input serialized secret key
+/// Name:  unpack_sk
+///
+/// Description: De-serialize the secret key;
+///  inverse of pack_sk
+///
+/// Arguments:   - Polyvec sk:     output vector of polynomials (secret key)
+///  - const [u8] packedsk: input serialized secret key
 fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8]) {
     unsafe {
         polyvec_frombytes(sk, packedsk);
     }
 }
 
-// Name:        pack_ciphertext
-//
-// Description: Serialize the ciphertext as concatenation of the
-//              compressed and serialized vector of polynomials b
-//              and the compressed and serialized polynomial v
-//
-// Arguments:   [u8] r:          the output serialized ciphertext
-//              const poly *pk:            the input vector of polynomials b
-//              const [u8] seed: the input polynomial v
+/// Name:  pack_ciphertext
+///
+/// Description: Serialize the ciphertext as concatenation of the
+///  compressed and serialized vector of polynomials b
+///  and the compressed and serialized polynomial v
+///
+/// Arguments:   [u8] r:  the output serialized ciphertext
+///  const poly *pk:  the input vector of polynomials b
+///  const [u8] seed: the input polynomial v
 fn pack_ciphertext(r: &mut [u8], b: &Polyvec, v: Poly) {
     unsafe {
         polyvec_compress(r, b);
@@ -77,14 +77,14 @@ fn pack_ciphertext(r: &mut [u8], b: &Polyvec, v: Poly) {
     }
 }
 
-// Name:        unpack_ciphertext
-//
-// Description: De-serialize and decompress ciphertext from a byte array;
-//              approximate inverse of pack_ciphertext
-//
-// Arguments:   - Polyvec b:             output vector of polynomials b
-//              - Poly *v:                output polynomial v
-//              - const [u8] c:           input serialized ciphertext
+/// Name:  unpack_ciphertext
+///
+/// Description: De-serialize and decompress ciphertext from a byte array;
+///  approximate inverse of pack_ciphertext
+///
+/// Arguments:   - Polyvec b:   output vector of polynomials b
+///  - Poly *v:  output polynomial v
+///  - const [u8] c:   input serialized ciphertext
 fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8]) {
     unsafe {
         polyvec_decompress(b, c);
@@ -92,17 +92,17 @@ fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8]) {
     }
 }
 
-// Name:        rej_uniform
-//
-// Description: Run rejection sampling on uniform random bytes to generate
-//              uniform random integers mod q
-//
-// Arguments:   - i16 *r:        output buffer
-//              - usize len:         requested number of 16-bit integers (uniform mod q)
-//              - const [u8] buf:    input buffer (assumed to be uniform random bytes)
-//              - usize buflen:      length of input buffer in bytes
-//
-// Returns number of sampled 16-bit integers (at most len)
+/// Name:  rej_uniform
+///
+/// Description: Run rejection sampling on uniform random bytes to generate
+///  uniform random integers mod q
+///
+/// Arguments:   - i16 *r:  output buffer
+///  - usize len:   requested number of 16-bit integers (uniform mod q)
+///  - const [u8] buf:  input buffer (assumed to be uniform random bytes)
+///  - usize buflen:  length of input buffer in bytes
+///
+/// Returns number of sampled 16-bit integers (at most len)
 fn rej_uniform(r: &mut [i16], len: usize, buf: &[u8], buflen: usize) -> usize {
     let (mut ctr, mut pos) = (0usize, 0usize);
     let (mut val0, mut val1);
@@ -537,7 +537,7 @@ where
 
     #[cfg(feature = "90s")]
     {
-        // Assumes divisibility
+        /// Assumes divisibility
         const NOISE_NBLOCKS: usize = (KYBER_ETA1 * KYBER_N / 4) / XOF_BLOCKBYTES;
         let mut nonce = 0u64;
         let mut state = Aes256CtrCtx::new();
@@ -707,7 +707,8 @@ pub fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
             poly_getnoise_eta2(&mut epp, coins, 4);
         }
 
-        #[cfg(not(any(feature = "kyber1024", feature = "kyber512", feature = "90s")))] // kyber768)
+        #[cfg(not(any(feature = "kyber1024", feature = "kyber512", feature = "90s")))]
+        /// kyber768)
         {
             let (sp0, sp1) = sp.vec.split_at_mut(1);
             let (sp1, sp2) = sp1.split_at_mut(1);

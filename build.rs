@@ -1,3 +1,4 @@
+#[rustfmt::skip]
 fn main() {
     #[cfg(not(feature = "wasm"))]
     {
@@ -16,11 +17,10 @@ fn main() {
                 nasm.files(paths);
                 nasm.include(ROOT);
 
-                for o in nasm.compile_objects().expect(
-                    "
-          Compiling NASM files: 
-          Ensure it is installed and in your path
-          https://www.nasm.us/",
+                for o in nasm.compile_objects().expect("
+Compiling NASM files: 
+Ensure it is installed and in your path
+https://www.nasm.us/",
                 ) {
                     linker.object(o);
                 }

@@ -1,7 +1,7 @@
 use crate::{consts::*, params::*, symmetric::*};
 use core::arch::x86_64::*;
 
-pub(crate) const REJ_UNIFORM_AVX_NBLOCKS: usize =
+pub const REJ_UNIFORM_AVX_NBLOCKS: usize =
     (12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES;
 const REJ_UNIFORM_AVX_BUFLEN: usize = REJ_UNIFORM_AVX_NBLOCKS * XOF_BLOCKBYTES;
 

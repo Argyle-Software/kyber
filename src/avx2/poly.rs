@@ -2,8 +2,7 @@
 use crate::{align::*, cbd::*, consts::*, fips202::*, fips202x4::*, params::*, symmetric::*};
 use core::arch::x86_64::*;
 
-pub(crate) const NOISE_NBLOCKS: usize =
-    (KYBER_ETA1 * KYBER_N / 4 + SHAKE256_RATE - 1) / SHAKE256_RATE;
+pub const NOISE_NBLOCKS: usize = (KYBER_ETA1 * KYBER_N / 4 + SHAKE256_RATE - 1) / SHAKE256_RATE;
 
 #[derive(Clone)]
 #[repr(C)]
@@ -73,6 +72,7 @@ pub unsafe fn poly_compress(r: &mut [u8], a: Poly) {
         _mm256_storeu_si256(r[32 * i..].as_mut_ptr() as *mut __m256i, f0);
     }
 }
+
 #[cfg(any(feature = "kyber512", not(feature = "kyber1024")))]
 pub unsafe fn poly_decompress(r: &mut Poly, a: &[u8]) {
     let (mut t, mut f);

@@ -2,13 +2,13 @@ use crate::rng::randombytes;
 use crate::{error::KyberError, indcpa::*, params::*, symmetric::*, verify::*};
 use rand_core::{CryptoRng, RngCore};
 
-// Name:        crypto_kem_keypair
-//
-// Description: Generates public and private key
-//              for CCA-secure Kyber key encapsulation mechanism
-//
-// Arguments:   - [u8] pk: output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
-//              - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
+/// Name:  crypto_kem_keypair
+///
+/// Description: Generates public and private key
+///  for CCA-secure Kyber key encapsulation mechanism
+///
+/// Arguments:   - [u8] pk: output public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
+///  - [u8] sk: output private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
 pub fn crypto_kem_keypair<R>(
     pk: &mut [u8],
     sk: &mut [u8],
@@ -35,14 +35,14 @@ where
     Ok(())
 }
 
-// Name:        crypto_kem_enc
-//
-// Description: Generates cipher text and shared
-//              secret for given public key
-//
-// Arguments:   - [u8] ct:       output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-//              - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-//              - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
+/// Name:  crypto_kem_enc
+///
+/// Description: Generates cipher text and shared
+///  secret for given public key
+///
+/// Arguments:   - [u8] ct:   output cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+///  - [u8] ss:   output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+///  - const [u8] pk: input public key (an already allocated array of CRYPTO_PUBLICKEYBYTES bytes)
 pub fn crypto_kem_enc<R>(
     ct: &mut [u8],
     ss: &mut [u8],
@@ -82,16 +82,16 @@ where
     Ok(())
 }
 
-// Name:        crypto_kem_dec
-//
-// Description: Generates shared secret for given
-//              cipher text and private key
-//
-// Arguments:   - [u8] ss:       output shared secret (an already allocated array of CRYPTO_BYTES bytes)
-//              - const [u8] ct: input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
-//              - const [u8] sk: input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
-//
-// On failure, ss will contain a pseudo-random value.
+/// Name:  crypto_kem_dec
+///
+/// Description: Generates shared secret for given
+///  cipher text and private key
+///
+/// Arguments:   - [u8] ss:   output shared secret (an already allocated array of CRYPTO_BYTES bytes)
+///  - const [u8] ct: input cipher text (an already allocated array of CRYPTO_CIPHERTEXTBYTES bytes)
+///  - const [u8] sk: input private key (an already allocated array of CRYPTO_SECRETKEYBYTES bytes)
+///
+/// On failure, ss will contain a pseudo-random value.
 pub fn crypto_kem_dec(ss: &mut [u8], ct: &[u8], sk: &[u8]) -> () {
     let mut buf = [0u8; 2 * KYBER_SYMBYTES];
     let mut kr = [0u8; 2 * KYBER_SYMBYTES];

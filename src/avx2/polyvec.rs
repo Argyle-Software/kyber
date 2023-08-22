@@ -16,7 +16,6 @@ impl Polyvec {
     }
 }
 
-// #[target_feature(enable = "avx")]
 pub unsafe fn poly_compress10(r: &mut [u8], a: &Poly) {
     let (mut f0, mut f1, mut f2);
     let (mut t0, mut t1);
@@ -57,7 +56,6 @@ pub unsafe fn poly_compress10(r: &mut [u8], a: &Poly) {
     }
 }
 
-// #[target_feature(enable = "avx")]
 pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8]) {
     let mut f;
     let q = _mm256_set1_epi32(((KYBER_Q as i32) << 16) + 4 * KYBER_Q as i32);
@@ -79,7 +77,6 @@ pub unsafe fn poly_decompress10(r: &mut Poly, a: &[u8]) {
     }
 }
 
-// #[target_feature(enable = "avx")]
 pub unsafe fn poly_compress11(r: &mut [u8], a: &Poly) {
     let (mut f0, mut f1, mut f2);
     let (mut t0, mut t1);
@@ -123,7 +120,6 @@ pub unsafe fn poly_compress11(r: &mut [u8], a: &Poly) {
     }
 }
 
-// #[target_feature(enable = "avx")]
 pub unsafe fn poly_decompress11(r: &mut Poly, a: &[u8]) {
     let mut f;
 
@@ -187,35 +183,35 @@ pub unsafe fn polyvec_frombytes(r: &mut Polyvec, a: &[u8]) {
     }
 }
 
-// Name:        polyvec_ntt
-//
-// Description: Apply forward NTT to all elements of a vector of polynomials
-//
-// Arguments:   - Polyvec r: in/output vector of polynomials
+/// Name:  polyvec_ntt
+///
+/// Description: Apply forward NTT to all elements of a vector of polynomials
+///
+/// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_ntt(r: &mut Polyvec) {
     for i in 0..KYBER_K {
         poly_ntt(&mut r.vec[i]);
     }
 }
 
-// Name:        polyvec_invntt
-//
-// Description: Apply inverse NTT to all elements of a vector of polynomials
-//
-// Arguments:   - Polyvec r: in/output vector of polynomials
+/// Name:  polyvec_invntt
+///
+/// Description: Apply inverse NTT to all elements of a vector of polynomials
+///
+/// Arguments:   - Polyvec r: in/output vector of polynomials
 pub fn polyvec_invntt_tomont(r: &mut Polyvec) {
     for i in 0..KYBER_K {
         poly_invntt_tomont(&mut r.vec[i]);
     }
 }
 
-// Name:        polyvec_basemul_acc_montgomery
-//
-// Description: Pointwise multiply elements of a and b and accumulate into r
-//
-// Arguments: - poly *r:          output polynomial
-//            - const Polyvec a: first input vector of polynomials
-//            - const Polyvec b: second input vector of polynomials
+/// Name:  polyvec_basemul_acc_montgomery
+///
+/// Description: Pointwise multiply elements of a and b and accumulate into r
+///
+/// Arguments: - poly *r:  output polynomial
+///  - const Polyvec a: first input vector of polynomials
+///  - const Polyvec b: second input vector of polynomials
 pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec) {
     let mut t = Poly::new();
     poly_basemul(r, &a.vec[0], &b.vec[0]);
@@ -225,26 +221,26 @@ pub fn polyvec_basemul_acc_montgomery(r: &mut Poly, a: &Polyvec, b: &Polyvec) {
     }
 }
 
-// Name:        polyvec_reduce
-//
-// Description: Applies Barrett reduction to each coefficient
-//              of each element of a vector of polynomials
-//              for details of the Barrett reduction see comments in reduce.c
-//
-// Arguments:   - poly *r:       input/output polynomial
+/// Name:  polyvec_reduce
+///
+/// Description: Applies Barrett reduction to each coefficient
+///  of each element of a vector of polynomials
+///  for details of the Barrett reduction see comments in reduce.c
+///
+/// Arguments:   - poly *r:   input/output polynomial
 pub fn polyvec_reduce(r: &mut Polyvec) {
     for i in 0..KYBER_K {
         poly_reduce(&mut r.vec[i]);
     }
 }
 
-// Name:        polyvec_add
-//
-// Description: Add vectors of polynomials
-//
-// Arguments: - Polyvec r:       output vector of polynomials
-//            - const Polyvec a: first input vector of polynomials
-//            - const Polyvec b: second input vector of polynomials
+/// Name:  polyvec_add
+///
+/// Description: Add vectors of polynomials
+///
+/// Arguments: - Polyvec r:   output vector of polynomials
+///  - const Polyvec a: first input vector of polynomials
+///  - const Polyvec b: second input vector of polynomials
 pub fn polyvec_add(r: &mut Polyvec, b: &Polyvec) {
     for i in 0..KYBER_K {
         poly_add(&mut r.vec[i], &b.vec[i]);

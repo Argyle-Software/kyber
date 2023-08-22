@@ -1,93 +1,93 @@
 use crate::rng::randombytes;
 use crate::{params::*, poly::*, polyvec::*, symmetric::*, CryptoRng, KyberError, RngCore};
 
-// Name:        pack_pk
-//
-// Description: Serialize the public key as concatenation of the
-//              serialized vector of polynomials pk
-//              and the public seed used to generate the matrix A.
-//
-// Arguments:   [u8] r:          the output serialized public key
-//              const poly *pk:            the input public-key polynomial
-//              const [u8] seed: the input public seed
+/// Name:  pack_pk
+///
+/// Description: Serialize the public key as concatenation of the
+///  serialized vector of polynomials pk
+///  and the public seed used to generate the matrix A.
+///
+/// Arguments:   [u8] r:  the output serialized public key
+///  const poly *pk:  the input public-key polynomial
+///  const [u8] seed: the input public seed
 fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
     const END: usize = KYBER_SYMBYTES + KYBER_POLYVECBYTES;
     polyvec_tobytes(r, pk);
     r[KYBER_POLYVECBYTES..END].copy_from_slice(&seed[..KYBER_SYMBYTES]);
 }
 
-// Name:        unpack_pk
-//
-// Description: De-serialize public key from a byte array;
-//              approximate inverse of pack_pk
-//
-// Arguments:   - Polyvec pk:          output public-key vector of polynomials
-//              - [u8] seed:           output seed to generate matrix A
-//              - const [u8] packedpk: input serialized public key
+/// Name:  unpack_pk
+///
+/// Description: De-serialize public key from a byte array;
+///  approximate inverse of pack_pk
+///
+/// Arguments:   - Polyvec pk:  output public-key vector of polynomials
+///  - [u8] seed:   output seed to generate matrix A
+///  - const [u8] packedpk: input serialized public key
 fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
     const END: usize = KYBER_SYMBYTES + KYBER_POLYVECBYTES;
     polyvec_frombytes(pk, packedpk);
     seed[..KYBER_SYMBYTES].copy_from_slice(&packedpk[KYBER_POLYVECBYTES..END]);
 }
 
-// Name:        pack_sk
-//
-// Description: Serialize the secret key
-//
-// Arguments: - [u8] r:  output serialized secret key
-//            - const Polyvec sk: input vector of polynomials (secret key)
+/// Name:  pack_sk
+///
+/// Description: Serialize the secret key
+///
+/// Arguments: - [u8] r:  output serialized secret key
+///  - const Polyvec sk: input vector of polynomials (secret key)
 fn pack_sk(r: &mut [u8], sk: &mut Polyvec) {
     polyvec_tobytes(r, sk);
 }
 
-// Name:        unpack_sk
-//
-// Description: De-serialize the secret key, inverse of pack_sk
-//
-// Arguments:   - Polyvec sk: output vector of polynomials (secret key)
-//              - const [u8] packedsk: input serialized secret key
+/// Name:  unpack_sk
+///
+/// Description: De-serialize the secret key, inverse of pack_sk
+///
+/// Arguments:   - Polyvec sk: output vector of polynomials (secret key)
+///  - const [u8] packedsk: input serialized secret key
 fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8]) {
     polyvec_frombytes(sk, packedsk);
 }
 
-// Name:        pack_ciphertext
-//
-// Description: Serialize the ciphertext as concatenation of the
-//              compressed and serialized vector of polynomials b
-//              and the compressed and serialized polynomial v
-//
-// Arguments:   [u8] r:          the output serialized ciphertext
-//              const poly *pk:  the input vector of polynomials b
-//              const [u8] seed: the input polynomial v
+/// Name:  pack_ciphertext
+///
+/// Description: Serialize the ciphertext as concatenation of the
+///  compressed and serialized vector of polynomials b
+///  and the compressed and serialized polynomial v
+///
+/// Arguments:   [u8] r:  the output serialized ciphertext
+///  const poly *pk:  the input vector of polynomials b
+///  const [u8] seed: the input polynomial v
 fn pack_ciphertext(r: &mut [u8], b: &mut Polyvec, v: Poly) {
     polyvec_compress(r, *b);
     poly_compress(&mut r[KYBER_POLYVECCOMPRESSEDBYTES..], v);
 }
 
-// Name:        unpack_ciphertext
-//
-// Description: De-serialize and decompress ciphertext from a byte array;
-//              approximate inverse of pack_ciphertext
-//
-// Arguments:   - Polyvec b:             output vector of polynomials b
-//              - poly *v:                output polynomial v
-//              - const [u8] c:           input serialized ciphertext
+/// Name:  unpack_ciphertext
+///
+/// Description: De-serialize and decompress ciphertext from a byte array;
+///  approximate inverse of pack_ciphertext
+///
+/// Arguments:   - Polyvec b:   output vector of polynomials b
+///  - poly *v:  output polynomial v
+///  - const [u8] c:   input serialized ciphertext
 fn unpack_ciphertext(b: &mut Polyvec, v: &mut Poly, c: &[u8]) {
     polyvec_decompress(b, c);
     poly_decompress(v, &c[KYBER_POLYVECCOMPRESSEDBYTES..]);
 }
 
-// Name:        rej_uniform
-//
-// Description: Run rejection sampling on uniform random bytes to generate
-//              uniform random integers mod q
-//
-// Arguments: - i16 *r:        output buffer
-//            - usize len:         requested number of 16-bit integers (uniform mod q)
-//            - const [u8] buf:    input buffer (assumed to be uniform random bytes)
-//            - usize buflen:      length of input buffer in bytes
-//
-// Returns number of sampled 16-bit integers (at most len)
+/// Name:  rej_uniform
+///
+/// Description: Run rejection sampling on uniform random bytes to generate
+///  uniform random integers mod q
+///
+/// Arguments: - i16 *r:  output buffer
+///  - usize len:   requested number of 16-bit integers (uniform mod q)
+///  - const [u8] buf:  input buffer (assumed to be uniform random bytes)
+///  - usize buflen:  length of input buffer in bytes
+///
+/// Returns number of sampled 16-bit integers (at most len)
 fn rej_uniform(r: &mut [i16], len: usize, buf: &[u8], buflen: usize) -> usize {
     let (mut ctr, mut pos) = (0usize, 0usize);
     let (mut val0, mut val1);
@@ -117,16 +117,16 @@ fn gen_at(a: &mut [Polyvec], b: &[u8]) {
     gen_matrix(a, b, true);
 }
 
-// Name:        gen_matrix
-//
-// Description: Deterministically generate matrix A (or the transpose of A)
-//              from a seed. Entries of the matrix are polynomials that look
-//              uniformly random. Performs rejection sampling on output of
-//              a XOF
-//
-// Arguments:   - Polyvec a:       ouptput matrix A
-//              - const [u8] seed: input seed
-//              - bool transposed: boolean deciding whether A or A^T is generated
+/// Name:  gen_matrix
+///
+/// Description: Deterministically generate matrix A (or the transpose of A)
+///  from a seed. Entries of the matrix are polynomials that look
+///  uniformly random. Performs rejection sampling on output of
+///  a XOF
+///
+/// Arguments:   - Polyvec a:   ouptput matrix A
+///  - const [u8] seed: input seed
+///  - bool transposed: boolean deciding whether A or A^T is generated
 fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
     let mut ctr;
     // 530 is expected number of required bytes
@@ -161,13 +161,13 @@ fn gen_matrix(a: &mut [Polyvec], seed: &[u8], transposed: bool) {
     }
 }
 
-// Name:        indcpa_keypair
+// Name:  indcpa_keypair
 //
 // Description: Generates public and private key for the CPA-secure
-//              public-key encryption scheme underlying Kyber
+//  public-key encryption scheme underlying Kyber
 //
 // Arguments: - [u8] pk: output public key (length KYBER_INDCPA_PUBLICKEYBYTES)
-//            - [u8] sk: output private key (length KYBER_INDCPA_SECRETKEYBYTES)
+//  - [u8] sk: output private key (length KYBER_INDCPA_SECRETKEYBYTES)
 pub fn indcpa_keypair<R>(
     pk: &mut [u8],
     sk: &mut [u8],
@@ -219,16 +219,16 @@ where
     Ok(())
 }
 
-// Name:        indcpa_enc
-//
-// Description: Encryption function of the CPA-secure
-//              public-key encryption scheme underlying Kyber.
-//
-// Arguments: - [u8] c:          output ciphertext (length KYBER_INDCPA_BYTES)
-//            - const [u8] m:    input message (length KYBER_SYMBYTES)
-//            - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLICKEYBYTES)
-//            - const [u8] coin: input random coins used as seed (length KYBER_SYMBYTES)
-//                                  to deterministically generate all randomness
+/// Name:  indcpa_enc
+///
+/// Description: Encryption function of the CPA-secure
+///  public-key encryption scheme underlying Kyber.
+///
+/// Arguments: - [u8] c:  output ciphertext (length KYBER_INDCPA_BYTES)
+///  - const [u8] m:  input message (length KYBER_SYMBYTES)
+///  - const [u8] pk:   input public key (length KYBER_INDCPA_PUBLICKEYBYTES)
+///  - const [u8] coin: input random coins used as seed (length KYBER_SYMBYTES)
+///      to deterministically generate all randomness
 pub fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
     let mut at = [Polyvec::new(); KYBER_K];
     let (mut sp, mut pkpv, mut ep, mut b) = (
@@ -275,14 +275,14 @@ pub fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
     pack_ciphertext(c, &mut b, v);
 }
 
-// Name:        indcpa_dec
-//
-// Description: Decryption function of the CPA-secure
-//              public-key encryption scheme underlying Kyber.
-//
-// Arguments:   - [u8] m:        output decrypted message (of length KYBER_SYMBYTES)
-//              - const [u8] c:  input ciphertext (of length KYBER_INDCPA_BYTES)
-//              - const [u8] sk: input secret key (of length KYBER_INDCPA_SECRETKEYBYTES)
+/// Name:  indcpa_dec
+///
+/// Description: Decryption function of the CPA-secure
+///  public-key encryption scheme underlying Kyber.
+///
+/// Arguments:   - [u8] m:  output decrypted message (of length KYBER_SYMBYTES)
+///  - const [u8] c:  input ciphertext (of length KYBER_INDCPA_BYTES)
+///  - const [u8] sk: input secret key (of length KYBER_INDCPA_SECRETKEYBYTES)
 pub fn indcpa_dec(m: &mut [u8], c: &[u8], sk: &[u8]) {
     let (mut b, mut skpv) = (Polyvec::new(), Polyvec::new());
     let (mut v, mut mp) = (Poly::new(), Poly::new());
