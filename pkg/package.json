@@ -4,7 +4,7 @@
     "Mitchell Berry <foss@mitchellberry.com>"
   ],
   "description": "The post-quantum Kyber key exchange algorithm, written in rust and compiled to wasm",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",
