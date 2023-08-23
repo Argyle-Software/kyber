@@ -6,17 +6,20 @@
 
 3. Run tests and address sanitiser checks:
  ```bash
- export RUSTFLAGS="${RUSTFLAGS:-} -Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt";\
+ export RUSTFLAGS="${RUSTFLAGS:-} -Z sanitizer=address -C target-cpu=native -C target-feature=+aes,+avx2,+sse2,+sse4.1,+bmi2,+popcnt";
  export RUSTDOCFLAGS="-Z sanitizer=address";
  rustup default nightly;
  KAT=1 AVX2=1 NASM=1 ./tests/run_all_tests.sh;
+ unset RUSTFLAGS;
+ unset RUSTDOCFLAGS;
+ rustup default stable;
 ``` 
 
 4. Bump version in **Cargo.toml** and the features section of **readme.md**
 
 5. Update **changelog.md**
 
-6. `cargo +nightly fmt`
+6. `cargo fmt`
 
 7. `wasm-pack build -- --features wasm`
 
@@ -26,7 +29,7 @@
 
 9. `git commit -a -m "release v0.0.0"`
 
-10. `git tag v0.0.0`
+10. `git tag v0.0.0 -m "Version release"`
 
 11. `git push origin v0.0.0`
 

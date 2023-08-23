@@ -1,4 +1,11 @@
-## 0.6.0 - 2023-4-18
+## 0.7.1 - 2023-8-23
+### Cosmetic
+ - Enforce cargo fmt
+ - Modify: Doc comments on functions for better DX
+ - Remove: Redundant comments
+ - Cleanup: function visibility
+
+## 0.7.0 - 2023-8-15
  - Handle RNG failure on embedded platforms
  - Deterministic keypair derivation
  - Public to private key conversion

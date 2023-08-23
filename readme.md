@@ -136,7 +136,7 @@ If no security level is specified then kyber768 is used by default as recommende
 
 ```toml
 [dependencies]
-pqc_kyber = {version = "0.7.0", features = ["kyber512", "90s", "avx2"]}
+pqc_kyber = {version = "0.7.1", features = ["kyber512", "90s", "avx2"]}
 ```
 
 
