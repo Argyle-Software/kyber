@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build-nostd:
+    name: Build on no_std target (thumbv7em-none-eabi)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: thumbv7em-none-eabi
+      - uses: taiki-e/install-action@cargo-hack
+      # No default features build
+      - name: no_std / no feat
+        run: cargo build --target thumbv7em-none-eabi --release --no-default-features
+      # cargo hack ensures all no_std features all built-checked
+      - name: no_std / cargo hack features
+        run: cargo hack build --target thumbv7em-none-eabi --release --each-feature --exclude-features default,std,getrandom,wasm,benchmarking,nasm,avx2,nasm-rs,cc
+
