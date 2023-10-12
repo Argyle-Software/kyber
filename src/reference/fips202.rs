@@ -416,7 +416,7 @@ pub fn sha3_512(h: &mut [u8], input: &[u8], inlen: usize) {
 ///  - usize r: rate in bytes (e.g., 168 for SHAKE128)
 ///  - u8 p: domain separation byte
 fn keccak_finalize(s: &mut [u64], pos: usize, r: usize, p: u8) {
-    s[pos / 8] ^= (p as u64) << 8 * (pos % 8);
+    s[pos / 8] ^= (p as u64) << (8 * (pos % 8));
     s[r / 8 - 1] ^= 1u64 << 63;
 }
 
@@ -445,9 +445,9 @@ pub fn keccak_absorb_once(s: &mut [u64], r: usize, input: &[u8], mut inlen: usiz
     }
 
     for i in 0..inlen {
-        s[i / 8] ^= (input[idx + i] as u64) << 8 * (i % 8);
+        s[i / 8] ^= (input[idx + i] as u64) << (8 * (i % 8));
     }
-    s[inlen / 8] ^= (p as u64) << 8 * (inlen % 8);
+    s[inlen / 8] ^= (p as u64) << (8 * (inlen % 8));
     s[(r - 1) / 8] ^= 1u64 << 63;
 }
 
