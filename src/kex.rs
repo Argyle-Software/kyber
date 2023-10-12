@@ -358,7 +358,7 @@ where
 fn uake_shared_a(k: &mut [u8], recv: &[u8], tk: &[u8], sk: &[u8]) -> Result<(), KyberError> {
     let mut buf = [0u8; 2 * KYBER_SYMBYTES];
     crypto_kem_dec(&mut buf, recv, sk);
-    buf[KYBER_SYMBYTES..].copy_from_slice(&tk[..]);
+    buf[KYBER_SYMBYTES..].copy_from_slice(tk);
     kdf(k, &buf, 2 * KYBER_SYMBYTES);
     Ok(())
 }
@@ -424,7 +424,7 @@ fn ake_shared_a(
         &recv[KYBER_CIPHERTEXTBYTES..],
         ska,
     );
-    buf[2 * KYBER_SYMBYTES..].copy_from_slice(&tk[..]);
+    buf[2 * KYBER_SYMBYTES..].copy_from_slice(tk);
     kdf(k, &buf, 3 * KYBER_SYMBYTES);
     Ok(())
 }

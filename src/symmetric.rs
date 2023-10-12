@@ -76,7 +76,7 @@ pub fn hash_g(out: &mut [u8], input: &[u8], inlen: usize) {
 
 #[cfg(not(feature = "90s"))]
 pub fn xof_absorb(state: &mut XofState, input: &[u8], x: u8, y: u8) {
-    kyber_shake128_absorb(state, &input, x, y);
+    kyber_shake128_absorb(state, input, x, y);
 }
 
 #[cfg(feature = "90s")]
@@ -99,7 +99,7 @@ pub fn xof_squeezeblocks(out: &mut [u8], outblocks: usize, state: &mut XofState)
 
 #[cfg(not(feature = "90s"))]
 pub fn prf(out: &mut [u8], outbytes: usize, key: &[u8], nonce: u8) {
-    shake256_prf(out, outbytes, &key, nonce);
+    shake256_prf(out, outbytes, key, nonce);
 }
 
 #[cfg(feature = "90s")]

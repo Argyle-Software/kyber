@@ -79,11 +79,9 @@ pub fn poly_compress(r: &mut [u8], a: Poly) {
 pub fn poly_decompress(r: &mut Poly, a: &[u8]) {
     match KYBER_POLYCOMPRESSEDBYTES {
         128 => {
-            let mut idx = 0usize;
             for i in 0..KYBER_N / 2 {
-                r.coeffs[2 * i + 0] = ((((a[idx] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
-                r.coeffs[2 * i + 1] = ((((a[idx] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
-                idx += 1;
+                r.coeffs[2 * i + 0] = ((((a[i] & 15) as usize * KYBER_Q) + 8) >> 4) as i16;
+                r.coeffs[2 * i + 1] = ((((a[i] >> 4) as usize * KYBER_Q) + 8) >> 4) as i16;
             }
         }
         160 => {

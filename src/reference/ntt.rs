@@ -110,7 +110,7 @@ pub fn invntt(r: &mut [i16]) {
             while j < (start + len) {
                 t = r[j];
                 r[j] = barrett_reduce(t + r[j + len]);
-                r[j + len] = r[j + len] - t;
+                r[j + len] -= t;
                 r[j + len] = fqmul(zeta, r[j + len]);
                 j += 1
             }

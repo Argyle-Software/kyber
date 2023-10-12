@@ -10,7 +10,7 @@ use crate::{params::*, poly::*, polyvec::*, symmetric::*, CryptoRng, KyberError,
 /// Arguments:   [u8] r:  the output serialized public key
 ///  const poly *pk:  the input public-key polynomial
 ///  const [u8] seed: the input public seed
-fn pack_pk(r: &mut [u8], pk: &mut Polyvec, seed: &[u8]) {
+fn pack_pk(r: &mut [u8], pk: &Polyvec, seed: &[u8]) {
     const END: usize = KYBER_SYMBYTES + KYBER_POLYVECBYTES;
     polyvec_tobytes(r, pk);
     r[KYBER_POLYVECBYTES..END].copy_from_slice(&seed[..KYBER_SYMBYTES]);
@@ -36,7 +36,7 @@ fn unpack_pk(pk: &mut Polyvec, seed: &mut [u8], packedpk: &[u8]) {
 ///
 /// Arguments: - [u8] r:  output serialized secret key
 ///  - const Polyvec sk: input vector of polynomials (secret key)
-fn pack_sk(r: &mut [u8], sk: &mut Polyvec) {
+fn pack_sk(r: &mut [u8], sk: &Polyvec) {
     polyvec_tobytes(r, sk);
 }
 
@@ -59,7 +59,7 @@ fn unpack_sk(sk: &mut Polyvec, packedsk: &[u8]) {
 /// Arguments:   [u8] r:  the output serialized ciphertext
 ///  const poly *pk:  the input vector of polynomials b
 ///  const [u8] seed: the input polynomial v
-fn pack_ciphertext(r: &mut [u8], b: &mut Polyvec, v: Poly) {
+fn pack_ciphertext(r: &mut [u8], b: &Polyvec, v: Poly) {
     polyvec_compress(r, *b);
     poly_compress(&mut r[KYBER_POLYVECCOMPRESSEDBYTES..], v);
 }
@@ -184,7 +184,7 @@ where
     let mut randbuf = [0u8; 2 * KYBER_SYMBYTES];
 
     if let Some(s) = _seed {
-        randbuf[..KYBER_SYMBYTES].copy_from_slice(&s.0);
+        randbuf[..KYBER_SYMBYTES].copy_from_slice(s.0);
     } else {
         randombytes(&mut randbuf, KYBER_SYMBYTES, _rng)?;
     }
@@ -214,8 +214,8 @@ where
     polyvec_add(&mut pkpv, &e);
     polyvec_reduce(&mut pkpv);
 
-    pack_sk(sk, &mut skpv);
-    pack_pk(pk, &mut pkpv, publicseed);
+    pack_sk(sk, &skpv);
+    pack_pk(pk, &pkpv, publicseed);
     Ok(())
 }
 
@@ -272,7 +272,7 @@ pub fn indcpa_enc(c: &mut [u8], m: &[u8], pk: &[u8], coins: &[u8]) {
     polyvec_reduce(&mut b);
     poly_reduce(&mut v);
 
-    pack_ciphertext(c, &mut b, v);
+    pack_ciphertext(c, &b, v);
 }
 
 /// Name:  indcpa_dec
