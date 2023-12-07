@@ -9,6 +9,8 @@ pub enum KyberError {
     Decapsulation,
     /// Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
     RandomBytesGeneration,
+    /// Error when generating keys
+    InvalidKey,
 }
 
 impl core::fmt::Display for KyberError {
@@ -21,6 +23,9 @@ impl core::fmt::Display for KyberError {
             ),
             KyberError::RandomBytesGeneration => {
                 write!(f, "Random bytes generation function failed")
+            }
+            KyberError::InvalidKey => {
+                write!(f, "The secret and public key given does not match.")
             }
         }
     }

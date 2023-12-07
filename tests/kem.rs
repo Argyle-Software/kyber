@@ -10,7 +10,12 @@ fn keypair_encap_decap() {
     let ss2 = decapsulate(&ct, &keys.secret).unwrap();
     assert_eq!(ss1, ss2);
 }
-
+#[test]
+fn keypair_import_fake() {
+    let mut rng = rand::thread_rng();
+    let mut keys = keypair(&mut rng).unwrap();
+    let key = keypairfrom(&mut keys.public, &mut keys.secret, &mut rng).unwrap();
+}
 #[test]
 fn keypair_encap_decap_invalid_ciphertext() {
     let mut rng = rand::thread_rng();

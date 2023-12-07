@@ -5,7 +5,8 @@ use crate::{
     params::*,
     CryptoRng, RngCore,
 };
-
+#[cfg(feature = "zeroize")]
+use zeroize::{Zeroize, ZeroizeOnDrop};
 /// Keypair generation with a provided RNG.
 ///
 /// ### Example
@@ -25,7 +26,51 @@ where
     crypto_kem_keypair(&mut public, &mut secret, rng, None)?;
     Ok(Keypair { public, secret })
 }
-
+/// Verify that given secret and public key matches and put them in
+/// the KeyPair structure after zeroize them if asked.
+/// ### Example
+/// ```
+/// # use pqc_kyber::*;
+/// # fn main() -> Result<(), KyberError> {
+/// let mut rng = rand::thread_rng();
+/// let keys = keypair(&mut rng)?;
+/// let mut public = keys.public;
+/// let mut secret = keys.secret;
+/// let _ = keypairfrom(&mut public, &mut secret, &mut rng)?;
+/// # Ok(())}
+/// ```
+pub fn keypairfrom<R>(
+    public: &mut [u8; KYBER_PUBLICKEYBYTES],
+    secret: &mut [u8; KYBER_SECRETKEYBYTES],
+    rng: &mut R,
+) -> Result<Keypair, KyberError>
+where
+    R: RngCore + CryptoRng,
+{
+    //Try to encapsulate and decapsule to verify secret key matches public key
+    let (ciphertext, shared_secret) = encapsulate(public, rng)?;
+    let expected_shared_secret = decapsulate(&ciphertext, secret)?;
+    //If it does match, return a KeyPair
+    if expected_shared_secret == shared_secret {
+        let mut public2 = *public;
+        let mut secret2 = *secret;
+        let key = Keypair {
+            public: public2,
+            secret: secret2,
+        };
+        #[cfg(feature = "zeroize")]
+        {
+            public.zeroize();
+            secret.zeroize();
+            public2.zeroize();
+            secret2.zeroize();
+        }
+        Ok(key)
+    } else {
+        //Else return an error
+        Err(KyberError::InvalidKey)
+    }
+}
 /// Encapsulates a public key returning the ciphertext to send
 /// and the shared secret
 ///
@@ -77,7 +122,8 @@ pub fn decapsulate(ct: &[u8], sk: &[u8]) -> Decapsulated {
 /// A public/secret keypair for use with Kyber.
 ///
 /// Byte lengths of the keys are determined by the security level chosen.
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "zeroize", derive(Zeroize, ZeroizeOnDrop))]
 pub struct Keypair {
     pub public: PublicKey,
     pub secret: SecretKey,
@@ -98,6 +144,26 @@ impl Keypair {
     /// ```
     pub fn generate<R: CryptoRng + RngCore>(rng: &mut R) -> Result<Keypair, KyberError> {
         keypair(rng)
+    }
+    /// Verify that given secret and public key matches and put them in
+    /// the KeyPair structure after zeroize them if asked.
+    /// ### Example
+    /// ```
+    /// # use pqc_kyber::*;
+    /// # fn main() -> Result<(), KyberError> {
+    /// let mut rng = rand::thread_rng();
+    /// let keys = keypair(&mut rng)?;
+    /// let mut public = keys.public;
+    /// let mut secret = keys.secret;
+    /// let _ = Keypair::import(&mut public, &mut secret, &mut rng)?;
+    /// # Ok(())}
+    /// ```
+    pub fn import<R: CryptoRng + RngCore>(
+        public: &mut [u8; KYBER_PUBLICKEYBYTES],
+        secret: &mut [u8; KYBER_SECRETKEYBYTES],
+        rng: &mut R
+    ) -> Result<Keypair, KyberError> {
+        keypairfrom(public, secret, rng)
     }
 }
 

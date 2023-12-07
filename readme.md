@@ -128,6 +128,8 @@ The KyberError enum has two variants:
 
 * **RandomBytesGeneration** - Error trying to fill random bytes (i.e external (hardware) RNG modules can fail).
 
+* **InvalidKey** - Given public and secret key does not match. Probably an input error.
+
 ---
 
 ## Features
