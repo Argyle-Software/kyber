@@ -1,6 +1,11 @@
 use crate::rng::randombytes;
 use crate::{params::*, poly::*, polyvec::*, symmetric::*, CryptoRng, KyberError, RngCore};
 
+#[cfg(feature = "hazmat")]
+pub use crate::params::{
+    KYBER_INDCPA_BYTES, KYBER_INDCPA_PUBLICKEYBYTES, KYBER_INDCPA_SECRETKEYBYTES,
+};
+
 /// Name:  pack_pk
 ///
 /// Description: Serialize the public key as concatenation of the
