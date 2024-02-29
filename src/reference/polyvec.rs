@@ -25,6 +25,7 @@ impl Polyvec {
 pub fn polyvec_compress(r: &mut [u8], a: Polyvec) {
     #[cfg(feature = "kyber1024")]
     {
+        let mut d0: u64;
         let mut t = [0u16; 8];
         let mut idx = 0usize;
         for i in 0..KYBER_K {
@@ -32,8 +33,13 @@ pub fn polyvec_compress(r: &mut [u8], a: Polyvec) {
                 for k in 0..8 {
                     t[k] = a.vec[i].coeffs[8 * j + k] as u16;
                     t[k] = t[k].wrapping_add((((t[k] as i16) >> 15) & KYBER_Q as i16) as u16);
-                    t[k] = (((((t[k] as u32) << 11) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 0x7ff)
-                        as u16;
+                    /*t[k] = (((((t[k] as u32) << 11) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 0x7ff) as u16; */
+                    d0 = t[k] as u64;
+                    d0 <<= 11;
+                    d0 = d0.wrapping_add(1664);
+                    d0 = d0.wrapping_mul(645084);
+                    d0 >>= 31;
+                    t[k] = (d0 & 0x7ff) as u16;
                 }
                 r[idx + 0] = (t[0] >> 0) as u8;
                 r[idx + 1] = ((t[0] >> 8) | (t[1] << 3)) as u8;
@@ -53,6 +59,7 @@ pub fn polyvec_compress(r: &mut [u8], a: Polyvec) {
 
     #[cfg(not(feature = "kyber1024"))]
     {
+        let mut d0: u64;
         let mut t = [0u16; 4];
         let mut idx = 0usize;
         for i in 0..KYBER_K {
@@ -60,8 +67,13 @@ pub fn polyvec_compress(r: &mut [u8], a: Polyvec) {
                 for k in 0..4 {
                     t[k] = a.vec[i].coeffs[4 * j + k] as u16;
                     t[k] = t[k].wrapping_add((((t[k] as i16) >> 15) & KYBER_Q as i16) as u16);
-                    t[k] = (((((t[k] as u32) << 10) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 0x3ff)
-                        as u16;
+                    /* t[k] = (((((t[k] as u32) << 10) + KYBER_Q as u32 / 2) / KYBER_Q as u32) & 0x3ff) as u16; */
+                    d0 = t[k] as u64;
+                    d0 <<= 10;
+                    d0 = d0.wrapping_add(1665);
+                    d0 = d0.wrapping_mul(1290167);
+                    d0 >>= 32;
+                    t[k] = (d0 & 0x3ff) as u16;
                 }
                 r[idx + 0] = (t[0] >> 0) as u8;
                 r[idx + 1] = ((t[0] >> 8) | (t[1] << 2)) as u8;
