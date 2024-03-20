@@ -6,7 +6,7 @@
 
 A rust implementation of the post-quantum key exchange algorithm Kyber, packaged as a wasm binary.
 
-This version currently uses kyber764, equivalent to a 192 bit security level. To use different variants or enable 90's mode, check the [github instructions](https://github.com/Argyle-Software/kyber#webassembly) for how to compile it yourself.  
+This version currently uses kyber768, equivalent to a 192 bit security level. To use different variants or enable 90's mode, check the [github instructions](https://github.com/Argyle-Software/kyber#webassembly) for how to compile it yourself.  
 
 ### Installation
 
